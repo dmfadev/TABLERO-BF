@@ -5,159 +5,188 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Tablero de Relevamiento — Banco Familiar</title>
 <link rel="icon" type="image/webp" href="https://raw.githubusercontent.com/dmfadev/TABLERO-BF/main/logoBancoFamiliar.webp"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#1B3A6B;--blue:#2D5FA6;--yellow:#F5A800;--yl:#FFF3D0;
-  --gbg:#F2F4F7;--gt:#4A4A4A;--gm:#8A8F9A;--white:#fff;
-  --border:#DDE2EB;--red:#B03A2E;--green:#1A7A4A;--orange:#C0600A;
+  --navy:#1B3A6B;
+  --blue:#2D5FA6;
+  --blue-soft:#EBF2FA;
+  --yellow:#F5A800;
+  --yellow-soft:#FFF8E6;
+  --white:#FFFFFF;
+  --bg:#F4F7FB;
+  --surface:#FFFFFF;
+  --border:#E2E8F2;
+  --text:#2C3E60;
+  --muted:#7B8FB0;
+  --green:#1A7A4A;
+  --green-soft:#E8F5EE;
+  --red:#C0392B;
+  --red-soft:#FCEAE8;
+  --orange:#C0600A;
+  --orange-soft:#FEF3E6;
 }
-body{font-family:'DM Sans',sans-serif;background:var(--gbg);color:var(--gt);min-height:100vh}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
 
 /* ── HEADER ── */
-.hdr{background:var(--navy);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;border-bottom:3px solid var(--yellow);position:sticky;top:0;z-index:200}
-.hdr-l{display:flex;align-items:center;gap:18px}
-.logo{height:36px;display:block}
-.logo-fb{color:#fff;font-weight:700;font-size:15px;letter-spacing:.06em;display:none}
-.hdiv{width:1px;height:30px;background:rgba(255,255,255,.2)}
-.htitle{color:rgba(255,255,255,.8);font-size:11px;font-weight:400;letter-spacing:.07em;text-transform:uppercase}
-.pbadge{background:var(--yellow);color:var(--navy);font-size:11px;font-weight:700;padding:5px 13px;border-radius:4px;letter-spacing:.03em}
+.hdr{background:var(--white);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:68px;border-bottom:1px solid var(--border);box-shadow:0 2px 12px rgba(27,58,107,.07);position:sticky;top:0;z-index:200}
+.hdr-l{display:flex;align-items:center;gap:20px}
+.logo{height:44px;display:block}
+.logo-fb{color:var(--navy);font-weight:700;font-size:16px;letter-spacing:.06em;display:none}
+.hdiv{width:1px;height:34px;background:var(--border)}
+.htitle{color:var(--muted);font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase}
+.pbadge{background:var(--navy);color:var(--white);font-size:11px;font-weight:600;padding:6px 16px;border-radius:20px;letter-spacing:.03em}
 
 /* ── NAV ── */
-.nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;display:flex;position:sticky;top:67px;z-index:100}
-.ntab{padding:13px 22px;font-size:11px;font-weight:500;color:var(--gm);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;letter-spacing:.05em;text-transform:uppercase;margin-bottom:-1px;user-select:none}
-.ntab:hover{color:var(--blue)}
-.ntab.active{color:var(--navy);border-bottom-color:var(--yellow);font-weight:700}
+.nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 40px;display:flex;gap:4px;position:sticky;top:68px;z-index:100}
+.ntab{padding:14px 20px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;letter-spacing:.04em;text-transform:uppercase;margin-bottom:-1px;user-select:none;border-radius:4px 4px 0 0}
+.ntab:hover{color:var(--blue);background:var(--blue-soft)}
+.ntab.active{color:var(--navy);border-bottom-color:var(--yellow);font-weight:700;background:transparent}
+
+/* ── SUB-NAV (competencia) ── */
+.subnav{display:flex;gap:6px;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;width:fit-content}
+.stab{padding:8px 18px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border-radius:7px;transition:all .2s;letter-spacing:.04em;text-transform:uppercase;user-select:none}
+.stab:hover{color:var(--navy);background:var(--blue-soft)}
+.stab.active{background:var(--navy);color:var(--white)}
 
 /* ── CONTENT ── */
-.content{padding:28px 32px;max-width:1400px;margin:0 auto}
+.content{padding:28px 40px;max-width:1400px;margin:0 auto}
 .tc{display:none}.tc.active{display:block}
 
-/* ── RESUMEN GLOBAL ── */
-.global-card{background:var(--navy);border-radius:12px;padding:28px 32px;margin-bottom:28px;color:#fff;position:relative;overflow:hidden}
-.global-card::after{content:'';position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:rgba(245,168,0,.08);pointer-events:none}
-.global-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.global-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--yellow);margin-bottom:4px}
-.global-period{font-size:13px;color:rgba(255,255,255,.6)}
-.global-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.gm-card{background:rgba(255,255,255,.07);border-radius:8px;padding:16px 18px;border:1px solid rgba(255,255,255,.1)}
-.gm-val{font-size:32px;font-weight:700;line-height:1;color:#fff}
-.gm-val.accent{color:var(--yellow)}
-.gm-label{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
-.gm-sub{font-size:12px;margin-top:4px}
-.gm-sub.pos{color:#6EE7B7}.gm-sub.neg{color:#FCA5A5}.gm-sub.mid{color:#FCD34D}
-.global-insight{background:rgba(255,255,255,.06);border-radius:8px;padding:14px 18px;font-size:13px;color:rgba(255,255,255,.82);line-height:1.6;border-left:3px solid var(--yellow)}
-.city-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
-.city-pill{background:rgba(255,255,255,.07);border-radius:8px;padding:12px 16px;border:1px solid rgba(255,255,255,.1)}
-.city-name{font-size:11px;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-.city-stats{font-size:12px;color:rgba(255,255,255,.7)}
-.city-bar-track{height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:8px;overflow:hidden}
-.city-bar-fill{height:100%;border-radius:2px;background:var(--yellow)}
+/* ── GLOBAL CARD ── */
+.global-card{border-radius:14px;padding:30px 32px;margin-bottom:28px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1B3A6B 0%,#2D5FA6 100%)}
+.global-card .noise{position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none}
+.gc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px;position:relative}
+.gc-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:4px}
+.gc-period{font-size:13px;color:rgba(255,255,255,.55)}
+.gc-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;position:relative}
+.gm{background:rgba(255,255,255,.1);border-radius:10px;padding:16px 18px;border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(4px)}
+.gm-val{font-size:30px;font-weight:700;line-height:1;color:#fff}
+.gm-val.y{color:var(--yellow)}
+.gm-lbl{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
+.gm-sub{font-size:11px;margin-top:4px;font-weight:500}
+.sp{color:#86EFAC}.sn{color:#FCA5A5}.sm{color:#FCD34D}
+.gc-insight{background:rgba(255,255,255,.08);border-radius:10px;padding:14px 18px;font-size:13px;color:rgba(255,255,255,.85);line-height:1.65;border-left:3px solid var(--yellow);position:relative}
+.city-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative}
+.cpill{background:rgba(255,255,255,.08);border-radius:10px;padding:13px 16px;border:1px solid rgba(255,255,255,.1)}
+.cpill-name{font-size:10px;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.cpill-stat{font-size:12px;color:rgba(255,255,255,.72)}
+.cpill-bar{height:4px;background:rgba(255,255,255,.12);border-radius:2px;margin-top:9px;overflow:hidden}
+.cpill-fill{height:100%;border-radius:2px;background:var(--yellow)}
 
 /* ── TOP LOCALES ── */
-.top-section{margin-bottom:28px}
-.sec-title{font-size:10px;font-weight:700;color:var(--gm);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
-.top-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.top-card{background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:box-shadow .2s}
-.top-card:hover{box-shadow:0 4px 20px rgba(27,58,107,.12)}
-.top-photo{width:100%;height:130px;object-fit:cover;display:block;background:var(--gbg)}
-.top-photo-placeholder{width:100%;height:130px;background:var(--gbg);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gm)}
-.top-info{padding:12px 14px}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
+.top-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+.top-card{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .15s}
+.top-card:hover{box-shadow:0 8px 28px rgba(27,58,107,.13);transform:translateY(-2px)}
+.top-img{width:100%;height:130px;object-fit:cover;display:block;background:var(--bg)}
+.top-img-ph{width:100%;height:130px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)}
+.top-info{padding:13px 15px}
 .top-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px}
-.top-city{font-size:11px;color:var(--gm);margin-bottom:8px}
-.top-tags{display:flex;gap:6px;flex-wrap:wrap}
+.top-city{font-size:11px;color:var(--muted);margin-bottom:9px}
+.top-tags{display:flex;gap:5px;flex-wrap:wrap}
 
-/* ── KPI ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.kpi{background:var(--white);border-radius:10px;padding:18px 20px;border:1px solid var(--border);position:relative;overflow:hidden}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+/* ── KPIs ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--surface);border-radius:12px;padding:18px 20px;border:1px solid var(--border);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
 .kpi.b::before{background:var(--blue)}.kpi.g::before{background:var(--green)}
 .kpi.r::before{background:var(--red)}.kpi.y::before{background:var(--yellow)}
-.kpi-lbl{font-size:10px;color:var(--gm);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px}
-.kpi-val{font-size:34px;font-weight:700;color:var(--navy);line-height:1}
-.kpi-sub{font-size:12px;margin-top:6px}
+.kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px}
+.kpi-val{font-size:32px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-sub{font-size:11px;margin-top:6px;font-weight:500}
 .pos{color:var(--green)}.neg{color:var(--red)}.mid{color:var(--orange)}
 
 /* ── TWO COL ── */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
-.card{background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden}
-.card-h{padding:13px 20px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.08em}
-.card-b{padding:16px 20px}
-.br{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.bl{font-size:11px;color:var(--gt);flex-shrink:0}
-.bt{flex:1;height:7px;background:var(--gbg);border-radius:4px;overflow:hidden}
-.bf{height:100%;border-radius:4px}
-.bv{font-size:12px;font-weight:700;color:var(--navy);min-width:26px;text-align:right}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
+.card{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.card-h{padding:13px 18px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.08em}
+.card-b{padding:16px 18px}
+.br{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.bl{font-size:11px;color:var(--text);flex-shrink:0;min-width:150px}
+.bt{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.bf{height:100%;border-radius:3px;transition:width .6s ease}
+.bv{font-size:11px;font-weight:700;color:var(--navy);min-width:24px;text-align:right}
 
 /* ── ALERTS ── */
 .al{list-style:none}
-.ai{padding:9px 12px;border-radius:7px;margin-bottom:7px;font-size:12px;display:flex;align-items:flex-start;gap:8px;border-left:3px solid;line-height:1.5}
-.ai.c{background:#FFF5F5;border-color:var(--red);color:#7A1F1F}
-.ai.w{background:#FFF8F0;border-color:var(--orange);color:#7A3A08}
-.ai.i{background:#EFF5FF;border-color:var(--blue);color:#1B3A6B}
-.ad{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ai{padding:9px 12px;border-radius:8px;margin-bottom:6px;font-size:12px;display:flex;align-items:flex-start;gap:8px;line-height:1.5;border-left:3px solid}
+.ai.c{background:var(--red-soft);border-color:var(--red);color:#7A1F1F}
+.ai.w{background:var(--orange-soft);border-color:var(--orange);color:#7A3A08}
+.ai.i{background:var(--blue-soft);border-color:var(--blue);color:#1B3A6B}
+.ad{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
 .ai.c .ad{background:var(--red)}.ai.w .ad{background:var(--orange)}.ai.i .ad{background:var(--blue)}
 
 /* ── FILTER BAR ── */
-.fb{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.fl{font-size:10px;font-weight:700;color:var(--gm);text-transform:uppercase;letter-spacing:.09em}
-.fs{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--navy);background:var(--gbg);font-family:'DM Sans',sans-serif;cursor:pointer}
+.fb{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
+.fs{border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:11px;color:var(--navy);background:var(--bg);font-family:'Inter',sans-serif;cursor:pointer}
 .fs:focus{outline:none;border-color:var(--blue)}
-.rc{font-size:12px;color:var(--gm);margin-left:auto;font-weight:500}
+.rc{font-size:11px;color:var(--muted);margin-left:auto;font-weight:500}
 
 /* ── TAGS ── */
-.tag{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
-.tg{background:#E6F5EC;color:#145A35}.tr{background:#FDEAEA;color:#921F1F}
-.to{background:#FEF3E6;color:#994D08}.tgr{background:var(--gbg);color:var(--gm)}
-.tb{background:#EAF0FB;color:#1B3A6B}.ty{background:var(--yl);color:#7A5500}
+.tag{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.tg{background:var(--green-soft);color:#145A35}
+.tr{background:var(--red-soft);color:#921F1F}
+.to{background:var(--orange-soft);color:#994D08}
+.tgr{background:var(--bg);color:var(--muted)}
+.tb{background:var(--blue-soft);color:#1B3A6B}
+.ty{background:var(--yellow-soft);color:#7A5500}
 
 /* ── LOCAL CARDS ── */
-.lg{display:flex;flex-direction:column;gap:10px}
-.lc{background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden}
-.lh{padding:13px 18px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:background .15s;flex-wrap:wrap}
-.lh:hover{background:var(--gbg)}
+.lg{display:flex;flex-direction:column;gap:8px}
+.lc{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;transition:border-color .2s}
+.lc:hover{border-color:#B8CCE8}
+.lh{padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .15s;flex-wrap:wrap}
+.lh:hover{background:var(--bg)}
 .li{flex:1;min-width:160px}
 .ln{font-size:13px;font-weight:600;color:var(--navy)}
-.lci{font-size:11px;color:var(--gm);margin-top:2px}
-.chv{font-size:11px;color:var(--gm);transition:transform .2s;margin-left:auto;flex-shrink:0}
+.lci{font-size:11px;color:var(--muted);margin-top:2px}
+.chv{font-size:11px;color:var(--muted);transition:transform .2s;margin-left:auto;flex-shrink:0}
 .chv.open{transform:rotate(180deg)}
-.lb{padding:0 18px 18px;display:none}
+.lb{padding:0 16px 16px;display:none}
 .lb.open{display:block}
-.dg{display:grid;grid-template-columns:1fr 1fr;gap:11px 26px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:13px}
-.dk{font-size:10px;color:var(--gm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
-.dv{font-size:13px;color:var(--navy);font-weight:500}
-.obs{background:var(--gbg);border-radius:7px;padding:10px 13px;font-size:12px;color:var(--gt);margin-bottom:14px;border-left:3px solid var(--yellow);line-height:1.6}
-.pl{font-size:10px;font-weight:700;color:var(--gm);text-transform:uppercase;letter-spacing:.09em;margin-bottom:9px}
-.pg{display:flex;gap:9px;flex-wrap:wrap}
-.pt{width:115px;height:82px;border-radius:7px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:transform .15s}
-.pt:hover{transform:scale(1.04)}
-.pp{width:115px;height:82px;border-radius:7px;background:var(--gbg);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--gm);text-align:center}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:12px}
+.dk{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.dv{font-size:12px;color:var(--navy);font-weight:500}
+.obs{background:var(--yellow-soft);border-radius:8px;padding:10px 13px;font-size:12px;color:#5C4000;margin-bottom:13px;border-left:3px solid var(--yellow);line-height:1.6}
+.pl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:9px}
+.pg{display:flex;gap:8px;flex-wrap:wrap}
+.pt{width:110px;height:78px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.pt:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(27,58,107,.15)}
+.pp{width:110px;height:78px;border-radius:8px;background:var(--bg);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center;padding:6px}
 
 /* ── MODAL ── */
-.mo{position:fixed;inset:0;background:rgba(5,15,35,.88);display:none;align-items:center;justify-content:center;z-index:9999}
+.mo{position:fixed;inset:0;background:rgba(5,15,35,.9);display:none;align-items:center;justify-content:center;z-index:9999}
 .mo.open{display:flex}
-.mi{max-width:90vw;max-height:88vh;border-radius:8px;object-fit:contain}
-.mc{position:fixed;top:16px;right:20px;color:#fff;font-size:22px;cursor:pointer;background:rgba(255,255,255,.12);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;transition:background .15s}
-.mc:hover{background:rgba(255,255,255,.22)}
+.mi{max-width:90vw;max-height:88vh;border-radius:10px;object-fit:contain}
+.mc{position:fixed;top:16px;right:20px;color:#fff;font-size:20px;cursor:pointer;background:rgba(255,255,255,.15);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.mc:hover{background:rgba(255,255,255,.25)}
 
-.loader{text-align:center;padding:80px;color:var(--gm);font-size:14px}
-.nodata{text-align:center;padding:60px;color:var(--gm);font-size:14px}
+.loader{text-align:center;padding:80px;color:var(--muted);font-size:14px}
+.nodata{text-align:center;padding:60px;color:var(--muted);font-size:14px}
+.compe-badge{display:inline-block;background:var(--orange-soft);color:var(--orange);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;margin-left:8px;vertical-align:middle}
 
-@media(max-width:900px){
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .two-col,.global-metrics,.top-grid,.city-grid{grid-template-columns:1fr}
+@media(max-width:960px){
+  .kpi-grid,.gc-metrics,.top-grid,.city-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
   .hdr,.nav,.content{padding-left:16px;padding-right:16px}
   .htitle{display:none}
   .dg{grid-template-columns:1fr}
+}
+@media(max-width:540px){
+  .kpi-grid,.gc-metrics,.top-grid,.city-grid{grid-template-columns:1fr}
+  .subnav{width:100%}
 }
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="hdr">
   <div class="hdr-l">
-    <img src="https://raw.githubusercontent.com/dmfadev/TABLERO-BF/main/logoBancoFamiliar.webp"
+    <img src="https://raw.githubusercontent.com/dmfadev/TABLERO-BF/main/logobancofamiliarblanco.jpg"
          class="logo" alt="Banco Familiar"
          onerror="this.style.display='none';document.getElementById('lfb').style.display='block'"/>
     <span id="lfb" class="logo-fb">BANCO FAMILIAR</span>
@@ -167,6 +196,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gbg);color:var(--gt);min-
   <div id="pbadge" class="pbadge">—</div>
 </div>
 
+<!-- NAV PRINCIPAL -->
 <div class="nav">
   <div class="ntab active" onclick="switchTab('gastro')">Relevamiento Gastronómico</div>
   <div class="ntab" onclick="switchTab('tiendas')">Relevamiento Tiendas</div>
@@ -177,20 +207,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--gbg);color:var(--gt);min-
   <div id="tc-tiendas" class="tc"><div class="loader">Cargando datos...</div></div>
 </div>
 
+<!-- MODAL FOTO -->
 <div class="mo" id="modal" onclick="closeModal(event)">
   <button class="mc" onclick="closeModal(null,true)">&#10005;</button>
   <img class="mi" id="mimg" src="" alt="Evidencia fotográfica"/>
 </div>
 
 <script>
-const SHEET_ID = '1YrNdJ_Hf9AyrKm_MpO3FgyqLWs4x3iNRuQv9AfNpnok';
-const CFG = {
-  gastro: { gid:'0', period:'20 al 25 de mayo 2026', label:'Gastronómico' },
-  tiendas:{ gid:'649004744', period:'11 al 13 de mayo 2026', label:'Tiendas' }
+const SHEET = '1YrNdJ_Hf9AyrKm_MpO3FgyqLWs4x3iNRuQv9AfNpnok';
+
+const TABS = {
+  gastro:  { bf:'0',            compe:'1005179077', period:'20 al 25 de mayo 2026', label:'Gastronómico' },
+  tiendas: { bf:'1203279782',   compe:'1203279782', period:'11 al 13 de mayo 2026', label:'Tiendas',
+             hasCompeInSame: true }
 };
 
-// Duplicados a descartar — conservar siempre la entrada más reciente
-const DROP = new Set([
+// Duplicados a descartar en gastro (conservar la más reciente)
+const DROP_GASTRO = new Set([
   '595 LOUNGE|Ciudad del Este|14:00:43',
   'LA CAROLINA CAFE BISTRO|Ciudad del Este|15:13:43',
   'BURGER KING VILLARRICA|Villarrica|16:31:21',
@@ -201,46 +234,48 @@ const DROP = new Set([
   'MANSION IRIGOYEN|Concepcion|10:36:55',
 ]);
 
-const C={FECHA:0,HORA:1,LOCAL:3,NOMBRE_ID:4,CIUDAD:5,TIPO_LOCAL:6,
-  BENEFICIO:9,HAY_MAT:10,TIPO_MAT:11,MAT_COL:12,ESTADO_MAT:14,
-  BEN_EXH:15,OFERTA:16,HAY_ANT:17,TIPO_ANT:18,CONOCE:19,
-  ENCARGADO:20,OBS:21,F1:23,F2:24,F3:25,FAUS:26,FANT:27};
+const C = {
+  FECHA:0,HORA:1,LOCAL:3,NOMBRE_ID:4,CIUDAD:5,TIPO_LOCAL:6,
+  TIPO_MAT_ASIG:7,DIA_PROMO:8,BENEFICIO:9,
+  HAY_MAT:10,TIPO_MAT:11,MAT_COL:12,ESTADO_MAT:14,
+  BEN_EXH:15,OFERTA:16,HAY_ANT:17,TIPO_ANT:18,
+  CONOCE:19,ENCARGADO:20,OBS:21,ESTADO_ENVIO:22,
+  F1:23,F2:24,F3:25,FAUS:26,FANT:27
+};
 
-const isYes=v=>(v||'').toLowerCase().startsWith('s');
-const drv=u=>{if(!u||!u.trim())return null;const m=u.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?`https://drive.google.com/uc?export=view&id=${m[1]}`:null};
-const photos=r=>[r[C.F1],r[C.F2],r[C.F3],r[C.FAUS],r[C.FANT]].map(drv).filter(Boolean);
-const firstPhoto=r=>photos(r)[0]||null;
+const isYes = v => (v||'').toLowerCase().startsWith('s');
+const drv = u => {
+  if(!u||!u.trim()) return null;
+  const m = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? `https://drive.google.com/uc?export=view&id=${m[1]}` : null;
+};
+const getPhotos = r => [r[C.F1],r[C.F2],r[C.F3],r[C.FAUS],r[C.FANT]].map(drv).filter(Boolean);
+const firstPhoto = r => getPhotos(r)[0] || null;
 
-function matTag(r){return isYes(r[C.HAY_MAT])?{c:'tg',l:'Con material'}:{c:'tr',l:'Sin material'}}
+// ─── TAGS ─────────────────────────────────────────────────────
+function matTag(r){ return isYes(r[C.HAY_MAT]) ? {c:'tg',l:'Con material'} : {c:'tr',l:'Sin material'} }
 function estTag(r){
-  const e=r[C.ESTADO_MAT]||'';
-  if(!e)return{c:'tgr',l:'—'};
-  if(e.includes('perfecto'))return{c:'tg',l:'Buen estado'};
+  const e = r[C.ESTADO_MAT]||'';
+  if(!e) return{c:'tgr',l:'—'};
+  if(e.includes('perfecto'))   return{c:'tg',l:'Buen estado'};
   if(e.includes('deteriorado'))return{c:'to',l:'Deteriorado'};
-  if(e.includes('Poco visible')||e.includes('mal ubicado'))return{c:'to',l:'Mal ubicado'};
+  if(e.includes('Poco visible')||e.includes('mal ubic'))return{c:'to',l:'Mal ubicado'};
   if(e.includes('No esta colocado'))return{c:'to',l:'No colocado'};
-  if(e.includes('anterior'))return{c:'ty',l:'Camp. anterior'};
+  if(e.includes('anterior'))   return{c:'ty',l:'Camp. anterior'};
   if(e.includes('corresponde'))return{c:'tb',l:'Correcto'};
   return{c:'tgr',l:e.substring(0,22)};
 }
 function conoceTag(v){
   const s=(v||'').toLowerCase();
-  if(s.includes('bien'))return{c:'tg',l:'Conoce promo'};
-  if(s.includes('parcial'))return{c:'to',l:'Conoce parcial'};
-  if(s.includes('no la conoce'))return{c:'tr',l:'No conoce'};
+  if(s.includes('bien'))     return{c:'tg',l:'Conoce promo'};
+  if(s.includes('parcial'))  return{c:'to',l:'Parcialmente'};
+  if(s.includes('no la conoce')) return{c:'tr',l:'No conoce'};
   return{c:'tgr',l:'Sin encargado'};
 }
 
-function dedup(rows){
-  return rows.filter(r=>{
-    const k=`${(r[C.LOCAL]||'').trim()}|${(r[C.CIUDAD]||'').trim()}|${(r[C.HORA]||'').trim()}`;
-    return !DROP.has(k);
-  });
-}
-
+// ─── CSV PARSER ───────────────────────────────────────────────
 function parseCSV(txt){
-  const lines=txt.split('\n');
-  return lines.slice(2).map(line=>{
+  return txt.split('\n').slice(2).map(line=>{
     const cols=[];let cur='',inQ=false;
     for(let i=0;i<line.length;i++){
       const ch=line[i];
@@ -248,20 +283,27 @@ function parseCSV(txt){
       else if(ch===','&&!inQ){cols.push(cur.trim());cur=''}
       else{cur+=ch}
     }
-    cols.push(cur.trim());return cols;
+    cols.push(cur.trim());
+    return cols;
   }).filter(r=>r[C.LOCAL]&&r[C.LOCAL].trim()!=='');
 }
 
-// ─── GLOBAL SUMMARY ───────────────────────────────────────────
-function buildGlobal(rows,cfg){
-  const total=rows.length;
-  const con=rows.filter(r=>isYes(r[C.HAY_MAT])).length;
-  const sin=total-con;
-  const conoce=rows.filter(r=>(r[C.CONOCE]||'').toLowerCase().includes('bien')).length;
-  const pctCon=total?Math.round(con/total*100):0;
-  const pctCon2=total?Math.round(conoce/total*100):0;
+function dedup(rows, dropSet){
+  return rows.filter(r=>{
+    const k=`${(r[C.LOCAL]||'').trim()}|${(r[C.CIUDAD]||'').trim()}|${(r[C.HORA]||'').trim()}`;
+    return !dropSet.has(k);
+  });
+}
 
-  // City stats
+// ─── GLOBAL SUMMARY ───────────────────────────────────────────
+function buildGlobal(rows, cfg, isCompe){
+  const total = rows.length;
+  const con   = rows.filter(r=>isYes(r[C.HAY_MAT])).length;
+  const sin   = total - con;
+  const conoce= rows.filter(r=>(r[C.CONOCE]||'').toLowerCase().includes('bien')).length;
+  const pctCon  = total ? Math.round(con/total*100) : 0;
+  const pctKnow = total ? Math.round(conoce/total*100) : 0;
+
   const cityMap={};
   rows.forEach(r=>{
     const c=r[C.CIUDAD]||'Sin ciudad';
@@ -269,102 +311,85 @@ function buildGlobal(rows,cfg){
     cityMap[c].total++;
     if(isYes(r[C.HAY_MAT]))cityMap[c].con++;
   });
-  const cities=Object.entries(cityMap).sort((a,b)=>b[1].total-a[1].total).slice(0,6);
-  const maxCityTotal=cities[0]?.[1].total||1;
+  const cities = Object.entries(cityMap).sort((a,b)=>b[1].total-a[1].total).slice(0,6);
+  const maxT = cities[0]?.[1].total||1;
+  const bestCity = [...cities].sort((a,b)=>(b[1].con/b[1].total)-(a[1].con/a[1].total))[0];
+  const bestPct  = bestCity ? Math.round(bestCity[1].con/bestCity[1].total*100) : 0;
+  const perfectos= rows.filter(r=>isYes(r[C.HAY_MAT])&&(r[C.ESTADO_MAT]||'').includes('perfecto')).length;
 
-  // Insight text — positivo
-  const bestCity=cities.sort((a,b)=>(b[1].con/b[1].total)-(a[1].con/a[1].total))[0];
-  const bestCityPct=bestCity?Math.round(bestCity[1].con/bestCity[1].total*100):0;
-  const cityReset=cities.sort((a,b)=>b[1].total-a[1].total);
-  const localesConMaterial=rows.filter(r=>isYes(r[C.HAY_MAT])&&(r[C.ESTADO_MAT]||'').includes('perfecto')).length;
+  let insight;
+  if(isCompe){
+    insight = `Se relevaron ${total} puntos de venta con presencia de la competencia. ${con} de ellos exhiben material activo de otras entidades bancarias. ${bestCity?`${bestCity[0]} concentra mayor presencia competidora con ${bestPct}% de cobertura.`:''} Este análisis permite identificar los locales donde BF enfrenta mayor exposición a materiales de otras instituciones.`;
+  } else {
+    insight = `${con} de ${total} locales relevados cuentan con material BF presente y activo.${bestCity?` ${bestCity[0]} lidera con ${bestPct}% de cobertura.`:''} ${perfectos} locales presentan material en perfecto estado. ${conoce} encargados conocen la promoción vigente, lo que representa una base sólida para reforzar la comunicación en puntos de menor presencia.`;
+  }
 
-  const insight=`${con} de ${total} locales relevados cuentan con material BF presente y activo. ${bestCity?`${bestCity[0]} lidera con ${bestCityPct}% de cobertura.`:''} ${localesConMaterial} locales presentan material en perfecto estado. ${conoce} encargados conocen la promoción vigente, lo que representa una base sólida para reforzar la comunicación en puntos de baja cobertura.`;
-
-  const cityHTML=cityReset.map(([name,st])=>{
-    const pct=Math.round(st.con/st.total*100);
-    const barPct=Math.round(st.total/maxCityTotal*100);
-    return `<div class="city-pill">
-      <div class="city-name">${name}</div>
-      <div class="city-stats">${st.total} relevados — <strong>${pct}%</strong> con material</div>
-      <div class="city-bar-track"><div class="city-bar-fill" style="width:${barPct}%"></div></div>
+  const cityHTML = cities.sort((a,b)=>b[1].total-a[1].total).map(([name,st])=>{
+    const pct = Math.round(st.con/st.total*100);
+    const barPct = Math.round(st.total/maxT*100);
+    return `<div class="cpill">
+      <div class="cpill-name">${name}</div>
+      <div class="cpill-stat">${st.total} relevados — <strong>${pct}%</strong> con material</div>
+      <div class="cpill-bar"><div class="cpill-fill" style="width:${barPct}%"></div></div>
     </div>`;
   }).join('');
 
-  return `
-  <div class="global-card">
-    <div class="global-top">
+  const gcLabel = isCompe ? `Análisis de Competencia — ${cfg.label}` : `Resumen Global — ${cfg.label}`;
+
+  return `<div class="global-card">
+    <div class="noise"></div>
+    <div class="gc-top">
       <div>
-        <div class="global-title">Resumen global — ${cfg.label}</div>
-        <div class="global-period">Período: ${cfg.period}</div>
+        <div class="gc-label">${gcLabel}</div>
+        <div class="gc-period">Período: ${cfg.period}</div>
       </div>
     </div>
-    <div class="global-metrics">
-      <div class="gm-card">
-        <div class="gm-val">${total}</div>
-        <div class="gm-label">Locales relevados</div>
-        <div class="gm-sub mid">${cities.length} ciudades cubiertas</div>
-      </div>
-      <div class="gm-card">
-        <div class="gm-val accent">${con}</div>
-        <div class="gm-label">Con material BF</div>
-        <div class="gm-sub pos">${pctCon}% de cobertura</div>
-      </div>
-      <div class="gm-card">
-        <div class="gm-val">${conoce}</div>
-        <div class="gm-label">Encargados conocen promo</div>
-        <div class="gm-sub ${pctCon2>=50?'pos':'mid'}">${pctCon2}% del total</div>
-      </div>
-      <div class="gm-card">
-        <div class="gm-val">${sin}</div>
-        <div class="gm-label">Sin material BF</div>
-        <div class="gm-sub neg">${100-pctCon}% oportunidad de refuerzo</div>
-      </div>
+    <div class="gc-metrics">
+      <div class="gm"><div class="gm-val">${total}</div><div class="gm-lbl">Locales relevados</div><div class="gm-sub sm">${cities.length} ciudades cubiertas</div></div>
+      <div class="gm"><div class="gm-val y">${con}</div><div class="gm-lbl">${isCompe?'Con material competencia':'Con material BF'}</div><div class="gm-sub sp">${pctCon}% de cobertura</div></div>
+      <div class="gm"><div class="gm-val">${conoce}</div><div class="gm-lbl">Encargados conocen promo</div><div class="gm-sub ${pctKnow>=50?'sp':'sm'}">${pctKnow}% del total</div></div>
+      <div class="gm"><div class="gm-val">${sin}</div><div class="gm-lbl">${isCompe?'Sin material competencia':'Sin material BF'}</div><div class="gm-sub sn">${100-pctCon}% ${isCompe?'sin presencia':'oportunidad'}</div></div>
     </div>
-    <div class="global-insight">${insight}</div>
-    <div class="city-grid" style="margin-top:20px">${cityHTML}</div>
+    <div class="gc-insight">${insight}</div>
+    <div class="city-grid">${cityHTML}</div>
   </div>`;
 }
 
-// ─── TOP LOCALES ──────────────────────────────────────────────
-function buildTop(rows,prefix){
-  const top=rows
-    .filter(r=>isYes(r[C.HAY_MAT])&&(r[C.ESTADO_MAT]||'').includes('perfecto')&&(r[C.CONOCE]||'').toLowerCase().includes('bien'))
+// ─── TOP LOCALES (solo BF) ────────────────────────────────────
+function buildTop(rows, tabKey){
+  const top = rows
+    .filter(r => isYes(r[C.HAY_MAT]) && (r[C.ESTADO_MAT]||'').includes('perfecto') && (r[C.CONOCE]||'').toLowerCase().includes('bien'))
     .slice(0,3);
-  if(!top.length)return'';
-  const cards=top.map((r,i)=>{
-    const fp=firstPhoto(r);
-    const photoEl=fp
-      ?`<img class="top-photo" src="${fp}" alt="Foto" onerror="this.style.display='none'" loading="lazy"/>`
-      :`<div class="top-photo-placeholder">Sin foto disponible</div>`;
-    const mt=matTag(r);
-    const et=estTag(r);
-    return `<div class="top-card" onclick="openModal('${fp||''}')">
-      ${photoEl}
+  if(!top.length) return '';
+  const cards = top.map(r=>{
+    const fp = firstPhoto(r);
+    const imgEl = fp
+      ? `<img class="top-img" src="${fp}" alt="Foto" onerror="this.parentElement.innerHTML='<div class=top-img-ph>Sin foto</div>'" loading="lazy"/>`
+      : `<div class="top-img-ph">Sin foto disponible</div>`;
+    return `<div class="top-card" onclick="if('${fp}')openModal('${fp}')">
+      ${imgEl}
       <div class="top-info">
         <div class="top-name">${r[C.LOCAL]||'—'}</div>
         <div class="top-city">${r[C.CIUDAD]||''} · ${r[C.TIPO_LOCAL]||''}</div>
         <div class="top-tags">
-          <span class="tag ${mt.c}">${mt.l}</span>
-          <span class="tag ${et.c}">${et.l}</span>
+          <span class="tag tg">Con material</span>
+          <span class="tag tg">Buen estado</span>
+          <span class="tag tg">Conoce promo</span>
         </div>
       </div>
     </div>`;
   }).join('');
-  return`<div class="top-section">
-    <div class="sec-title">Locales con mejor desempe&#241;o — evidencia fotogr&#225;fica</div>
-    <div class="top-grid">${cards}</div>
-  </div>`;
+  return `<div class="sec-lbl">Locales con mejor desempeño — evidencia fotográfica</div>
+    <div class="top-grid">${cards}</div>`;
 }
 
 // ─── KPIs ─────────────────────────────────────────────────────
-function buildKPIs(rows){
-  const total=rows.length;
-  const con=rows.filter(r=>isYes(r[C.HAY_MAT])).length;
-  const sin=total-con;
-  const conoce=rows.filter(r=>(r[C.CONOCE]||'').toLowerCase().includes('bien')).length;
+function buildKPIs(rows, period){
+  const total=rows.length, con=rows.filter(r=>isYes(r[C.HAY_MAT])).length;
+  const sin=total-con, conoce=rows.filter(r=>(r[C.CONOCE]||'').toLowerCase().includes('bien')).length;
   const pct=v=>total?Math.round(v/total*100):0;
-  return`<div class="kpi-grid">
-    <div class="kpi b"><div class="kpi-lbl">Locales relevados</div><div class="kpi-val">${total}</div><div class="kpi-sub" style="color:var(--gm)">Período ${CFG.gastro.period}</div></div>
+  return `<div class="kpi-grid">
+    <div class="kpi b"><div class="kpi-lbl">Locales relevados</div><div class="kpi-val">${total}</div><div class="kpi-sub" style="color:var(--muted)">Período ${period}</div></div>
     <div class="kpi g"><div class="kpi-lbl">Con material BF</div><div class="kpi-val">${con}</div><div class="kpi-sub pos">${pct(con)}% del total</div></div>
     <div class="kpi r"><div class="kpi-lbl">Sin material BF</div><div class="kpi-val">${sin}</div><div class="kpi-sub neg">${pct(sin)}% del total</div></div>
     <div class="kpi y"><div class="kpi-lbl">Conocen la promo</div><div class="kpi-val">${conoce}</div><div class="kpi-sub ${pct(conoce)>=50?'pos':'mid'}">${pct(conoce)}% del total</div></div>
@@ -373,44 +398,35 @@ function buildKPIs(rows){
 
 // ─── ALERTS ───────────────────────────────────────────────────
 function buildAlerts(rows){
-  const seen=new Set(),al=[];
+  const seen=new Set(), al=[];
   const add=(t,x)=>{if(!seen.has(x)){seen.add(x);al.push({t,x})}};
   rows.forEach(r=>{
-    const loc=r[C.LOCAL]||'';
-    const obs=(r[C.OBS]||'').toLowerCase();
-    const ben=(r[C.BENEFICIO]||'').toUpperCase();
-    if(ben.includes('RETIRAR'))add('c',`${loc} — Beneficio marcado para retirar.`);
-    if(obs.includes('cerrado definitivamente')||obs.includes('local cerrado'))add('c',`${loc} — Local cerrado definitivamente.`);
-    if(obs.includes('cerrado por temporada'))add('w',`${loc} — Cerrado por temporada baja.`);
-    if(obs.includes('no se permite')||obs.includes('no se puede colocar')||obs.includes('no se cuenta'))add('w',`${loc} — No se permite exhibir material BF.`);
-    if(obs.includes('retir')&&!ben.includes('RETIRAR'))add('c',`${loc} — Material retirado durante el relevamiento.`);
-    if(obs.includes('solicita')||obs.includes('interesado')||obs.includes('pidi'))add('i',`${loc} — Encargado solicita o muestra interés en material BF.`);
-    if(obs.includes('no hay acuerdo'))add('w',`${loc} — Sin acuerdo vigente con BF según encargado.`);
-    if(obs.includes('nueva administraci'))add('i',`${loc} — Local con nueva administración, convenio en gestión.`);
-    if(obs.includes('pegatina')||obs.includes('enero')||obs.includes('febrero'))add('w',`${loc} — Material de campaña anterior sin retirar.`);
+    const loc=r[C.LOCAL]||'', obs=(r[C.OBS]||'').toLowerCase(), ben=(r[C.BENEFICIO]||'').toUpperCase();
+    if(ben.includes('RETIRAR'))                           add('c',`${loc} — Beneficio marcado para retirar.`);
+    if(obs.includes('cerrado definitivamente'))            add('c',`${loc} — Local cerrado definitivamente.`);
+    if(obs.includes('cerrado por temporada'))             add('w',`${loc} — Cerrado por temporada baja.`);
+    if(obs.includes('no se permite')||obs.includes('no se puede colocar')) add('w',`${loc} — No permite exhibir material.`);
+    if(obs.includes('retir')&&!ben.includes('RETIRAR'))   add('c',`${loc} — Material retirado durante el relevamiento.`);
+    if(obs.includes('solicita')||obs.includes('interesado')||obs.includes('pidi')) add('i',`${loc} — Encargado solicita material BF.`);
+    if(obs.includes('no hay acuerdo'))                    add('w',`${loc} — Sin acuerdo vigente con BF.`);
+    if(obs.includes('nueva administraci'))                add('i',`${loc} — Nueva administración, convenio en gestión.`);
+    if((obs.includes('pegatina')||obs.includes('enero')||obs.includes('febrero'))&&obs.includes('anterior')) add('w',`${loc} — Material de campaña anterior sin retirar.`);
+    if(obs.includes('local nuevo'))                       add('i',`${loc} — Local nuevo, sin visita previa de BF.`);
   });
-  if(!al.length)return'<div style="font-size:12px;color:var(--gm);padding:6px 0">Sin alertas críticas detectadas.</div>';
-  return`<ul class="al">${al.slice(0,10).map(a=>`<li class="ai ${a.t}"><span class="ad"></span><span>${a.x}</span></li>`).join('')}</ul>`;
+  if(!al.length) return '<div style="font-size:12px;color:var(--muted)">Sin alertas críticas detectadas.</div>';
+  return `<ul class="al">${al.slice(0,12).map(a=>`<li class="ai ${a.t}"><span class="ad"></span><span>${a.x}</span></li>`).join('')}</ul>`;
 }
 
-// ─── BARS ─────────────────────────────────────────────────────
-function bars(items,maxV,col,minW){
+// ─── BAR ROWS ─────────────────────────────────────────────────
+function barRows(items, maxV, col, minW){
   return items.map(([l,v])=>{
     const p=Math.round(v/maxV*100);
     const c=l==='Sin material'?'var(--red)':col;
     const sh=l.length>30?l.substring(0,30)+'…':l;
-    return`<div class="br">
-      <span class="bl" style="min-width:${minW||160}px">${sh}</span>
-      <div class="bt"><div class="bf" style="width:${p}%;background:${c}"></div></div>
-      <span class="bv">${v}</span>
-    </div>`;
+    return `<div class="br"><span class="bl" style="min-width:${minW||150}px;font-size:11px">${sh}</span><div class="bt"><div class="bf" style="width:${p}%;background:${c}"></div></div><span class="bv">${v}</span></div>`;
   }).join('');
 }
-
-function cityDist(rows){
-  const m={};rows.forEach(r=>{const c=r[C.CIUDAD]||'Sin ciudad';m[c]=(m[c]||0)+1});
-  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8);
-}
+function cityDist(rows){ const m={};rows.forEach(r=>{const c=r[C.CIUDAD]||'Sin ciudad';m[c]=(m[c]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8) }
 function matDist(rows){
   const m={};
   rows.forEach(r=>{if(isYes(r[C.HAY_MAT])){const t=r[C.TIPO_MAT]||'Sin especificar';m[t]=(m[t]||0)+1}});
@@ -423,38 +439,32 @@ function conoceDist(rows){
   const p=rows.filter(r=>(r[C.CONOCE]||'').toLowerCase().includes('parcial')).length;
   const n=rows.filter(r=>(r[C.CONOCE]||'').toLowerCase().includes('no la conoce')).length;
   const o=rows.length-b-p-n;
-  return[[`La conoce bien`,b,'var(--green)'],[`Parcialmente`,p,'var(--orange)'],[`No la conoce`,n,'var(--red)'],[`Sin encargado`,o,'var(--gm)']].filter(x=>x[1]>0);
+  return[['La conoce bien',b,'var(--green)'],['Parcialmente',p,'var(--orange)'],['No la conoce',n,'var(--red)'],['Sin encargado',o,'var(--muted)']].filter(x=>x[1]>0);
 }
 
 // ─── LOCAL DETAIL CARDS ───────────────────────────────────────
-let _allRows={gastro:[],tiendas:[]};
-let _filtRows={gastro:[],tiendas:[]};
+let _all={}, _filt={};
 
-function buildLocales(rows,tab){
-  if(!rows.length)return'<div class="nodata">No hay resultados con los filtros aplicados.</div>';
+function buildLocales(rows, uid){
+  if(!rows.length) return '<div class="nodata">Sin resultados para los filtros aplicados.</div>';
   return rows.map((r,i)=>{
     const mt=matTag(r),et=estTag(r),ct=conoceTag(r[C.CONOCE]);
-    const ph=photos(r);
-    const obs=r[C.OBS]||'';
-    const photoHTML=ph.length
-      ?ph.map(u=>`<img class="pt" src="${u}" alt="Evidencia" onclick="openModal('${u}')" onerror="this.style.display='none'" loading="lazy"/>`).join('')
-      :`<div class="pp">Sin evidencia<br>fotogr&#225;fica</div>`;
-    const anteriorHTML=isYes(r[C.HAY_ANT])
-      ?`<div><div class="dk">Material anterior</div><div class="dv">${r[C.TIPO_ANT]||'Sí'}</div></div>`:'' ;
-    const obsHTML=obs?`<div class="obs"><strong>Observaci&#243;n:</strong> ${obs}</div>`:'';
-    const tid=`${tab}-${i}`;
-    return`<div class="lc">
-      <div class="lh" onclick="toggleLocal('lb-${tid}','ch-${tid}')">
-        <div class="li">
-          <div class="ln">${r[C.LOCAL]||'Sin nombre'}</div>
-          <div class="lci">${r[C.CIUDAD]||''} · ${r[C.TIPO_LOCAL]||''}</div>
-        </div>
+    const ph=getPhotos(r), obs=r[C.OBS]||'';
+    const photoHTML = ph.length
+      ? ph.map(u=>`<img class="pt" src="${u}" alt="Evidencia" onclick="openModal('${u}')" onerror="this.style.display='none'" loading="lazy"/>`).join('')
+      : `<div class="pp">Sin evidencia<br>fotográfica</div>`;
+    const antHTML = isYes(r[C.HAY_ANT]) ? `<div><div class="dk">Material anterior</div><div class="dv">${r[C.TIPO_ANT]||'Sí'}</div></div>` : '';
+    const obsHTML = obs ? `<div class="obs"><strong>Obs:</strong> ${obs}</div>` : '';
+    const id=`${uid}-${i}`;
+    return `<div class="lc">
+      <div class="lh" onclick="tog('lb-${id}','ch-${id}')">
+        <div class="li"><div class="ln">${r[C.LOCAL]||'Sin nombre'}</div><div class="lci">${r[C.CIUDAD]||''} · ${r[C.TIPO_LOCAL]||''}</div></div>
         <span class="tag ${mt.c}">${mt.l}</span>
-        ${r[C.TIPO_MAT]?`<span class="tag tb" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;font-size:10px">${r[C.TIPO_MAT].length>20?r[C.TIPO_MAT].substring(0,20)+'…':r[C.TIPO_MAT]}</span>`:''}
+        ${r[C.TIPO_MAT]?`<span class="tag tb" style="font-size:10px;max-width:145px;overflow:hidden;text-overflow:ellipsis">${r[C.TIPO_MAT].length>19?r[C.TIPO_MAT].substring(0,19)+'…':r[C.TIPO_MAT]}</span>`:''}
         <span class="tag ${ct.c}">${ct.l}</span>
-        <span class="chv" id="ch-${tid}">&#9660;</span>
+        <span class="chv" id="ch-${id}">&#9660;</span>
       </div>
-      <div class="lb" id="lb-${tid}">
+      <div class="lb" id="lb-${id}">
         <div class="dg">
           <div><div class="dk">Beneficio vigente</div><div class="dv">${r[C.BENEFICIO]||'—'}</div></div>
           <div><div class="dk">Estado del material</div><div class="dv"><span class="tag ${et.c}">${et.l}</span></div></div>
@@ -462,118 +472,154 @@ function buildLocales(rows,tab){
           ${r[C.MAT_COL]?`<div><div class="dk">Materiales colocados</div><div class="dv">${r[C.MAT_COL]}</div></div>`:''}
           ${r[C.OFERTA]?`<div><div class="dk">Oferta exhibida</div><div class="dv">${r[C.OFERTA]}</div></div>`:''}
           <div><div class="dk">Responsable del local</div><div class="dv">${r[C.ENCARGADO]||'No informado'}</div></div>
-          ${anteriorHTML}
+          ${antHTML}
         </div>
         ${obsHTML}
-        <div class="pl">Evidencia fotogr&#225;fica</div>
+        <div class="pl">Evidencia fotográfica</div>
         <div class="pg">${photoHTML}</div>
       </div>
     </div>`;
   }).join('');
 }
 
-function buildFilters(rows,tab){
+function buildFilters(rows, uid){
   const cities=[...new Set(rows.map(r=>r[C.CIUDAD]).filter(Boolean))].sort();
   const tipos=[...new Set(rows.map(r=>r[C.TIPO_LOCAL]).filter(Boolean))].sort();
-  return`<div class="fb">
+  return `<div class="fb">
     <span class="fl">Filtrar</span>
-    <select class="fs" onchange="applyFilters('${tab}')">
-      <option value="">Todas las ciudades</option>
-      ${cities.map(c=>`<option value="${c}">${c}</option>`).join('')}
+    <select class="fs" id="fc-${uid}" onchange="applyF('${uid}')">
+      <option value="">Todas las ciudades</option>${cities.map(c=>`<option>${c}</option>`).join('')}
     </select>
-    <select class="fs" onchange="applyFilters('${tab}')">
-      <option value="">Todos los tipos</option>
-      ${tipos.map(t=>`<option value="${t}">${t}</option>`).join('')}
+    <select class="fs" id="ft-${uid}" onchange="applyF('${uid}')">
+      <option value="">Todos los tipos</option>${tipos.map(t=>`<option>${t}</option>`).join('')}
     </select>
-    <select class="fs" id="fil-mat-${tab}" onchange="applyFilters('${tab}')">
-      <option value="">Todo el material</option>
-      <option value="con">Con material BF</option>
-      <option value="sin">Sin material BF</option>
+    <select class="fs" id="fm-${uid}" onchange="applyF('${uid}')">
+      <option value="">Todo material</option>
+      <option value="con">Con material</option>
+      <option value="sin">Sin material</option>
     </select>
-    <select class="fs" id="fil-con-${tab}" onchange="applyFilters('${tab}')">
+    <select class="fs" id="fk-${uid}" onchange="applyF('${uid}')">
       <option value="">Conocimiento</option>
       <option value="bien">La conoce bien</option>
       <option value="no">No la conoce</option>
     </select>
-    <span class="rc" id="rc-${tab}">${rows.length} locales</span>
+    <span class="rc" id="rc-${uid}">${rows.length} locales</span>
   </div>`;
 }
 
-function applyFilters(tab){
-  const selects=document.querySelectorAll(`#content-${tab} .fs`);
-  const ciudad=selects[0]?.value||'';
-  const tipo=selects[1]?.value||'';
-  const mat=document.getElementById(`fil-mat-${tab}`)?.value||'';
-  const con=document.getElementById(`fil-con-${tab}`)?.value||'';
-  _filtRows[tab]=_allRows[tab].filter(r=>{
-    if(ciudad&&r[C.CIUDAD]!==ciudad)return false;
-    if(tipo&&r[C.TIPO_LOCAL]!==tipo)return false;
-    if(mat==='con'&&!isYes(r[C.HAY_MAT]))return false;
-    if(mat==='sin'&&isYes(r[C.HAY_MAT]))return false;
-    if(con==='bien'&&!(r[C.CONOCE]||'').toLowerCase().includes('bien'))return false;
-    if(con==='no'&&!(r[C.CONOCE]||'').toLowerCase().includes('no la conoce'))return false;
+function applyF(uid){
+  const ciudad=document.getElementById(`fc-${uid}`)?.value||'';
+  const tipo  =document.getElementById(`ft-${uid}`)?.value||'';
+  const mat   =document.getElementById(`fm-${uid}`)?.value||'';
+  const con   =document.getElementById(`fk-${uid}`)?.value||'';
+  _filt[uid]=(_all[uid]||[]).filter(r=>{
+    if(ciudad&&r[C.CIUDAD]!==ciudad) return false;
+    if(tipo&&r[C.TIPO_LOCAL]!==tipo) return false;
+    if(mat==='con'&&!isYes(r[C.HAY_MAT])) return false;
+    if(mat==='sin'&&isYes(r[C.HAY_MAT]))  return false;
+    if(con==='bien'&&!(r[C.CONOCE]||'').toLowerCase().includes('bien'))       return false;
+    if(con==='no'  &&!(r[C.CONOCE]||'').toLowerCase().includes('no la conoce')) return false;
     return true;
   });
-  const rc=document.getElementById(`rc-${tab}`);
-  if(rc)rc.textContent=`${_filtRows[tab].length} locales`;
-  const lc=document.getElementById(`lc-${tab}`);
-  if(lc)lc.innerHTML=buildLocales(_filtRows[tab],tab);
+  const rc=document.getElementById(`rc-${uid}`);
+  if(rc) rc.textContent=`${_filt[uid].length} locales`;
+  const lc=document.getElementById(`lc-${uid}`);
+  if(lc) lc.innerHTML=buildLocales(_filt[uid],uid);
 }
 
-// ─── BUILD PAGE ───────────────────────────────────────────────
-function buildPage(rows,tab,cfg){
-  document.getElementById('pbadge').textContent=cfg.period;
-  _allRows[tab]=rows;
-  _filtRows[tab]=rows;
-  const cd=cityDist(rows),md=matDist(rows),kd=conoceDist(rows);
-  const cmx=cd[0]?.[1]||1,mmx=Math.max(...md.map(x=>x[1]),1);
-  const html=`
-    ${buildGlobal(rows,cfg)}
-    ${buildTop(rows,tab)}
-    ${buildKPIs(rows)}
+// ─── BUILD SECTION (BF o Competencia) ────────────────────────
+function buildSection(rows, tabKey, cfg, isCompe){
+  const uid = `${tabKey}-${isCompe?'c':'b'}`;
+  _all[uid]=rows; _filt[uid]=rows;
+  const cd=cityDist(rows), md=matDist(rows), kd=conoceDist(rows);
+  const cmx=cd[0]?.[1]||1, mmx=Math.max(...md.map(x=>x[1]),1);
+  return `
+    ${buildGlobal(rows,cfg,isCompe)}
+    ${!isCompe?buildTop(rows,uid):''}
+    ${!isCompe?buildKPIs(rows,cfg.period):''}
     <div class="two-col">
-      <div class="card"><div class="card-h">Locales por ciudad</div><div class="card-b">${bars(cd,cmx,'var(--blue)',140)}</div></div>
+      <div class="card"><div class="card-h">Locales por ciudad</div><div class="card-b">${barRows(cd,cmx,'var(--blue)',140)}</div></div>
       <div class="card"><div class="card-h">Hallazgos y alertas</div><div class="card-b">${buildAlerts(rows)}</div></div>
     </div>
     <div class="two-col">
-      <div class="card"><div class="card-h">Material por tipo</div><div class="card-b">${bars(md,mmx,'var(--blue)',185)}</div></div>
-      <div class="card"><div class="card-h">Conocimiento de la promoci&#243;n</div><div class="card-b">
+      <div class="card"><div class="card-h">Material por tipo</div><div class="card-b">${barRows(md,mmx,'var(--blue)',180)}</div></div>
+      <div class="card"><div class="card-h">Conocimiento de la promoción</div><div class="card-b">
         ${kd.map(([l,v,col])=>{const p=rows.length?Math.round(v/rows.length*100):0;
           return`<div class="br"><span class="bl">${l}</span><div class="bt"><div class="bf" style="width:${p}%;background:${col}"></div></div><span class="bv">${v}</span></div>`;
         }).join('')}
       </div></div>
     </div>
-    <div class="sec-title" style="margin-bottom:14px">Detalle por local — clic para expandir</div>
-    <div id="content-${tab}">
-      ${buildFilters(rows,tab)}
-      <div class="lg" id="lc-${tab}">${buildLocales(rows,tab)}</div>
-    </div>`;
-  document.getElementById(`tc-${tab}`).innerHTML=html;
+    <div class="sec-lbl" style="margin-bottom:12px">Detalle por local — clic para expandir</div>
+    <div id="fc-wrap-${uid}">${buildFilters(rows,uid)}</div>
+    <div class="lg" id="lc-${uid}">${buildLocales(rows,uid)}</div>`;
 }
 
-// ─── LOAD ─────────────────────────────────────────────────────
-async function load(tab){
-  const cfg=CFG[tab];
+// ─── BUILD TAB ────────────────────────────────────────────────
+function buildTab(tabKey, bfRows, compeRows){
+  const cfg = TABS[tabKey];
+  document.getElementById('pbadge').textContent = cfg.period;
+
+  // Sub-nav
+  const subNav = `<div class="subnav" id="subnav-${tabKey}">
+    <div class="stab active" onclick="switchSub('${tabKey}','bf')">Banco Familiar</div>
+    <div class="stab" onclick="switchSub('${tabKey}','compe')">Análisis de Competencia</div>
+  </div>`;
+
+  const bfHTML    = `<div id="sub-${tabKey}-bf" class="sub-section">${buildSection(bfRows,tabKey,cfg,false)}</div>`;
+  const compeHTML = `<div id="sub-${tabKey}-compe" class="sub-section" style="display:none">${buildSection(compeRows,tabKey,cfg,true)}</div>`;
+
+  document.getElementById(`tc-${tabKey}`).innerHTML = subNav + bfHTML + compeHTML;
+}
+
+function switchSub(tabKey, sub){
+  document.querySelectorAll(`#subnav-${tabKey} .stab`).forEach((t,i)=>t.classList.toggle('active',(sub==='bf'&&i===0)||(sub==='compe'&&i===1)));
+  document.getElementById(`sub-${tabKey}-bf`).style.display    = sub==='bf'    ? '' : 'none';
+  document.getElementById(`sub-${tabKey}-compe`).style.display = sub==='compe' ? '' : 'none';
+}
+
+// ─── FETCH & LOAD ─────────────────────────────────────────────
+async function fetchGID(gid){
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET}/export?format=csv&gid=${gid}`;
+  const res=await fetch(url);
+  if(!res.ok) throw new Error(`HTTP ${res.status} (gid=${gid})`);
+  return parseCSV(await res.text());
+}
+
+async function loadTab(tabKey){
+  const cfg=TABS[tabKey];
   try{
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${cfg.gid}`;
-    const res=await fetch(url);
-    if(!res.ok)throw new Error(`HTTP ${res.status}`);
-    const txt=await res.text();
-    const raw=parseCSV(txt);
-    const rows=tab==='gastro'?dedup(raw):raw;
-    buildPage(rows,tab,cfg);
-  }catch(e){
-    document.getElementById(`tc-${tab}`).innerHTML=
-      `<div class="nodata">Error al cargar: ${e.message}<br><br>Verificá que el Sheet tenga acceso p&#250;blico.</div>`;
+    let bfRows, compeRows;
+    if(tabKey==='gastro'){
+      const [rawBF, rawCompe] = await Promise.all([fetchGID(cfg.bf), fetchGID(cfg.compe)]);
+      bfRows    = dedup(rawBF, DROP_GASTRO);
+      compeRows = rawCompe;
+    } else {
+      // Tiendas: misma hoja, distinguir BF vs competencia por columna BENEFICIO_VIGENTE o similar
+      // La hoja tiene ambos, los separamos por si BENEFICIO contiene nombre de banco rival
+      const raw = await fetchGID(cfg.bf);
+      // Heurística: si HAY_MATERIAL=Si y no contiene palabras de BF en obs => competencia
+      // En tiendas el form tiene preguntas de BF y de competencia mezcladas
+      // Separamos: BF = filas donde el form fue sobre BF (TIPO_MAT existe o BENEFICIO vigente es de BF)
+      // Competencia = filas donde NOMBRE_ID o OBS menciona banco rival
+      const rivals = ['itau','vision','continental','solar','regional','sudameris','basa','ueno','atlas'];
+      bfRows    = raw.filter(r=>!rivals.some(rv=>(r[C.OBS]||'').toLowerCase().includes(rv)||(r[C.NOMBRE_ID]||'').toLowerCase().includes(rv)));
+      compeRows = raw.filter(r=> rivals.some(rv=>(r[C.OBS]||'').toLowerCase().includes(rv)||(r[C.NOMBRE_ID]||'').toLowerCase().includes(rv)));
+      // Si no hay separación clara, mostrar todo en BF y vacío en compe
+      if(!compeRows.length) compeRows = raw;
+    }
+    buildTab(tabKey, bfRows, compeRows);
+  } catch(e){
+    document.getElementById(`tc-${tabKey}`).innerHTML=
+      `<div class="nodata">Error al cargar: ${e.message}</div>`;
   }
 }
 
 // ─── UI ───────────────────────────────────────────────────────
-function toggleLocal(bId,cId){
+function tog(bId,cId){
   const b=document.getElementById(bId),c=document.getElementById(cId);
-  if(!b)return;const o=b.classList.toggle('open');if(c)c.classList.toggle('open',o);
+  if(!b)return; const o=b.classList.toggle('open'); if(c)c.classList.toggle('open',o);
 }
-function openModal(url){if(!url)return;document.getElementById('mimg').src=url;document.getElementById('modal').classList.add('open')}
+function openModal(url){if(!url||url==='null')return;document.getElementById('mimg').src=url;document.getElementById('modal').classList.add('open')}
 function closeModal(e,force){if(force||(e&&e.target===document.getElementById('modal')))document.getElementById('modal').classList.remove('open')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal(null,true)});
 
@@ -581,11 +627,11 @@ let _loaded={gastro:false,tiendas:false};
 function switchTab(tab){
   document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('active',(tab==='gastro'&&i===0)||(tab==='tiendas'&&i===1)));
   document.querySelectorAll('.tc').forEach((t,i)=>t.classList.toggle('active',(tab==='gastro'&&i===0)||(tab==='tiendas'&&i===1)));
-  document.getElementById('pbadge').textContent=CFG[tab].period;
-  if(!_loaded[tab]){_loaded[tab]=true;load(tab)}
+  document.getElementById('pbadge').textContent=TABS[tab].period;
+  if(!_loaded[tab]){_loaded[tab]=true;loadTab(tab)}
 }
 
-_loaded.gastro=true;load('gastro');
+_loaded.gastro=true; loadTab('gastro');
 </script>
 </body>
 </html>
