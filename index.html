@@ -176,7 +176,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .map-kpi-val{font-size:20px;font-weight:800;color:var(--navy);line-height:1}
 .map-kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .map-body{display:flex;gap:0;align-items:stretch;overflow:hidden}
-.map-svg-area{flex:1;min-height:440px;position:relative;overflow:hidden}
+.map-svg-area{flex:1;min-height:460px;height:460px;position:relative;overflow:hidden}
 #map-svg{width:100%;height:340px;cursor:default}
 .map-legend{width:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 8px;gap:4px;border-left:1px solid var(--border2)}
 .map-legend-title{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;writing-mode:vertical-rl;margin-bottom:8px}
@@ -700,15 +700,20 @@ function renderMap(mode,mapId){
   const colorScale=d3.scaleLinear().domain([0,maxPct||100]).range([colorRange[0],colorRange[colorRange.length-1]]);
   const wrap=document.getElementById('map-svg-wrap'+id);
   if(!wrap)return;
-  wrap.innerHTML=`<svg id="map-svg${id}"></svg>`;
+  wrap.innerHTML=`<svg id="map-svg${id}" style="position:absolute;inset:0;width:100%;height:100%"></svg>`;
   const svg=d3.select('#map-svg'+id);
-  const W=wrap.offsetWidth||420,H=440;
+  const W=wrap.offsetWidth||420,H=wrap.offsetHeight||440;
   svg.attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height','100%').style('display','block');
-  const proj=d3.geoMercator().center([-58.5,-23.2]).scale(W*3.4).translate([W/2,H/2]);
+  // Use fitSize to fill the entire SVG with Paraguay — no whitespace
+  const proj=d3.geoMercator();
+  const pathTemp=d3.geoPath().projection(proj);
   const path=d3.geoPath().projection(proj);
   const tip=document.getElementById('map-tooltip');
   d3.json('https://cdn.jsdelivr.net/npm/datamaps@0.5.10/src/js/data/pry.topo.json').then(topo=>{
     const features=topojson.feature(topo,topo.objects.pry).features;
+    const geoColl={type:'FeatureCollection',features};
+    // Fit Paraguay exactly to the SVG with small padding
+    proj.fitExtent([[2,2],[W-2,H-2]],geoColl);
     svg.selectAll('path').data(features).enter().append('path')
       .attr('d',path).attr('stroke','rgba(255,255,255,.8)').attr('stroke-width',0.7)
       .attr('fill',d=>{const name=d.properties.name||'';const info=data[name];return info?colorScale(info.pct):colorRange[0];})
@@ -1178,9 +1183,8 @@ function buildGastroBF(rows){
       <div class="card"><div class="card-h">Conocimiento de la promocion</div><div class="card-b" id="dnt-con-bf"></div></div>
       <div class="card"><div class="card-h">Estado del material</div><div class="card-b" id="dnt-est-bf"></div></div>
     </div>
-    <div class="charts-row anim-in">
+    <div class="charts-row one anim-in">
       <div class="card"><div class="card-h">Alertas y hallazgos</div><div class="card-b">${buildAlerts(rows,BF.OBS,BF.BENEFICIO,BF.LOCAL)}</div></div>
-      <div class="card"><div class="card-h">Tipo de material colocado</div><div class="card-b">${vertBarChart(md,l=>l==='Sin material'?'#EF4444':'#1D4ED8')}</div></div>
     </div>`;
 
   setTimeout(()=>{
