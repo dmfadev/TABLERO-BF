@@ -115,12 +115,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .sp{color:#86EFAC}.sn{color:#FCA5A5}.sm{color:#FDE68A}
 .gc-insight{background:rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.85);line-height:1.6;border-left:3px solid var(--yellow);margin-bottom:12px}
 .city-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
-.cpill{background:rgba(255,255,255,.12);border-radius:10px;padding:14px 16px;border:1px solid rgba(255,255,255,.15);position:relative;overflow:hidden}
+.cpill{background:rgba(180,220,248,.22);border-radius:10px;padding:14px 16px;border:1px solid rgba(180,220,248,.35);position:relative;overflow:hidden;backdrop-filter:blur(4px)}
 .cpill::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--yellow)}
-.cpill-name{font-size:9px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.cpill-name{font-size:9px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
 .cpill-num{font-size:28px;font-weight:800;color:#fff;line-height:1;margin-bottom:2px}
-.cpill-stat{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:8px}
-.cpill-bar{height:4px;background:rgba(255,255,255,.18);border-radius:3px;overflow:hidden;margin-top:4px}
+.cpill-stat{font-size:11px;color:rgba(255,255,255,.7);margin-bottom:8px}
+.cpill-bar{height:4px;background:rgba(255,255,255,.25);border-radius:3px;overflow:hidden;margin-top:4px}
 .cpill-fill{height:100%;border-radius:3px;background:var(--yellow);transition:width .8s cubic-bezier(.34,1.56,.64,1)}
 .cpill-pct{font-size:20px;font-weight:800;color:var(--yellow);margin-left:auto}
 
@@ -450,7 +450,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 ============================================================= */
 const SHEET='1YrNdJ_Hf9AyrKm_MpO3FgyqLWs4x3iNRuQv9AfNpnok';
 const GID={gastro_bf:'0',gastro_compe:'1005179077',tiendas:'1203279782'};
-const PERIOD={gastro:'20 al 25 de mayo 2026',tiendas:'11 al 13 de mayo 2026'};
+const PERIOD={gastro:'20 al 25 de mayo 2026',tiendas:'11 al 22 de mayo 2026'};
 const DRIVE_FOLDERS={
   D1:{label:'Dia 1',bf:'10Po1vO3Hfz_YosEBxFanLYCOhzhcALAQ',comp:'1M_rfQeHLAdXCpPXoJjv_fK4TUMNrLfIf'},
   D2:{label:'Dia 2',bf:'1WO4KE51PJwIh-nu7MfL-4lLW3fO_jcI5',comp:'1hEGLKEo0HbS_zb7jfi21gRFzN8zAS2EF'},
@@ -1202,8 +1202,11 @@ async function loadGastro(){
 
 async function loadTiendas(){
   try{
-    const rows=await fetchCSV(GID.tiendas,1);
-    _tiRows=rows.filter(r=>r[TI.LOCAL]&&r[TI.LOCAL].trim()!=='');
+    const rawTI=await fetchCSV(GID.tiendas,1);
+    // Dedup: un local puede tener 2 visitas en fechas distintas — conservar la mas reciente
+    const seenTI=new Map();
+    rawTI.forEach(r=>{const k=(r[TI.LOCAL]||'').trim().toUpperCase();if(k)seenTI.set(k,r);});
+    _tiRows=[...seenTI.values()].filter(r=>r[TI.LOCAL]&&r[TI.LOCAL].trim()!=='');
     document.getElementById('sub-t-bf').innerHTML=buildTiendasBF(_tiRows);
     document.getElementById('sub-t-cp').innerHTML=buildTiendasCompe(_tiRows);
     document.getElementById('sub-t-cp').style.display='none';
