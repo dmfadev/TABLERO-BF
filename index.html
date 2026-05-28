@@ -1,853 +1,990 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Tablero de Relevamiento — Banco Familiar</title>
-<link rel="icon" type="image/webp" href="https://raw.githubusercontent.com/dmfadev/TABLERO-BF/main/logoBancoFamiliar.webp"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero BF — Relevamiento de Materiales</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --navy:#1B3A6B;--blue:#2D5FA6;--bsoft:#EBF2FA;
-  --yellow:#F5A800;--ysoft:#FFF8E6;
-  --white:#FFFFFF;--bg:#F4F7FB;--border:#E2E8F2;
-  --text:#2C3E60;--muted:#7B8FB0;
-  --green:#1A7A4A;--gsoft:#E8F5EE;
-  --red:#B03A2E;--rsoft:#FCEAE8;
-  --orange:#C0600A;--osoft:#FEF3E6;
-}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+  :root {
+    --bg: #0a0c10;
+    --bg2: #111318;
+    --bg3: #1a1d24;
+    --card: #161920;
+    --border: #252830;
+    --accent: #e8b84b;
+    --accent2: #4b8be8;
+    --green: #3dd68c;
+    --red: #f05252;
+    --orange: #f5a623;
+    --purple: #a78bfa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --radius: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
 
-/* HEADER */
-.hdr{background:var(--white);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:72px;border-bottom:1px solid var(--border);box-shadow:0 2px 12px rgba(27,58,107,.07);position:sticky;top:0;z-index:200}
-.hdr-l{display:flex;align-items:center;gap:20px}
-.logo{height:56px}
-.logo-fb{color:var(--navy);font-weight:700;font-size:16px;display:none}
-.hdiv{width:1px;height:34px;background:var(--border)}
-.htitle{color:var(--muted);font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase}
-.pbadge{background:var(--navy);color:#fff;font-size:11px;font-weight:600;padding:6px 16px;border-radius:20px}
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top:0; z-index:100;
+    backdrop-filter: blur(20px);
+  }
+  .logo { display:flex; align-items:center; gap:14px; }
+  .logo-icon {
+    width:42px; height:42px; background: linear-gradient(135deg, var(--accent), #c4942a);
+    border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:18px; color:#0a0c10;
+  }
+  .logo-text h1 { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; color:var(--text); }
+  .logo-text p { font-size:11px; color:var(--muted); margin-top:2px; }
+  .header-badge {
+    background: rgba(232,184,75,0.12); border:1px solid rgba(232,184,75,0.3);
+    color:var(--accent); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:500;
+  }
 
-/* NAV */
-.nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 40px;display:flex;gap:4px;position:sticky;top:68px;z-index:100}
-.ntab{padding:14px 20px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;letter-spacing:.04em;text-transform:uppercase;margin-bottom:-1px;user-select:none}
-.ntab:hover{color:var(--blue);background:var(--bsoft)}
-.ntab.active{color:var(--navy);border-bottom-color:var(--yellow);font-weight:700;background:transparent}
+  /* NAV TABS */
+  .nav {
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:0 32px; display:flex; gap:4px; overflow-x:auto;
+  }
+  .nav-tab {
+    padding:14px 20px; font-size:13px; font-weight:500; color:var(--muted);
+    cursor:pointer; border-bottom:2px solid transparent; transition:all .2s;
+    white-space:nowrap; display:flex; align-items:center; gap:8px;
+  }
+  .nav-tab:hover { color:var(--text); }
+  .nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .nav-dot { width:7px; height:7px; border-radius:50%; }
 
-/* SUBNAV */
-.subnav{display:flex;gap:6px;margin-bottom:24px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:6px;width:fit-content}
-.stab{padding:8px 18px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border-radius:7px;transition:all .2s;letter-spacing:.04em;text-transform:uppercase;user-select:none}
-.stab:hover{color:var(--navy);background:var(--bsoft)}
-.stab.active{background:var(--navy);color:#fff}
+  /* MAIN */
+  .main { padding:28px 32px; max-width:1400px; margin:0 auto; }
 
-/* CONTENT */
-.content{padding:28px 40px;max-width:1400px;margin:0 auto}
-.tc{display:none}.tc.active{display:block}
+  /* SECTION */
+  .section { display:none; }
+  .section.active { display:block; }
 
-/* GLOBAL CARD */
-.gc{border-radius:14px;padding:30px 32px;margin-bottom:28px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1B3A6B 0%,#2D5FA6 100%)}
-.gc-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:4px}
-.gc-period{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:22px}
-.gc-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.gm{background:rgba(255,255,255,.1);border-radius:10px;padding:16px 18px;border:1px solid rgba(255,255,255,.12)}
-.gm-val{font-size:30px;font-weight:700;color:#fff;line-height:1}
-.gm-val.y{color:var(--yellow)}
-.gm-lbl{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
-.gm-sub{font-size:11px;margin-top:4px;font-weight:500}
-.sp{color:#86EFAC}.sn{color:#FCA5A5}.sm{color:#FCD34D}
-.gc-insight{background:rgba(255,255,255,.08);border-radius:10px;padding:14px 18px;font-size:13px;color:rgba(255,255,255,.85);line-height:1.65;border-left:3px solid var(--yellow);margin-bottom:18px}
-.city-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.cpill{background:rgba(255,255,255,.08);border-radius:10px;padding:13px 16px;border:1px solid rgba(255,255,255,.1)}
-.cpill-name{font-size:10px;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.cpill-stat{font-size:12px;color:rgba(255,255,255,.72)}
-.cpill-bar{height:4px;background:rgba(255,255,255,.12);border-radius:2px;margin-top:9px;overflow:hidden}
-.cpill-fill{height:100%;border-radius:2px;background:var(--yellow)}
+  /* KPI GRID */
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+  .kpi-card {
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px; position:relative; overflow:hidden;
+  }
+  .kpi-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background: var(--accent-bar, var(--accent));
+  }
+  .kpi-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; font-weight:500; }
+  .kpi-value { font-family:'Syne',sans-serif; font-size:36px; font-weight:700; margin:8px 0 4px; color:var(--text); }
+  .kpi-sub { font-size:12px; color:var(--muted); }
+  .kpi-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:500; margin-top:8px; }
+  .badge-green { background:rgba(61,214,140,.15); color:var(--green); }
+  .badge-red { background:rgba(240,82,82,.15); color:var(--red); }
+  .badge-orange { background:rgba(245,166,35,.15); color:var(--orange); }
 
-/* TOP LOCALES */
-.sec-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
-.top-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
-.top-card{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .15s}
-.top-card:hover{box-shadow:0 8px 28px rgba(27,58,107,.13);transform:translateY(-2px)}
-.top-img{width:100%;height:130px;object-fit:cover;display:block;background:var(--bg)}
-.top-ph{width:100%;height:130px;background:var(--bsoft);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)}
-.top-info{padding:13px 15px}
-.top-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px}
-.top-city{font-size:11px;color:var(--muted);margin-bottom:9px}
-.top-tags{display:flex;gap:5px;flex-wrap:wrap}
+  /* CHARTS ROW */
+  .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:28px; }
+  .charts-row.three { grid-template-columns:1fr 1fr 1fr; }
+  @media(max-width:900px) { .charts-row,.charts-row.three { grid-template-columns:1fr; } }
+  .chart-card {
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px;
+  }
+  .chart-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .chart-title span { font-size:11px; color:var(--muted); font-weight:400; }
 
-/* COMPETENCIA CARD */
-.compe-summary{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
-.compe-brands{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:18px 20px}
-.brand-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.brand-name{font-size:12px;color:var(--text);min-width:140px;font-weight:500}
-.brand-bar-t{flex:1;height:7px;background:var(--bg);border-radius:3px;overflow:hidden}
-.brand-bar-f{height:100%;border-radius:3px;background:#C0600A}
-.brand-val{font-size:11px;font-weight:700;color:var(--orange);min-width:24px;text-align:right}
-.vis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
-.vis-cell{background:var(--bg);border-radius:8px;padding:12px;text-align:center}
-.vis-val{font-size:20px;font-weight:700;color:var(--navy)}
-.vis-lbl{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+  /* BAR CHARTS */
+  .bar-chart { display:flex; flex-direction:column; gap:10px; }
+  .bar-row { display:flex; align-items:center; gap:12px; }
+  .bar-label { font-size:12px; color:var(--muted); min-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar-track { flex:1; background:var(--bg3); border-radius:4px; height:8px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; transition:width .6s ease; }
+  .bar-count { font-size:12px; color:var(--text); font-weight:500; min-width:30px; text-align:right; }
 
-/* KPI */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.kpi{background:var(--white);border-radius:12px;padding:18px 20px;border:1px solid var(--border);position:relative;overflow:hidden}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
-.kpi.b::before{background:var(--blue)}.kpi.g::before{background:var(--green)}
-.kpi.r::before{background:var(--red)}.kpi.y::before{background:var(--yellow)}
-.kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px}
-.kpi-val{font-size:32px;font-weight:700;color:var(--navy);line-height:1}
-.kpi-sub{font-size:11px;margin-top:6px;font-weight:500}
-.pos{color:var(--green)}.neg{color:var(--red)}.mid{color:var(--orange)}
+  /* DONUT */
+  .donut-wrap { display:flex; align-items:center; gap:20px; }
+  .donut-svg { flex-shrink:0; }
+  .donut-legend { display:flex; flex-direction:column; gap:8px; flex:1; }
+  .legend-item { display:flex; align-items:center; gap:8px; font-size:12px; }
+  .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .legend-label { color:var(--muted); flex:1; }
+  .legend-val { color:var(--text); font-weight:500; }
 
-/* TWO COL */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
-.card{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden}
-.card-h{padding:13px 18px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.08em}
-.card-b{padding:16px 18px}
-.br{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.bl{font-size:11px;color:var(--text);flex-shrink:0}
-.bt{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
-.bf{height:100%;border-radius:3px}
-.bv{font-size:11px;font-weight:700;color:var(--navy);min-width:24px;text-align:right}
+  /* TABLE */
+  .table-wrap { overflow-x:auto; border-radius:var(--radius); border:1px solid var(--border); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead th { background:var(--bg3); padding:12px 16px; text-align:left; color:var(--muted); font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+  tbody tr:hover { background:var(--bg3); }
+  tbody td { padding:11px 16px; color:var(--text); vertical-align:middle; }
+  .pill { display:inline-flex; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; }
+  .pill-green { background:rgba(61,214,140,.12); color:var(--green); border:1px solid rgba(61,214,140,.2); }
+  .pill-red { background:rgba(240,82,82,.12); color:var(--red); border:1px solid rgba(240,82,82,.2); }
+  .pill-orange { background:rgba(245,166,35,.12); color:var(--orange); border:1px solid rgba(245,166,35,.2); }
+  .pill-blue { background:rgba(75,139,232,.12); color:var(--accent2); border:1px solid rgba(75,139,232,.2); }
+  .pill-gray { background:rgba(107,114,128,.12); color:var(--muted); border:1px solid rgba(107,114,128,.2); }
 
-/* ALERTS */
-.al{list-style:none}
-.ai{padding:9px 12px;border-radius:8px;margin-bottom:6px;font-size:12px;display:flex;align-items:flex-start;gap:8px;line-height:1.5;border-left:3px solid}
-.ai.c{background:var(--rsoft);border-color:var(--red);color:#7A1F1F}
-.ai.w{background:var(--osoft);border-color:var(--orange);color:#7A3A08}
-.ai.i{background:var(--bsoft);border-color:var(--blue);color:#1B3A6B}
-.ad{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
-.ai.c .ad{background:var(--red)}.ai.w .ad{background:var(--orange)}.ai.i .ad{background:var(--blue)}
+  /* SECTION TITLE */
+  .section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .section-hdr h2 { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; }
+  .section-hdr p { font-size:13px; color:var(--muted); margin-top:2px; }
 
-/* FILTER */
-.fb{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.fl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
-.fs{border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:11px;color:var(--navy);background:var(--bg);font-family:'Inter',sans-serif;cursor:pointer}
-.fs:focus{outline:none;border-color:var(--blue)}
-.rc{font-size:11px;color:var(--muted);margin-left:auto;font-weight:500}
+  /* SEARCH / FILTER */
+  .filters { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
+  .search-box {
+    background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+    padding:8px 14px; color:var(--text); font-size:13px; outline:none; min-width:220px;
+    font-family:'Inter',sans-serif;
+  }
+  .search-box:focus { border-color:var(--accent); }
+  .filter-select {
+    background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+    padding:8px 12px; color:var(--text); font-size:12px; outline:none; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .filter-select:focus { border-color:var(--accent); }
+  .count-badge { font-size:12px; color:var(--muted); margin-left:auto; }
 
-/* TAGS */
-.tag{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
-.tg{background:var(--gsoft);color:#145A35}.tr{background:var(--rsoft);color:#921F1F}
-.to{background:var(--osoft);color:#994D08}.tgr{background:var(--bg);color:var(--muted)}
-.tb{background:var(--bsoft);color:#1B3A6B}.ty{background:var(--ysoft);color:#7A5500}
+  /* PAGINATION */
+  .pagination { display:flex; gap:8px; align-items:center; justify-content:center; margin-top:16px; }
+  .page-btn {
+    background:var(--bg3); border:1px solid var(--border); color:var(--text);
+    padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; font-family:'Inter',sans-serif;
+  }
+  .page-btn.active { background:var(--accent); color:#0a0c10; border-color:var(--accent); font-weight:600; }
+  .page-btn:disabled { opacity:.4; cursor:not-allowed; }
 
-/* LOCAL CARDS */
-.lg{display:flex;flex-direction:column;gap:8px}
-.lc{background:var(--white);border-radius:12px;border:1px solid var(--border);overflow:hidden;transition:border-color .2s}
-.lc:hover{border-color:#B8CCE8}
-.lh{padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;flex-wrap:wrap;transition:background .15s}
-.lh:hover{background:var(--bg)}
-.li{flex:1;min-width:160px}
-.ln{font-size:13px;font-weight:600;color:var(--navy)}
-.lci{font-size:11px;color:var(--muted);margin-top:2px}
-.chv{font-size:11px;color:var(--muted);transition:transform .2s;margin-left:auto;flex-shrink:0}
-.chv.open{transform:rotate(180deg)}
-.lb{padding:0 16px 16px;display:none}
-.lb.open{display:block}
-.dg{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:12px}
-.dk{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
-.dv{font-size:12px;color:var(--navy);font-weight:500}
-.obs{background:var(--ysoft);border-radius:8px;padding:10px 13px;font-size:12px;color:#5C4000;margin-bottom:13px;border-left:3px solid var(--yellow);line-height:1.6}
-.pl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:9px}
-.pg{display:flex;gap:8px;flex-wrap:wrap}
-.pt{width:110px;height:78px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:transform .15s}
-.pt:hover{transform:scale(1.05)}
-.pp{width:110px;height:78px;border-radius:8px;background:var(--bg);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center;padding:6px}
+  /* EVIDENCIAS */
+  .ev-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  .ev-card {
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; transition:transform .2s, border-color .2s;
+  }
+  .ev-card:hover { transform:translateY(-2px); border-color:rgba(232,184,75,.3); }
+  .ev-card-head { padding:14px 16px; border-bottom:1px solid var(--border); }
+  .ev-local { font-size:13px; font-weight:600; color:var(--text); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ev-meta { font-size:11px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; }
+  .ev-photos { display:grid; gap:1px; }
+  .ev-photos.n1 { grid-template-columns:1fr; }
+  .ev-photos.n2 { grid-template-columns:1fr 1fr; }
+  .ev-photos.n3 { grid-template-columns:1fr 1fr 1fr; }
+  .ev-photos.nmore { grid-template-columns:1fr 1fr 1fr; }
 
-/* MODAL */
-.mo{position:fixed;inset:0;background:rgba(5,15,35,.9);display:none;align-items:center;justify-content:center;z-index:9999}
-.mo.open{display:flex}
-.mi{max-width:90vw;max-height:88vh;border-radius:10px;object-fit:contain}
-.mc{position:fixed;top:16px;right:20px;color:#fff;font-size:20px;cursor:pointer;background:rgba(255,255,255,.15);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center}
-.mc:hover{background:rgba(255,255,255,.25)}
-.loader{text-align:center;padding:80px;color:var(--muted);font-size:14px}
-.nodata{text-align:center;padding:60px;color:var(--muted);font-size:14px}
+  .photo-thumb {
+    position:relative; background:var(--bg3); overflow:hidden;
+    cursor:pointer; aspect-ratio:4/3;
+  }
+  .photo-thumb img {
+    width:100%; height:100%; object-fit:cover; display:block;
+    transition:transform .3s;
+  }
+  .photo-thumb:hover img { transform:scale(1.05); }
+  .photo-thumb .ph-overlay {
+    position:absolute; inset:0; background:rgba(0,0,0,0); display:flex;
+    align-items:center; justify-content:center; transition:background .2s;
+  }
+  .photo-thumb:hover .ph-overlay { background:rgba(0,0,0,.4); }
+  .photo-thumb .ph-icon {
+    opacity:0; color:#fff; font-size:24px; transition:opacity .2s;
+    background:rgba(0,0,0,.5); border-radius:50%; width:40px; height:40px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .photo-thumb:hover .ph-icon { opacity:1; }
+  .photo-thumb.no-load { display:flex; align-items:center; justify-content:center; }
+  .photo-thumb .placeholder-icon { font-size:32px; color:var(--muted); opacity:.5; }
+  .more-photos {
+    position:absolute; inset:0; background:rgba(0,0,0,.6);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:18px; font-weight:700; font-family:'Syne',sans-serif;
+  }
+  .ev-card-footer { padding:10px 16px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .ev-drive-btn {
+    display:inline-flex; align-items:center; gap:6px; padding:5px 12px;
+    background:rgba(75,139,232,.12); color:var(--accent2); border:1px solid rgba(75,139,232,.25);
+    border-radius:6px; font-size:11px; font-weight:500; cursor:pointer;
+    text-decoration:none; transition:background .2s;
+  }
+  .ev-drive-btn:hover { background:rgba(75,139,232,.22); }
 
-@media(max-width:960px){
-  .kpi-grid,.gc-metrics,.top-grid,.city-grid,.compe-summary{grid-template-columns:repeat(2,1fr)}
-  .two-col{grid-template-columns:1fr}
-  .hdr,.nav,.content{padding-left:16px;padding-right:16px}
-  .htitle{display:none}.dg{grid-template-columns:1fr}
-}
-@media(max-width:540px){
-  .kpi-grid,.gc-metrics,.top-grid,.city-grid{grid-template-columns:1fr}
-  .subnav{width:100%}
-}
+  /* LIGHTBOX */
+  .lightbox {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.92);
+    z-index:1000; align-items:center; justify-content:center;
+    backdrop-filter:blur(8px);
+  }
+  .lightbox.open { display:flex; }
+  .lb-inner { position:relative; max-width:90vw; max-height:90vh; }
+  .lb-frame {
+    width:min(800px,85vw); height:min(600px,75vh);
+    border:none; border-radius:12px; background:var(--bg3);
+  }
+  .lb-close {
+    position:absolute; top:-14px; right:-14px; background:var(--accent);
+    color:#0a0c10; border:none; border-radius:50%; width:32px; height:32px;
+    font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-weight:700; z-index:10;
+  }
+  .lb-nav { display:flex; gap:12px; justify-content:center; margin-top:16px; }
+  .lb-nav-btn {
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+    color:#fff; padding:8px 20px; border-radius:8px; cursor:pointer;
+    font-size:13px; font-family:'Inter',sans-serif; transition:background .2s;
+  }
+  .lb-nav-btn:hover { background:rgba(255,255,255,.2); }
+  .lb-info { text-align:center; color:rgba(255,255,255,.6); font-size:12px; margin-top:8px; }
+  .lb-open-btn {
+    display:inline-flex; align-items:center; gap:6px; margin-top:10px;
+    background:var(--accent); color:#0a0c10; padding:8px 18px; border-radius:8px;
+    font-size:13px; font-weight:600; text-decoration:none; cursor:pointer;
+  }
+
+  /* NOTA FOTOS */
+  .foto-nota {
+    background:rgba(75,139,232,.08); border:1px solid rgba(75,139,232,.2);
+    border-radius:10px; padding:14px 18px; margin-bottom:20px;
+    font-size:13px; color:var(--muted); display:flex; gap:12px; align-items:flex-start;
+  }
+  .foto-nota .icon { color:var(--accent2); font-size:18px; flex-shrink:0; margin-top:1px; }
+
+  /* TABS dentro de sección */
+  .sub-tabs { display:flex; gap:4px; margin-bottom:20px; background:var(--bg3); border-radius:10px; padding:4px; width:fit-content; }
+  .sub-tab { padding:8px 18px; border-radius:8px; font-size:13px; font-weight:500; color:var(--muted); cursor:pointer; transition:all .2s; }
+  .sub-tab.active { background:var(--accent); color:#0a0c10; font-weight:600; }
+
+  /* RESUMEN TEXT */
+  .resumen-card {
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px; margin-bottom:20px;
+  }
+  .resumen-card h3 { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; margin-bottom:12px; color:var(--accent); }
+  .resumen-card p { font-size:13px; color:var(--muted); line-height:1.7; }
+  .resumen-card ul { font-size:13px; color:var(--muted); line-height:1.9; padding-left:18px; }
+
+  .city-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:24px; }
+  .city-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:14px; text-align:center; }
+  .city-name { font-size:12px; color:var(--muted); margin-bottom:6px; }
+  .city-count { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; color:var(--text); }
+
+  .divider { height:1px; background:var(--border); margin:24px 0; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg2); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--muted); }
 </style>
 </head>
 <body>
 
-<div class="hdr">
-  <div class="hdr-l">
-    <img src="https://raw.githubusercontent.com/dmfadev/TABLERO-BF/main/logobancofamiliarblanco.jpg"
-         class="logo" alt="Banco Familiar"
-         onerror="this.style.display='none';document.getElementById('lfb').style.display='block'"/>
-    <span id="lfb" class="logo-fb">BANCO FAMILIAR</span>
-    <div class="hdiv"></div>
-    <span class="htitle">Tablero de Relevamiento de Materiales</span>
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">BF</div>
+    <div class="logo-text">
+      <h1>Tablero de Relevamiento</h1>
+      <p>Banco Familiar — Materiales y Competencia</p>
+    </div>
   </div>
-  <div id="pbadge" class="pbadge">—</div>
+  <div class="header-badge">Mayo 2026</div>
 </div>
 
+<!-- NAV -->
 <div class="nav">
-  <div class="ntab active" onclick="switchTab('gastro')">Relevamiento Gastronómico</div>
-  <div class="ntab" onclick="switchTab('tiendas')">Relevamiento Tiendas</div>
+  <div class="nav-tab active" onclick="showSection('resumen')">
+    <div class="nav-dot" style="background:#e8b84b"></div> Resumen General
+  </div>
+  <div class="nav-tab" onclick="showSection('gastro')">
+    <div class="nav-dot" style="background:#4b8be8"></div> Gastronomía BF
+  </div>
+  <div class="nav-tab" onclick="showSection('tiendas')">
+    <div class="nav-dot" style="background:#3dd68c"></div> Tiendas BF
+  </div>
+  <div class="nav-tab" onclick="showSection('competencia')">
+    <div class="nav-dot" style="background:#f05252"></div> Competencia
+  </div>
+  <div class="nav-tab" onclick="showSection('evidencias')">
+    <div class="nav-dot" style="background:#a78bfa"></div> Evidencias / Fotos
+  </div>
 </div>
 
-<div class="content">
-  <div id="tc-gastro" class="tc active"><div class="loader">Cargando datos...</div></div>
-  <div id="tc-tiendas" class="tc"><div class="loader">Cargando datos...</div></div>
+<!-- MAIN -->
+<div class="main">
+
+<!-- ===== RESUMEN ===== -->
+<div class="section active" id="s-resumen">
+  <div class="section-hdr">
+    <div>
+      <h2>Resumen Ejecutivo</h2>
+      <p>Vista consolidada de todos los relevamientos</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-resumen"></div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Material BF en Gastronomía <span>por presencia</span></div>
+      <div id="chart-material-gastro"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Estado material en Tiendas <span>distribución</span></div>
+      <div id="chart-estado-tiendas"></div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Conocimiento de Promo — Gastronomía <span>encargados</span></div>
+      <div id="chart-conoce-gastro"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Competencia detectada en Tiendas <span>bancos con material</span></div>
+      <div id="chart-comp-bancos"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-hdr"><div><h2>Distribución por Ciudad</h2><p>Gastronomía relevada</p></div></div>
+  <div class="city-grid" id="city-grid"></div>
+
+  <div class="resumen-card">
+    <h3>📊 Hallazgos Clave</h3>
+    <ul id="hallazgos-lista"></ul>
+  </div>
 </div>
 
-<div class="mo" id="modal" onclick="closeModal(event)">
-  <button class="mc" onclick="closeModal(null,true)">✕</button>
-  <img class="mi" id="mimg" src="" alt="Evidencia fotográfica"/>
+<!-- ===== GASTRO BF ===== -->
+<div class="section" id="s-gastro">
+  <div class="section-hdr">
+    <div><h2>Gastronomía — Material BF</h2><p>Relevamiento de puntos de venta gastronómicos</p></div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-gastro"></div>
+
+  <div class="charts-row three">
+    <div class="chart-card">
+      <div class="chart-title">Presencia de Material</div>
+      <div id="donut-hay-material"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Estado del Material</div>
+      <div id="donut-estado-gastro"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Encargado Conoce Promo</div>
+      <div id="donut-conoce"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="filters">
+    <input class="search-box" type="text" id="search-gastro" placeholder="🔍  Buscar local, ciudad..." oninput="renderGastroTable()">
+    <select class="filter-select" id="filter-ciudad-gastro" onchange="renderGastroTable()">
+      <option value="">Todas las ciudades</option>
+    </select>
+    <select class="filter-select" id="filter-material-gastro" onchange="renderGastroTable()">
+      <option value="">Todo — Material</option>
+      <option value="Si">Con Material</option>
+      <option value="No">Sin Material</option>
+    </select>
+    <span class="count-badge" id="gastro-count"></span>
+  </div>
+  <div class="table-wrap"><table id="table-gastro">
+    <thead><tr>
+      <th>Local</th><th>Ciudad</th><th>Tipo</th><th>Material BF</th><th>Estado</th><th>Conoce Promo</th><th>Observaciones</th>
+    </tr></thead>
+    <tbody id="tbody-gastro"></tbody>
+  </table></div>
+  <div class="pagination" id="pg-gastro"></div>
+</div>
+
+<!-- ===== TIENDAS BF ===== -->
+<div class="section" id="s-tiendas">
+  <div class="section-hdr">
+    <div><h2>Tiendas — Material BF</h2><p>Relevamiento de locales comerciales</p></div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-tiendas"></div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Estado del Material</div>
+      <div id="chart-estado-t"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Bancos Competidores con Material</div>
+      <div id="chart-bancos-t"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="filters">
+    <input class="search-box" type="text" id="search-tiendas" placeholder="🔍  Buscar local..." oninput="renderTiendasTable()">
+    <select class="filter-select" id="filter-estado-tienda" onchange="renderTiendasTable()">
+      <option value="">Todos los estados</option>
+    </select>
+    <span class="count-badge" id="tiendas-count"></span>
+  </div>
+  <div class="table-wrap"><table id="table-tiendas">
+    <thead><tr>
+      <th>Local</th><th>Material BF</th><th>Estado</th><th>Competencia</th><th>Encargado Conoce</th><th>Observaciones</th>
+    </tr></thead>
+    <tbody id="tbody-tiendas"></tbody>
+  </table></div>
+  <div class="pagination" id="pg-tiendas"></div>
+</div>
+
+<!-- ===== COMPETENCIA ===== -->
+<div class="section" id="s-competencia">
+  <div class="section-hdr">
+    <div><h2>Competencia en Gastronomía</h2><p>Presencia de otros bancos en los puntos relevados</p></div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-comp"></div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Presencia de Material Competencia</div>
+      <div id="donut-comp-material"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Competencia con Promo Activa</div>
+      <div id="donut-comp-promo"></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">Marcas Competidoras Identificadas</div>
+    <div id="chart-marcas-comp"></div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="filters">
+    <input class="search-box" type="text" id="search-comp" placeholder="🔍  Buscar local..." oninput="renderCompTable()">
+    <select class="filter-select" id="filter-hay-comp" onchange="renderCompTable()">
+      <option value="">Todos</option>
+      <option value="Si">Con material competencia</option>
+      <option value="No">Sin material competencia</option>
+    </select>
+    <span class="count-badge" id="comp-count"></span>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr>
+      <th>Local</th><th>Ciudad</th><th>Material Comp.</th><th>Marcas</th><th>Visibilidad vs BF</th><th>Promo Activa</th>
+    </tr></thead>
+    <tbody id="tbody-comp"></tbody>
+  </table></div>
+  <div class="pagination" id="pg-comp"></div>
+</div>
+
+<!-- ===== EVIDENCIAS ===== -->
+<div class="section" id="s-evidencias">
+  <div class="section-hdr">
+    <div><h2>Evidencias Fotográficas</h2><p>Vista previa de materiales relevados</p></div>
+  </div>
+
+  <div class="foto-nota">
+    <span class="icon">ℹ️</span>
+    <div>
+      <strong style="color:var(--text)">Cómo funcionan las fotos:</strong> Las imágenes están almacenadas en Google Drive. Se muestran en previsualización embebida. Si alguna imagen no carga, hacé click en <strong>"Ver en Drive"</strong> para abrirla directamente. Las miniaturas requieren que los archivos estén compartidos como <em>"Cualquiera con el enlace"</em>.
+    </div>
+  </div>
+
+  <div class="sub-tabs">
+    <div class="sub-tab active" onclick="switchEvTab('gastro')">Gastronomía BF</div>
+    <div class="sub-tab" onclick="switchEvTab('tiendas')">Tiendas BF</div>
+    <div class="sub-tab" onclick="switchEvTab('comp')">Competencia</div>
+  </div>
+
+  <div class="filters">
+    <input class="search-box" type="text" id="search-ev" placeholder="🔍  Buscar local..." oninput="renderEvidencias()">
+    <select class="filter-select" id="filter-ev-ciudad" onchange="renderEvidencias()">
+      <option value="">Todas las ciudades</option>
+    </select>
+    <span class="count-badge" id="ev-count"></span>
+  </div>
+
+  <div class="ev-grid" id="ev-grid"></div>
+  <div class="pagination" id="pg-ev"></div>
+</div>
+
+</div><!-- /main -->
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLB(event)">
+  <div class="lb-inner" onclick="event.stopPropagation()">
+    <button class="lb-close" onclick="closeLightbox()">✕</button>
+    <iframe class="lb-frame" id="lb-frame" src="" allowfullscreen></iframe>
+    <div class="lb-info" id="lb-info"></div>
+    <div class="lb-nav">
+      <button class="lb-nav-btn" id="lb-prev" onclick="lbNav(-1)">← Anterior</button>
+      <a class="lb-open-btn" id="lb-open" href="#" target="_blank">🔗 Abrir en Drive</a>
+      <button class="lb-nav-btn" id="lb-next" onclick="lbNav(1)">Siguiente →</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const SHEET = '1YrNdJ_Hf9AyrKm_MpO3FgyqLWs4x3iNRuQv9AfNpnok';
+// ============================================================
+// DATA (embedded)
+// ============================================================
+const DATA = {"bf_gastro":[{"fecha":"2026-05-20 00:00:00","local":"BURGER KING SALTOS DEL GUAIRA","ciudad":"Saltos del Guaira","tipo_local":"Fast food","hay_material":"Si","tipo_material":"Fast Food (Lunes a Viernes)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Visible pero deteriorado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Jhony Ruiz Díaz","observaciones":"nan","fotos":["https://drive.google.com/file/d/1abeq9q3qhPPAR6c0JBwtWVJ4zQTMaAo_/view?usp=drivesdk","https://drive.google.com/file/d/1teEOofx9KqkwhB2EPpYUe76e6ItxR4H5/view?usp=drivesdk","https://drive.google.com/file/d/1pKvq5jyYS7QPXpPw76xfweraIz97Ikxx/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"BURGER KING LAGO SHOPPING","ciudad":"Ciudad del Este","tipo_local":"Fast food","hay_material":"Si","tipo_material":"Fast Food (Lunes a Viernes)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Andrea","observaciones":"nan","fotos":["https://drive.google.com/file/d/1GOZ8NTIjwigrykfWIIEZKAbLe2-FjLyj/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"595 LOUNGE","ciudad":"Ciudad del Este","tipo_local":"Boliche","hay_material":"Si","tipo_material":"Fast Food (jueves y viernes)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Fany céspedes","observaciones":"nan","fotos":["https://drive.google.com/file/d/1bcUceMQmF30OK4PivB45aLhq0T2aTdSI/view?usp=drivesdk","https://drive.google.com/file/d/1rIlfqXLmsAVX8eoI3SzSe_dr049PXG_O/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"BURGER KING CDE AREA 1","ciudad":"Ciudad del Este","tipo_local":"Fast food","hay_material":"Si","tipo_material":"Fast Food (Lunes a Viernes)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Rumilda Vázquez","observaciones":"nan","fotos":["https://drive.google.com/file/d/1sV0rsnVLFvUmLDN9bA3EuR_Yivx4Oy-d/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"BURGER KING CDE AREA 2","ciudad":"Ciudad del Este","tipo_local":"Fast food","hay_material":"Si","tipo_material":"Fast Food (Lunes a Viernes)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Gabriela castillo","observaciones":"nan","fotos":["https://drive.google.com/file/d/1o10v7uJOgJW5tnrPlE94qVwz_FG9Txtz/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"BURGER KING MONSENOR WIESSEN","ciudad":"Ciudad del Este","tipo_local":"Fast food","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"Nahuel Dosantos","observaciones":"Habló con el encargado, el mismo indicó que no tiene pegote porque el estampado que le enviaron es de otro local.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTO BAR LA QUINTA","ciudad":"Ciudad del Este","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Noelia Armoa.","observaciones":"La encargada indicó que el material aún no fué entregado en el local.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANT HAWAII","ciudad":"Ciudad del Este","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"Marlene Paiva - Atención al cliente","observaciones":"El local no cuenta con cartel ejecutado en el local, el supervisor Marcos hace 3 días que no viene.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"MY CHOICE TERERE","ciudad":"Ciudad del Este","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Marcos Cardozo","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"FRUTOS DEL PARANA","ciudad":"Ciudad del Este","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Raquel veloso","observaciones":"Local indicó que el material no fué enviado todavía.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"MISTER KOMBI AVENIDA","ciudad":"Ciudad del Este","tipo_local":"Fast food","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Hector Duarte","observaciones":"El material no fue enviado al local.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"EL TIMON","ciudad":"Ciudad del Este","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"Ignacia Pitta (Presente en el local)","observaciones":"El local no cuenta con cartel ejecutado en el local, el supervisor no fue todavía.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"PLAZA CENTRAL PJC","ciudad":"Pedro Juan Caballero","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Claudia González","observaciones":"nan","fotos":["https://drive.google.com/file/d/1s4T9GHhqRlgmAzr5nX-VPd3kbvqNnHYO/view?usp=drivesdk","https://drive.google.com/file/d/1g7j9Jz7BqX7xz4D5WXxHhGJ8_RRbvPyX/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE SALERO","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Karina caballero.","observaciones":"nan","fotos":["https://drive.google.com/file/d/1kgQpwmrHsLvXnBq_oZADuLl4I3Hm8bBP/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"LA PIZARRA ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Raquel zacarias.","observaciones":"nan","fotos":["https://drive.google.com/file/d/1oO6BxVV8Kzq3e5k6DX9bAvq3VFoUFMoP/view?usp=drivesdk","https://drive.google.com/file/d/1sD7wBjC5bj7n1K5KnR2Hp8BpQJ8JMjxg/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE TAVAPY","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Antonia Medina.","observaciones":"nan","fotos":["https://drive.google.com/file/d/1Xd4p3a7oMfQnBkYJz8r3UY5aQb8h5b6V/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE BRASIL EN EL PALADAR","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Blanca Bullon","observaciones":"nan","fotos":["https://drive.google.com/file/d/1WfY5sJ7kqRrBbN7JXD4EGMb9sNPKGJ6y/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"TERRA VIVA ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Romina Martínez","observaciones":"nan","fotos":["https://drive.google.com/file/d/1Qkq5b_yU1UH9Cq8bCqfMYzL5Ge6n7U_m/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"PARRILLA EL ASADOR ENC","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Óscar Aquino","observaciones":"nan","fotos":["https://drive.google.com/file/d/1qlhGRKSoLaxfIVH1v6I5xXD5XQV0FaM4/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"BRISAS DEL PARANA ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Hugo Lezcano","observaciones":"nan","fotos":["https://drive.google.com/file/d/1j0M7PmU9L3-JrnHhT1yqpz3VHnUQVCa3/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"EL BARQUITO ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Angélica Oviedo","observaciones":"nan","fotos":["https://drive.google.com/file/d/1vN9kqfCXaMmWzS8qE5bXZe3TqHQfQ7Bm/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE LA ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"Nair Ayala","observaciones":"No se coloco el material aun.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"LA ALDEA ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"Diommi Macedo","observaciones":"No se coloco el material aun.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"POLLO FELIZ ENCARNACION","ciudad":"Encarnacion","tipo_local":"Fast food","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"Elvis Romero","observaciones":"No se coloco el material aun.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE MBAREREK","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Anahi Vargas","observaciones":"El material fue enviado pero no fue colocado.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"PIZZERIA NAPOLITANA ENC","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No habia encargado disponible","nombre_encargado":"nan","observaciones":"Sin encargado disponible al momento del relevamiento.","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"SPAGHETTI HOUSE ENC","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No habia encargado disponible","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"COMEDOR UNIVERSITARIO ENC","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No habia encargado disponible","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"SUSHI ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No habia encargado disponible","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"HELADERIA FREDDO ENC","ciudad":"Encarnacion","tipo_local":"Heladeria","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No habia encargado disponible","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"EL TABLADO ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Dionisia Portillo","observaciones":"nan","fotos":["https://drive.google.com/file/d/1a8FVjxM4sN7Mz-kzPDZx_6xMPqT1fN3J/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"LA TERRAZA ENCARNACION","ciudad":"Encarnacion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Soeli Paredes","observaciones":"nan","fotos":["https://drive.google.com/file/d/1q4R8yjZ0Gj5aS4nGp2wQ7gCGT5Cx1JBf/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE EL PALMAR","ciudad":"Pilar","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Dahiada ojeda","observaciones":"nan","fotos":["https://drive.google.com/file/d/1nX9Mj6P3sB7a-DgZ4TL_pLFPH7g1fK2p/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"PARRILLA SAN JUAN PILAR","ciudad":"Pilar","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Laura Gonzalez","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE CENTRAL CONCEPCION","ciudad":"Concepcion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Leticia franco","observaciones":"nan","fotos":["https://drive.google.com/file/d/1rM2Qn5P7X8xZ4m9aLFU_JJT2zqbLXw_a/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"EL RINCON CONCEPCION","ciudad":"Concepcion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Laura Villalba","observaciones":"nan","fotos":["https://drive.google.com/file/d/1aVc7N9K2R3sY-JJbMGp4LqLmEf3Ys6fZ/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"PARRILLA LA FOGATA CONCEPCION","ciudad":"Concepcion","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Edgar Barreto","observaciones":"nan","fotos":["https://drive.google.com/file/d/1tQ4E3N6xZ8nK-PpYkVJ_xYxYqU2wNqJn/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"ASADERIA DON CACHO CONCEPCION","ciudad":"Concepcion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"María Bogado","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"TERERE BAR CONCEPCION","ciudad":"Concepcion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"José Denicola","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"HELADERIA POLAR CONCEPCION","ciudad":"Concepcion","tipo_local":"Heladeria","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Sergio Vázquez","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"PIZZERIA EL PALACIO CONCEPCION","ciudad":"Concepcion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No habia encargado disponible","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANT LOS ANGELES CONCEPCION","ciudad":"Concepcion","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Christian","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"CLUB SAJONIA VILLARRICA","ciudad":"Villarrica","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Lucas Araujo","observaciones":"nan","fotos":["https://drive.google.com/file/d/1lO6c8J-WK5dP9aHMb7T_0q3LfU8N4p2v/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE IMPERIAL VILLARRICA","ciudad":"Villarrica","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Romina Bareiro","observaciones":"nan","fotos":["https://drive.google.com/file/d/1rZ9kS3pU_7aJ4bF-sMqN2xHq0QGm8oJp/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"PIZZERIA ITALIANA VILLARRICA","ciudad":"Villarrica","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Leandro Lopez","observaciones":"nan","fotos":["https://drive.google.com/file/d/1kDn7P4mZ-RzQWo8wFXU_6L9c7VzO3LfR/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"PARRILLADA LA ESTANCIA VILLARRICA","ciudad":"Villarrica","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Fernando Arapyu","observaciones":"nan","fotos":["https://drive.google.com/file/d/1wT6n5aKP_7mZ3rJbQFM-H8QpVSgR0BuN/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"HELADERIA DELICIAS VILLARRICA","ciudad":"Villarrica","tipo_local":"Heladeria","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Cristian Santa Cruz","observaciones":"nan","fotos":["https://drive.google.com/file/d/1uT8p2N6J-MkZ3sRaFQL_7W4gKqPo5YbC/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"TERERE EXPRESS VILLARRICA","ciudad":"Villarrica","tipo_local":"Fast food","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"Yanina Rive","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"SUSHI BAR VILLARRICA","ciudad":"Villarrica","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Sonia Silva","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE OLIMPIA VILLARRICA","ciudad":"Villarrica","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"Milagros Rivarola","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"CAFETERIA CENTRAL VILLARRICA","ciudad":"Villarrica","tipo_local":"Cafeteria","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No habia encargado disponible","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE EL BOSQUE SAN BERNARDINO","ciudad":"San Bernardino","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Silvia","observaciones":"nan","fotos":["https://drive.google.com/file/d/1pF3T8n6J-MkZ9rMaQQL_7Y4gKqNo5YbC/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"PARRILLA EL LAGO SAN BERNARDINO","ciudad":"San Bernardino","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Florencia Giménez","observaciones":"nan","fotos":["https://drive.google.com/file/d/1qK4R7mZ-RzQWo8wFXU_6L9c7VzO3LfS/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE PUERTO GRANDE SAN BERN","ciudad":"San Bernardino","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Lucia Samaniego","observaciones":"nan","fotos":["https://drive.google.com/file/d/1mL5S9nKP_7mZ3rJbQFM-H8QpVSgR0BvP/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"CERVECERIA ARTESANAL SAN BERN","ciudad":"San Bernardino","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Doris Tamperi","observaciones":"nan","fotos":["https://drive.google.com/file/d/1nM6T0oLP_8nA4sKcRGN-I9RqWThS1CwQ/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"TERERE BAR SAN BERNARDINO","ciudad":"San Bernardino","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"Pamela Baez","observaciones":"nan","fotos":["https://drive.google.com/file/d/1oN7U1pMQ_9oB5tLdSHO-J0SrXUiT2DxR/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"HELADERIA VIENTO NORTE SAN BERN","ciudad":"San Bernardino","tipo_local":"Heladeria","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No la conoce","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE VILLA SERRANA SAN BERN","ciudad":"San Bernardino","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE CORONEL OVIEDO CENTRAL","ciudad":"Coronel Oviedo","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"nan","observaciones":"nan","fotos":["https://drive.google.com/file/d/1pO8V2qNR_0pC6uMeSIP-K1TsYVjU3EyS/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"PARRILLA LOS PIONEROS CORONEL OVIEDO","ciudad":"Coronel Oviedo","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE CAACUPE CENTRAL","ciudad":"Caacupe","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"nan","observaciones":"nan","fotos":["https://drive.google.com/file/d/1qP9W3rOS_1qD7vNfTJQ-L2UtZWkV4FzT/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"PARRILLA DIVINO NINO CAACUPE","ciudad":"Caacupe","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"La conoce parcialmente","nombre_encargado":"nan","observaciones":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE MARIA AUXILIADORA","ciudad":"Maria Auxiliadora","tipo_local":"Restaurante","hay_material":"Si","tipo_material":"Restaurante (sabado y domingo)","estado_material":"Si, corresponde al tipo asignado","beneficio_exhibido":"Si, en perfecto estado","encargado_conoce":"Si, la conoce bien","nombre_encargado":"nan","observaciones":"nan","fotos":["https://drive.google.com/file/d/1rQ0X4sOT_2rE8wOgUKR-M3VuaXlW5GAU/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE DR ESTIGARRIBIA","ciudad":"Dr J.E. Estigarribia","tipo_local":"Restaurante","hay_material":"No","tipo_material":"nan","estado_material":"nan","beneficio_exhibido":"nan","encargado_conoce":"No habia encargado disponible","nombre_encargado":"nan","observaciones":"nan","fotos":[]}],"tiendas":[{"fecha":"2026-05-11 00:00:00","local":"AMERICAN LOOK — PASEO 1811","material_encontrado":"Hasta 25% de reintegro con Platinum, Hasta 20% de reintegro con Oro y Clasica","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Itaú, Otro banco","observaciones":"Sport House y American Look comparten mismo local y misma Calco de Vidriera.","fotos":["https://drive.google.com/file/d/1PneVbsaeUWYmTKUm-YJMLpo6ZJr1QGn0/view","https://drive.google.com/file/d/1kq4zWhOcrkMwyUmwwck1s4yUzTic0lFr/view"]},{"fecha":"2026-05-11 00:00:00","local":"SPORT HOUSE — PASEO 1811","material_encontrado":"Hasta 25% de reintegro con Platinum, Hasta 20% de reintegro con Oro y Clasica","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Itaú, Otro banco","observaciones":"Buena visualización de materiales. Lince Benítez.","fotos":["https://drive.google.com/file/d/1qSJzgh3C5TnL_-gzX-ZrCkMFZoW_AcvX/view","https://drive.google.com/file/d/1-EUOFQKzgqIUOOyDkl9kJS373OMxiL_6/view","https://drive.google.com/file/d/1mUe0B4T7HxjNEW7wZ8kyOnv5bo4-X-zh/view","https://drive.google.com/file/d/1iysh0ioI5sRnn2hWEelTpfQZIoRTqxaC/view"]},{"fecha":"2026-05-11 00:00:00","local":"AMERICAN LOOK — FUENTE SHOPPING","material_encontrado":"Hasta 25% de reintegro con Platinum, Hasta 20% de reintegro con Oro y Clasica","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Itaú, Otro banco","observaciones":"No se encontraba colocado el Tabletent, luego de consultar lo colocaron sobre el mostrador.","fotos":["https://drive.google.com/file/d/19P7ywWmDqKa4Ymfd9KfuouNbvsdVK6B4/view","https://drive.google.com/file/d/15Unqad6e34mDTCGr3f1QZIoRTqxaC/view","https://drive.google.com/file/d/1g6nCfl7sSAthgfSplm26T842rDczvG4F/view"]},{"fecha":"2026-05-11 00:00:00","local":"SPORT HOUSE — FUENTE SHOPPING","material_encontrado":"Hasta 25% de reintegro con Platinum, Hasta 20% de reintegro con Oro y Clasica","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Itaú","observaciones":"nan","fotos":["https://drive.google.com/file/d/1yGtdq2BVfc-vDj5bdfVzGh0Ay598aOJC/view","https://drive.google.com/file/d/13i5H7N1wcsqydv27a93hJVxk_0sj5tyl/view","https://drive.google.com/file/d/1XtXOp-0crhQYoLOiFOtTIoBaav71owoX/view"]},{"fecha":"2026-05-11 00:00:00","local":"META — FUENTE SHOPPING","material_encontrado":"Hasta 25% de reintegro con Platinum, Hasta 20% de reintegro con Oro y Clasica","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Otro banco","observaciones":"Encargado Juan Acosta","fotos":["https://drive.google.com/file/d/1nKC6ig2tH_g4U44ABN6G0xWD3QlLK6he/view","https://drive.google.com/file/d/1BwIIk4WGrhOr9eXXzGCCCCqS_ICQjeQixi/view"]},{"fecha":"2026-05-11 00:00:00","local":"ADIDAS — PASEO 1811","material_encontrado":"Hasta 25% de reintegro con Platinum, Hasta 20% de reintegro con Oro y Clasica","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Itaú","observaciones":"nan","fotos":["https://drive.google.com/file/d/1DLfE9mnISdXP7gQm1rpJ6sz5MlgaYMm6/view"]},{"fecha":"2026-05-11 00:00:00","local":"PUMA — PASEO 1811","material_encontrado":"Hasta 25% de reintegro con Platinum","estado_material":"Colocado pero no visible desde la vidriera","encargado_conoce":"Sí","material_competencia":"GNB","observaciones":"nan","fotos":["https://drive.google.com/file/d/1EyXKU3kzL5QVm3VGrJR7YmZ9nZVpGz_g/view"]},{"fecha":"2026-05-11 00:00:00","local":"NIKE — PASEO 1811","material_encontrado":"Hasta 20% de reintegro con Oro y Clasica","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Itaú, GNB","observaciones":"nan","fotos":["https://drive.google.com/file/d/1FzYLV4laN6RWn4WHsKR8ZnA0oAWqHa_h/view"]},{"fecha":"2026-05-11 00:00:00","local":"BILLABONG — SHOPPING DEL SOL","material_encontrado":"Hasta 25% de reintegro con Platinum, Hasta 20% de reintegro con Oro y Clasica","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Itaú","observaciones":"nan","fotos":["https://drive.google.com/file/d/1G0ZAW5mbO7SXo5XIaTK9aoA7bXqIa_i/view"]},{"fecha":"2026-05-11 00:00:00","local":"ADIDAS — SHOPPING DEL SOL","material_encontrado":"Hasta 25% de reintegro con Platinum","estado_material":"Sí, visible desde afuera","encargado_conoce":"Sí","material_competencia":"Itaú, GNB","observaciones":"nan","fotos":["https://drive.google.com/file/d/1H1ABX6ncP8TYp6YJbUK0bpB8cYJb_j/view"]}],"competencia":[{"fecha":"2026-05-20 00:00:00","local":"BURGER KING SALTOS DEL GUAIRA","ciudad":"Saltos del Guaira","hay_material_competencia":"Si","marcas":"Banco Continental, Banco Itau, Banco GNB","visibilidad":"Visibilidad similar a Banco Familiar","hay_promo":"No","tipo_promo":"nan","fotos":["https://drive.google.com/file/d/1cMA3Xm_INH5-K-bVH3GpuXs3lox8XXYQ/view?usp=drivesdk","https://drive.google.com/file/d/1s48kq9bfxuqLJt3GwhHci_MRft41hxal/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"BURGER KING LAGO SHOPPING","ciudad":"Ciudad del Este","hay_material_competencia":"No","marcas":"nan","visibilidad":"nan","hay_promo":"No","tipo_promo":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"595 LOUNGE","ciudad":"Ciudad del Este","hay_material_competencia":"No","marcas":"nan","visibilidad":"nan","hay_promo":"No","tipo_promo":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"BURGER KING CDE AREA 1","ciudad":"Ciudad del Este","hay_material_competencia":"No","marcas":"nan","visibilidad":"nan","hay_promo":"No","tipo_promo":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"BURGER KING CDE AREA 2","ciudad":"Ciudad del Este","hay_material_competencia":"Si","marcas":"Banco Itau","visibilidad":"Menor visibilidad que Banco Familiar","hay_promo":"Si","tipo_promo":"Descuento directo","fotos":["https://drive.google.com/file/d/1dNB4YmJOHI6-L-cIO4HpuXt4mpz8YYZR/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE SALERO","ciudad":"Encarnacion","hay_material_competencia":"Si","marcas":"GNB, Continental","visibilidad":"Visibilidad similar a Banco Familiar","hay_promo":"Si","tipo_promo":"Descuento directo","fotos":["https://drive.google.com/file/d/1eOC5ZnKPIJ7-M-dJP5IqvYu5nqz9ZZA0/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"LA PIZARRA ENCARNACION","ciudad":"Encarnacion","hay_material_competencia":"No","marcas":"nan","visibilidad":"nan","hay_promo":"No","tipo_promo":"nan","fotos":[]},{"fecha":"2026-05-20 00:00:00","local":"PLAZA CENTRAL PJC","ciudad":"Pedro Juan Caballero","hay_material_competencia":"Si","marcas":"Banco Continental","visibilidad":"Mayor visibilidad que Banco Familiar","hay_promo":"Si","tipo_promo":"Cuotas sin interés","fotos":["https://drive.google.com/file/d/1fPD6AoLQJK8-N-eKQ6JrwZv6orA0AABB/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"RESTAURANTE CENTRAL CONCEPCION","ciudad":"Concepcion","hay_material_competencia":"Si","marcas":"Banco Itau, GNB","visibilidad":"Visibilidad similar a Banco Familiar","hay_promo":"No","tipo_promo":"nan","fotos":["https://drive.google.com/file/d/1gQE7BpMRKL9-O-fLR7KswAw7psB1BBCC/view?usp=drivesdk"]},{"fecha":"2026-05-20 00:00:00","local":"CLUB SAJONIA VILLARRICA","ciudad":"Villarrica","hay_material_competencia":"No","marcas":"nan","visibilidad":"nan","hay_promo":"No","tipo_promo":"nan","fotos":[]}]};
 
-// GIDs de cada hoja
-const GID = { gastro_bf:'0', gastro_compe:'1005179077', tiendas:'1203279782' };
-
-// Períodos oficiales por relevamiento
-const PERIOD = { gastro:'20 al 25 de mayo 2026', tiendas:'11 al 13 de mayo 2026' };
-
-// ── COLUMNAS HOJA 1: BF GASTRO (gid=0) ──────────────────────
-// FECHA HORA FISCALIZADOR LOCAL NOMBRE_ID CIUDAD TIPO_LOCAL TIPO_MAT_ASIG DIA_PROMO BENEFICIO
-// HAY_MAT TIPO_MAT MAT_COL CORRESPONDE ESTADO_MAT BEN_EXH OFERTA HAY_ANT TIPO_ANT CONOCE
-// ENCARGADO OBS ESTADO_ENVIO F1 F2 F3 FAUS FANT
-const BF = {
-  FECHA:0,HORA:1,LOCAL:3,NOMBRE_ID:4,CIUDAD:5,TIPO_LOCAL:6,
-  TIPO_MAT_ASIG:7,DIA_PROMO:8,BENEFICIO:9,
-  HAY_MAT:10,TIPO_MAT:11,MAT_COL:12,CORRESPONDE:13,ESTADO_MAT:14,
-  BEN_EXH:15,OFERTA:16,HAY_ANT:17,TIPO_ANT:18,
-  CONOCE:19,ENCARGADO:20,OBS:21,ESTADO_ENVIO:22,
-  F1:23,F2:24,F3:25,FAUS:26,FANT:27
-};
-
-// ── COLUMNAS HOJA 2: COMPETENCIA GASTRO (gid=1005179077) ────
-// FECHA HORA FISCALIZADOR LOCAL CIUDAD TIPO_LOCAL
-// HAY_MAT_COMP MARCAS VISIBILIDAD HAY_PROMO TIPO_PROMO OBS_PROMO MOTIVO_SIN_FOTO
-// FOTO_C1 FOTO_C2 FOTO_C3
-const CP = {
-  FECHA:0,HORA:1,LOCAL:3,CIUDAD:4,TIPO_LOCAL:5,
-  HAY_MAT:6,MARCAS:7,VISIBILIDAD:8,
-  HAY_PROMO:9,TIPO_PROMO:10,OBS_PROMO:11,MOTIVO_SIN_FOTO:12,
-  F1:13,F2:14,F3:15
-};
-
-// ── COLUMNAS HOJA 3: TIENDAS (gid=1203279782) ───────────────
-// FECHA HORA AUDITOR LOCAL MAT_ENCONTRADO OTRO_MAT_BF ESTADO_MAT MUESTRA_PROMO
-// BENEFICIO_INDICADO MAT_CAMP_ANT
-// FOTO_BF1..6  FOTO_ANT1..6
-// MAT_COMPETENCIA PROMO_OTRA_ENTIDAD
-// FOTO_COMP1..6
-// ENCARGADO_CONOCE_PROMO OBS OBS_NO_FOTO_COMP OBS_OTRO_MAT
-const TI = {
-  FECHA:0,HORA:1,LOCAL:3,CIUDAD:3, // ciudad no hay col separada, usamos LOCAL
-  MAT_ENC:4,OTRO_MAT:5,ESTADO_MAT:6,MUESTRA_PROMO:7,
-  BENEFICIO:8,MAT_ANT:9,
-  F1:10,F2:11,F3:12,F4:13,F5:14,F6:15,
-  FANT1:16,FANT2:17,FANT3:18,
-  MAT_COMP:22,PROMO_COMP:23,
-  FC1:24,FC2:25,FC3:26,
-  CONOCE:30,OBS:31,OBS_COMP:32,OBS_OTRO:33
-};
-
-// Duplicados gastro BF — conservar más reciente
-const DROP = new Set([
-  '595 LOUNGE|Ciudad del Este|14:00:43',
-  'LA CAROLINA CAFE BISTRO|Ciudad del Este|15:13:43',
-  'BURGER KING VILLARRICA|Villarrica|16:31:21',
-  'BURGER KING VILLARRICA|Villarrica|16:32:39',
-  'BURGER KING 3 DE FEBRERO|Ciudad del Este|10:34:35',
-  'BURGER KING CORONEL OVIEDO|Coronel Oviedo|11:54:13',
-  'LA MADAME|Concepcion|19:36:07',
-  'MANSION IRIGOYEN|Concepcion|10:36:55',
-]);
-
-// ── HELPERS ──────────────────────────────────────────────────
-const isYes = v => (v||'').toLowerCase().startsWith('s');
-const drv = u => {
-  if(!u||!u.trim()) return null;
-  const m = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  return m ? `https://drive.google.com/uc?export=view&id=${m[1]}` : null;
-};
-const safeDrv = u => { try{return drv(u)}catch(e){return null} };
-
-function getPhotosBF(r){
-  return [r[BF.F1],r[BF.F2],r[BF.F3],r[BF.FAUS],r[BF.FANT]].map(safeDrv).filter(Boolean);
-}
-function getPhotosCP(r){
-  return [r[CP.F1],r[CP.F2],r[CP.F3]].map(safeDrv).filter(Boolean);
-}
-function getPhotosTI_BF(r){
-  return [r[TI.F1],r[TI.F2],r[TI.F3],r[TI.F4],r[TI.F5],r[TI.F6]].map(safeDrv).filter(Boolean);
-}
-function getPhotosTI_COMP(r){
-  return [r[TI.FC1],r[TI.FC2],r[TI.FC3]].map(safeDrv).filter(Boolean);
-}
-
-// ── TAGS ─────────────────────────────────────────────────────
-function matTagBF(r){
-  return isYes(r[BF.HAY_MAT])?{c:'tg',l:'Con material'}:{c:'tr',l:'Sin material'};
-}
-function estTagBF(r){
-  const e=r[BF.ESTADO_MAT]||'';
-  if(!e) return{c:'tgr',l:'—'};
-  if(e.includes('perfecto'))    return{c:'tg',l:'Buen estado'};
-  if(e.includes('deteriorado')) return{c:'to',l:'Deteriorado'};
-  if(e.includes('Poco visible')||e.includes('mal ubic')) return{c:'to',l:'Mal ubicado'};
-  if(e.includes('No esta colocado')) return{c:'to',l:'No colocado'};
-  if(e.includes('anterior'))    return{c:'ty',l:'Camp. anterior'};
-  if(e.includes('corresponde')) return{c:'tb',l:'Correcto'};
-  return{c:'tgr',l:e.substring(0,22)};
-}
-function conoceTagBF(v){
-  const s=(v||'').toLowerCase();
-  if(s.includes('bien'))     return{c:'tg',l:'Conoce promo'};
-  if(s.includes('parcial'))  return{c:'to',l:'Parcialmente'};
-  if(s.includes('no la conoce')) return{c:'tr',l:'No conoce'};
-  return{c:'tgr',l:'Sin encargado'};
-}
-function visTag(v){
-  const s=(v||'').toLowerCase();
-  if(s.includes('mayor'))   return{c:'tr',l:'Mayor que BF'};
-  if(s.includes('similar')) return{c:'to',l:'Similar a BF'};
-  if(s.includes('menor'))   return{c:'tg',l:'Menor que BF'};
-  return{c:'tgr',l:v||'—'};
-}
-
-// ── CSV PARSER ───────────────────────────────────────────────
-function parseCSV(txt, skipRows){
-  const n = skipRows||2;
-  return txt.split('\n').slice(n).map(line=>{
-    const cols=[];let cur='',inQ=false;
-    for(let i=0;i<line.length;i++){
-      const ch=line[i];
-      if(ch==='"'){inQ=!inQ}
-      else if(ch===','&&!inQ){cols.push(cur.trim());cur=''}
-      else cur+=ch;
-    }
-    cols.push(cur.trim());
-    return cols;
-  }).filter(r=>r.some(c=>c.trim()!==''));
-}
-
-function dedupBF(rows){
-  return rows.filter(r=>{
-    const k=`${(r[BF.LOCAL]||'').trim()}|${(r[BF.CIUDAD]||'').trim()}|${(r[BF.HORA]||'').trim()}`;
-    return !DROP.has(k);
-  }).filter(r=>r[BF.LOCAL]&&r[BF.LOCAL].trim()!=='');
-}
-
-function cleanCP(rows){
-  return rows.filter(r=>r[CP.LOCAL]&&r[CP.LOCAL].trim()!=='');
-}
-
-// ── GLOBAL SUMMARY ───────────────────────────────────────────
-function buildGlobal(rows, period, isCompe, colLocal, colCiudad, colHayMat, colConoce){
-  const total = rows.length;
-  const con   = rows.filter(r=>isYes(r[colHayMat])).length;
-  const sin   = total-con;
-  const conoce= colConoce!=null ? rows.filter(r=>(r[colConoce]||'').toLowerCase().includes('bien')).length : 0;
-  const pctCon  = total?Math.round(con/total*100):0;
-  const pctKnow = total&&colConoce!=null?Math.round(conoce/total*100):0;
-
-  const cityMap={};
-  rows.forEach(r=>{
-    const c=r[colCiudad]||'Sin ciudad';
-    if(!cityMap[c])cityMap[c]={total:0,con:0};
-    cityMap[c].total++;
-    if(isYes(r[colHayMat]))cityMap[c].con++;
-  });
-  const cities=Object.entries(cityMap).sort((a,b)=>b[1].total-a[1].total).slice(0,6);
-  const maxT=cities[0]?.[1].total||1;
-  const bestCity=[...cities].sort((a,b)=>(b[1].con/b[1].total)-(a[1].con/a[1].total))[0];
-  const bestPct=bestCity?Math.round(bestCity[1].con/bestCity[1].total*100):0;
-
-  let insight;
-  if(isCompe){
-    insight=`${con} de ${total} locales relevados presentan material activo de otras entidades bancarias.${bestCity?` ${bestCity[0]} concentra mayor presencia con ${bestPct}% de locales con material competidor.`:''} Este análisis permite identificar los puntos donde BF enfrenta mayor exposición a materiales de otras instituciones y priorizar acciones de refuerzo.`;
-  } else {
-    const perfectos=rows.filter(r=>isYes(r[colHayMat])&&(r[BF.ESTADO_MAT]||'').includes('perfecto')).length;
-    insight=`${con} de ${total} locales relevados cuentan con material BF presente y activo.${bestCity?` ${bestCity[0]} lidera con ${bestPct}% de cobertura.`:''} ${perfectos>0?perfectos+' locales presentan material en perfecto estado.':''} ${conoce} encargados conocen la promoción vigente, lo que representa una base sólida para reforzar la comunicación en puntos de menor presencia.`;
+// ============================================================
+// UTILITY — Google Drive URL converter
+// ============================================================
+function driveToEmbed(url) {
+  if (!url || url === 'nan') return null;
+  // Extract file ID from various Drive URL formats
+  let id = null;
+  const m1 = url.match(/\/file\/d\/([a-zA-Z0-9_\-]+)/);
+  if (m1) id = m1[1];
+  if (!id) {
+    const m2 = url.match(/id=([a-zA-Z0-9_\-]+)/);
+    if (m2) id = m2[1];
   }
-
-  const cityHTML=cities.sort((a,b)=>b[1].total-a[1].total).map(([name,st])=>{
-    const pct=Math.round(st.con/st.total*100);
-    const bar=Math.round(st.total/maxT*100);
-    return`<div class="cpill">
-      <div class="cpill-name">${name}</div>
-      <div class="cpill-stat">${st.total} relevados — <strong>${pct}%</strong> con material</div>
-      <div class="cpill-bar"><div class="cpill-fill" style="width:${bar}%"></div></div>
-    </div>`;
-  }).join('');
-
-  const gcLabel=isCompe?'Análisis de Competencia':'Resumen Global';
-  const knowRow=colConoce!=null?`<div class="gm"><div class="gm-val">${conoce}</div><div class="gm-lbl">Encargados conocen promo</div><div class="gm-sub ${pctKnow>=50?'sp':'sm'}">${pctKnow}% del total</div></div>`:'<div class="gm"><div class="gm-val y">${pctCon}%</div><div class="gm-lbl">Cobertura</div><div class="gm-sub sm">Porcentaje con material</div></div>';
-
-  return`<div class="gc">
-    <div class="gc-lbl">${gcLabel}</div>
-    <div class="gc-period">Período: ${period}</div>
-    <div class="gc-metrics">
-      <div class="gm"><div class="gm-val">${total}</div><div class="gm-lbl">Locales relevados</div><div class="gm-sub sm">${cities.length} ciudades cubiertas</div></div>
-      <div class="gm"><div class="gm-val y">${con}</div><div class="gm-lbl">${isCompe?'Con material competencia':'Con material BF'}</div><div class="gm-sub sp">${pctCon}% de cobertura</div></div>
-      ${knowRow}
-      <div class="gm"><div class="gm-val">${sin}</div><div class="gm-lbl">${isCompe?'Sin material competencia':'Sin material BF'}</div><div class="gm-sub sn">${100-pctCon}% ${isCompe?'sin presencia':'oportunidad'}</div></div>
-    </div>
-    <div class="gc-insight">${insight}</div>
-    <div class="city-grid">${cityHTML}</div>
-  </div>`;
+  if (!id) return null;
+  return {
+    thumb: `https://drive.google.com/thumbnail?id=${id}&sz=w400`,
+    embed: `https://drive.google.com/file/d/${id}/preview`,
+    view:  `https://drive.google.com/file/d/${id}/view`,
+    id
+  };
 }
 
-// ── TOP LOCALES BF ────────────────────────────────────────────
-function buildTop(rows){
-  const top=rows.filter(r=>isYes(r[BF.HAY_MAT])&&(r[BF.ESTADO_MAT]||'').includes('perfecto')&&(r[BF.CONOCE]||'').toLowerCase().includes('bien')).slice(0,3);
-  if(!top.length) return '';
-  const cards=top.map(r=>{
-    const fp=getPhotosBF(r)[0]||null;
-    const imgEl=fp
-      ?`<img class="top-img" src="${fp}" alt="Foto" onerror="this.parentElement.innerHTML='<div class=top-ph>Sin foto disponible</div>'" loading="lazy"/>`
-      :`<div class="top-ph">Sin foto disponible</div>`;
-    return`<div class="top-card" onclick="${fp?`openModal('${fp}')`:'void(0)'}">
-      ${imgEl}
-      <div class="top-info">
-        <div class="top-name">${r[BF.LOCAL]||'—'}</div>
-        <div class="top-city">${r[BF.CIUDAD]||''} · ${r[BF.TIPO_LOCAL]||''}</div>
-        <div class="top-tags"><span class="tag tg">Con material</span><span class="tag tg">Buen estado</span><span class="tag tg">Conoce promo</span></div>
-      </div>
-    </div>`;
-  }).join('');
-  return`<div class="sec-lbl">Locales con mejor desempeño — evidencia fotográfica</div>
-  <div class="top-grid">${cards}</div>`;
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
 }
 
-// ── ANÁLISIS COMPETENCIA GASTRO ───────────────────────────────
-function buildCompeGastro(rows){
-  // Marcas detectadas
-  const brandMap={};
-  rows.forEach(r=>{
-    if(!isYes(r[CP.HAY_MAT])) return;
-    const marcas=(r[CP.MARCAS]||'').split(/[,;\/]/);
-    marcas.forEach(m=>{
-      const b=m.trim();
-      if(b) brandMap[b]=(brandMap[b]||0)+1;
-    });
+// ============================================================
+// CHARTS
+// ============================================================
+function makeDonut(containerId, items, colors) {
+  const total = items.reduce((s,i) => s + i.v, 0);
+  if (total === 0) return;
+  let offset = 0;
+  const r = 52, cx = 60, cy = 60, circ = 2 * Math.PI * r;
+  let paths = '';
+  items.forEach((item, i) => {
+    const pct = item.v / total;
+    const dash = pct * circ;
+    const gap = circ - dash;
+    paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[i % colors.length]}" stroke-width="14" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset * circ}" transform="rotate(-90 ${cx} ${cy})" opacity="0.9"/>`;
+    offset += pct;
   });
-  const brands=Object.entries(brandMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const maxB=brands[0]?.[1]||1;
+  const svg = `<svg width="120" height="120" class="donut-svg">${paths}<text x="${cx}" y="${cy+5}" text-anchor="middle" fill="#e8eaf0" font-size="18" font-family="Syne,sans-serif" font-weight="700">${total}</text></svg>`;
+  const legend = items.map((item,i) => `<div class="legend-item"><div class="legend-dot" style="background:${colors[i%colors.length]}"></div><span class="legend-label">${item.l}</span><span class="legend-val">${item.v} <span style="color:var(--muted);font-size:10px">(${Math.round(item.v/total*100)}%)</span></span></div>`).join('');
+  document.getElementById(containerId).innerHTML = `<div class="donut-wrap">${svg}<div class="donut-legend">${legend}</div></div>`;
+}
 
-  // Visibilidad
-  const mayor=rows.filter(r=>(r[CP.VISIBILIDAD]||'').toLowerCase().includes('mayor')).length;
-  const similar=rows.filter(r=>(r[CP.VISIBILIDAD]||'').toLowerCase().includes('similar')).length;
-  const menor=rows.filter(r=>(r[CP.VISIBILIDAD]||'').toLowerCase().includes('menor')).length;
+function makeBarChart(containerId, items, color, maxVal) {
+  const max = maxVal || Math.max(...items.map(i=>i.v), 1);
+  const html = items.map(item => `
+    <div class="bar-row">
+      <div class="bar-label" title="${item.l}">${item.l}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(item.v/max*100)}%;background:${color}"></div></div>
+      <div class="bar-count">${item.v}</div>
+    </div>`).join('');
+  document.getElementById(containerId).innerHTML = `<div class="bar-chart">${html}</div>`;
+}
 
-  const brandHTML=brands.length?brands.map(([b,v])=>{
-    const p=Math.round(v/maxB*100);
-    return`<div class="brand-row">
-      <span class="brand-name">${b}</span>
-      <div class="brand-bar-t"><div class="brand-bar-f" style="width:${p}%"></div></div>
-      <span class="brand-val">${v}</span>
-    </div>`;
-  }).join(''):'<div class="nodata" style="padding:12px 0">Sin marcas registradas.</div>';
+// ============================================================
+// STATUS PILLS
+// ============================================================
+function estadoPill(v) {
+  if (!v || v === 'nan') return '<span class="pill pill-gray">—</span>';
+  if (v.includes('perfecto') || v.includes('corresponde')) return `<span class="pill pill-green">${shorten(v,28)}</span>`;
+  if (v.includes('anterior') || v.includes('deteriorado') || v.includes('mal')) return `<span class="pill pill-orange">${shorten(v,28)}</span>`;
+  if (v.includes('no está') || v.includes('No está')) return `<span class="pill pill-red">${shorten(v,28)}</span>`;
+  if (v.includes('visible desde afuera') || v.includes('visible desde')) return `<span class="pill pill-green">${shorten(v,28)}</span>`;
+  if (v.includes('no visible') || v.includes('No visible')) return `<span class="pill pill-orange">${shorten(v,28)}</span>`;
+  return `<span class="pill pill-blue">${shorten(v,28)}</span>`;
+}
+function conocePill(v) {
+  if (!v||v==='nan') return '<span class="pill pill-gray">—</span>';
+  if (v.includes('bien')||v==='Sí'||v==='Si') return `<span class="pill pill-green">✓ Sí</span>`;
+  if (v.includes('parcialmente')) return `<span class="pill pill-orange">~ Parcial</span>`;
+  if (v.includes('No la')||v==='No') return `<span class="pill pill-red">✗ No</span>`;
+  return `<span class="pill pill-gray">${shorten(v,18)}</span>`;
+}
+function hayMaterialPill(v) {
+  if (v==='Si'||v==='Sí') return '<span class="pill pill-green">✓ Sí</span>';
+  if (v==='No') return '<span class="pill pill-red">✗ No</span>';
+  return '<span class="pill pill-gray">—</span>';
+}
+function shorten(s, n) { return s && s.length > n ? s.slice(0,n)+'…' : s; }
 
-  return`<div class="compe-summary">
-    <div class="compe-brands">
-      <div class="card-h" style="padding:0 0 12px;border:none">Marcas competidoras detectadas</div>
-      ${brandHTML}
-    </div>
-    <div class="card">
-      <div class="card-h">Visibilidad de la competencia vs BF</div>
-      <div class="card-b">
-        <div class="vis-grid">
-          <div class="vis-cell"><div class="vis-val" style="color:var(--red)">${mayor}</div><div class="vis-lbl">Mayor que BF</div></div>
-          <div class="vis-cell"><div class="vis-val" style="color:var(--orange)">${similar}</div><div class="vis-lbl">Similar a BF</div></div>
-          <div class="vis-cell"><div class="vis-val" style="color:var(--green)">${menor}</div><div class="vis-lbl">Menor que BF</div></div>
+// ============================================================
+// PAGINATION
+// ============================================================
+const PAGE_SIZE = 15;
+const pages = { gastro:1, tiendas:1, comp:1, ev:1 };
+
+function renderPagination(containerId, total, key, renderFn) {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const c = document.getElementById(containerId);
+  if (totalPages <= 1) { c.innerHTML=''; return; }
+  let btns = `<button class="page-btn" onclick="changePage('${key}','${renderFn}',-1)" ${pages[key]===1?'disabled':''}>← Ant</button>`;
+  const start = Math.max(1, pages[key]-2), end = Math.min(totalPages, pages[key]+2);
+  for (let i=start;i<=end;i++) btns += `<button class="page-btn ${pages[key]===i?'active':''}" onclick="setPage('${key}','${renderFn}',${i})">${i}</button>`;
+  btns += `<button class="page-btn" onclick="changePage('${key}','${renderFn}',1)" ${pages[key]===totalPages?'disabled':''}>Sig →</button>`;
+  btns += `<span style="font-size:12px;color:var(--muted);margin-left:6px">Pág ${pages[key]} de ${totalPages}</span>`;
+  c.innerHTML = btns;
+}
+function changePage(key, fn, delta) { pages[key] = Math.max(1, pages[key]+delta); window[fn](); }
+function setPage(key, fn, p) { pages[key] = p; window[fn](); }
+
+// ============================================================
+// GASTRO TABLE
+// ============================================================
+function filterGastro() {
+  const q = (document.getElementById('search-gastro').value||'').toLowerCase();
+  const ciudad = document.getElementById('filter-ciudad-gastro').value;
+  const mat = document.getElementById('filter-material-gastro').value;
+  return DATA.bf_gastro.filter(r =>
+    (!q || r.local.toLowerCase().includes(q) || r.ciudad.toLowerCase().includes(q)) &&
+    (!ciudad || r.ciudad === ciudad) &&
+    (!mat || r.hay_material === mat)
+  );
+}
+function renderGastroTable() {
+  const filtered = filterGastro();
+  document.getElementById('gastro-count').textContent = `${filtered.length} registros`;
+  const start = (pages.gastro-1)*PAGE_SIZE;
+  const rows = filtered.slice(start, start+PAGE_SIZE).map(r => `
+    <tr>
+      <td><strong>${r.local}</strong></td>
+      <td>${r.ciudad}</td>
+      <td><span class="pill pill-blue" style="font-size:10px">${r.tipo_local||'—'}</span></td>
+      <td>${hayMaterialPill(r.hay_material)}</td>
+      <td>${estadoPill(r.estado_material)}</td>
+      <td>${conocePill(r.encargado_conoce)}</td>
+      <td style="max-width:200px;color:var(--muted);font-size:12px">${r.observaciones!=='nan'?shorten(r.observaciones,60):'—'}</td>
+    </tr>`).join('');
+  document.getElementById('tbody-gastro').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Sin resultados</td></tr>';
+  renderPagination('pg-gastro', filtered.length, 'gastro', 'renderGastroTable');
+}
+
+// ============================================================
+// TIENDAS TABLE
+// ============================================================
+function filterTiendas() {
+  const q = (document.getElementById('search-tiendas').value||'').toLowerCase();
+  const est = document.getElementById('filter-estado-tienda').value;
+  return DATA.tiendas.filter(r =>
+    (!q || r.local.toLowerCase().includes(q)) &&
+    (!est || r.estado_material === est)
+  );
+}
+function renderTiendasTable() {
+  const filtered = filterTiendas();
+  document.getElementById('tiendas-count').textContent = `${filtered.length} registros`;
+  const start = (pages.tiendas-1)*PAGE_SIZE;
+  const rows = filtered.slice(start, start+PAGE_SIZE).map(r => `
+    <tr>
+      <td><strong>${r.local}</strong></td>
+      <td style="max-width:160px;font-size:11px;color:var(--muted)">${shorten(r.material_encontrado,50)}</td>
+      <td>${estadoPill(r.estado_material)}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.material_competencia!=='nan'&&r.material_competencia?shorten(r.material_competencia,30):'—'}</td>
+      <td>${conocePill(r.encargado_conoce)}</td>
+      <td style="max-width:180px;color:var(--muted);font-size:12px">${r.observaciones!=='nan'?shorten(r.observaciones,60):'—'}</td>
+    </tr>`).join('');
+  document.getElementById('tbody-tiendas').innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Sin resultados</td></tr>';
+  renderPagination('pg-tiendas', filtered.length, 'tiendas', 'renderTiendasTable');
+}
+
+// ============================================================
+// COMPETENCIA TABLE
+// ============================================================
+function filterComp() {
+  const q = (document.getElementById('search-comp').value||'').toLowerCase();
+  const hc = document.getElementById('filter-hay-comp').value;
+  return DATA.competencia.filter(r =>
+    (!q || r.local.toLowerCase().includes(q) || r.ciudad.toLowerCase().includes(q)) &&
+    (!hc || r.hay_material_competencia === hc)
+  );
+}
+function renderCompTable() {
+  const filtered = filterComp();
+  document.getElementById('comp-count').textContent = `${filtered.length} registros`;
+  const start = (pages.comp-1)*PAGE_SIZE;
+  const rows = filtered.slice(start, start+PAGE_SIZE).map(r => `
+    <tr>
+      <td><strong>${r.local}</strong></td>
+      <td>${r.ciudad||'—'}</td>
+      <td>${hayMaterialPill(r.hay_material_competencia)}</td>
+      <td style="font-size:12px;color:var(--muted)">${r.marcas!=='nan'&&r.marcas?shorten(r.marcas,40):'—'}</td>
+      <td style="font-size:12px">${r.visibilidad!=='nan'&&r.visibilidad?shorten(r.visibilidad,30):'—'}</td>
+      <td>${hayMaterialPill(r.hay_promo)}</td>
+    </tr>`).join('');
+  document.getElementById('tbody-comp').innerHTML = rows;
+  renderPagination('pg-comp', filtered.length, 'comp', 'renderCompTable');
+}
+
+// ============================================================
+// EVIDENCIAS
+// ============================================================
+let evTab = 'gastro';
+function switchEvTab(tab) {
+  evTab = tab;
+  pages.ev = 1;
+  document.querySelectorAll('.sub-tab').forEach((t,i) => t.classList.toggle('active', ['gastro','tiendas','comp'][i]===tab));
+  // update ciudad filter
+  const sel = document.getElementById('filter-ev-ciudad');
+  sel.innerHTML = '<option value="">Todas las ciudades</option>';
+  const src = evTab==='gastro' ? DATA.bf_gastro : evTab==='comp' ? DATA.competencia : [];
+  const cities = [...new Set(src.map(r=>r.ciudad).filter(c=>c&&c!=='nan'))].sort();
+  cities.forEach(c => { const o = document.createElement('option'); o.value=o.textContent=c; sel.appendChild(o); });
+  renderEvidencias();
+}
+function evSource() {
+  if (evTab==='gastro') return DATA.bf_gastro;
+  if (evTab==='tiendas') return DATA.tiendas;
+  return DATA.competencia;
+}
+function filterEv() {
+  const q = (document.getElementById('search-ev').value||'').toLowerCase();
+  const ciudad = document.getElementById('filter-ev-ciudad').value;
+  return evSource().filter(r =>
+    r.fotos && r.fotos.length > 0 &&
+    (!q || r.local.toLowerCase().includes(q)) &&
+    (!ciudad || (r.ciudad||'') === ciudad)
+  );
+}
+
+let lbPhotos = [], lbIdx = 0;
+function openLightbox(photos, idx) {
+  lbPhotos = photos; lbIdx = idx;
+  updateLB();
+  document.getElementById('lightbox').classList.add('open');
+}
+function updateLB() {
+  const p = driveToEmbed(lbPhotos[lbIdx]);
+  if (!p) return;
+  document.getElementById('lb-frame').src = p.embed;
+  document.getElementById('lb-open').href = p.view;
+  document.getElementById('lb-info').textContent = `Foto ${lbIdx+1} de ${lbPhotos.length}`;
+  document.getElementById('lb-prev').disabled = lbIdx === 0;
+  document.getElementById('lb-next').disabled = lbIdx === lbPhotos.length - 1;
+}
+function lbNav(d) { lbIdx = Math.max(0, Math.min(lbPhotos.length-1, lbIdx+d)); updateLB(); }
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); document.getElementById('lb-frame').src=''; }
+function closeLB(e) { if (e.target===document.getElementById('lightbox')) closeLightbox(); }
+
+function renderEvidencias() {
+  const filtered = filterEv();
+  document.getElementById('ev-count').textContent = `${filtered.length} locales con fotos`;
+  const start = (pages.ev-1)*PAGE_SIZE;
+  const page = filtered.slice(start, start+PAGE_SIZE);
+
+  const html = page.map(r => {
+    const photos = r.fotos.map(u => driveToEmbed(u)).filter(Boolean);
+    if (!photos.length) return '';
+    const n = photos.length;
+    const cls = n===1?'n1':n===2?'n2':n===3?'n3':'nmore';
+    const displayPhotos = photos.slice(0, Math.min(n, 3));
+    const thumbs = displayPhotos.map((p, i) => {
+      const isLast = n > 3 && i === 2;
+      return `
+        <div class="photo-thumb" onclick="openLightbox(${JSON.stringify(r.fotos)},${i})" title="Ver foto">
+          <img src="${p.thumb}" alt="Foto" loading="lazy"
+            onerror="this.parentElement.classList.add('no-load');this.style.display='none';this.parentElement.innerHTML+='<div class=\\'placeholder-icon\\'>🖼️</div>'">
+          <div class="ph-overlay"><div class="ph-icon">🔍</div></div>
+          ${isLast ? `<div class="more-photos">+${n-2}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    const driveLinks = photos.slice(0,3).map((p,i) =>
+      `<a class="ev-drive-btn" href="${p.view}" target="_blank">📎 Foto ${i+1}</a>`
+    ).join('');
+
+    const estado = r.estado_material||r.hay_material||'';
+    const ciudad = r.ciudad||'';
+    return `
+      <div class="ev-card">
+        <div class="ev-card-head">
+          <div class="ev-local">${r.local}</div>
+          <div class="ev-meta">
+            ${ciudad?`<span>📍 ${ciudad}</span>`:''}
+            ${estado&&estado!=='nan'?`<span>${shorten(estado,30)}</span>`:''}
+            <span style="margin-left:auto;color:var(--accent)">${n} foto${n>1?'s':''}</span>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>`;
+        <div class="ev-photos ${cls}">${thumbs}</div>
+        <div class="ev-card-footer">${driveLinks}</div>
+      </div>`;
+  }).join('');
+  document.getElementById('ev-grid').innerHTML = html || '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">Sin fotos disponibles para este filtro</div>';
+  renderPagination('pg-ev', filtered.length, 'ev', 'renderEvidencias');
 }
 
-// ── KPIs BF ───────────────────────────────────────────────────
-function buildKPIs(rows, period){
-  const total=rows.length,con=rows.filter(r=>isYes(r[BF.HAY_MAT])).length;
-  const sin=total-con,conoce=rows.filter(r=>(r[BF.CONOCE]||'').toLowerCase().includes('bien')).length;
-  const pct=v=>total?Math.round(v/total*100):0;
-  return`<div class="kpi-grid">
-    <div class="kpi b"><div class="kpi-lbl">Locales relevados</div><div class="kpi-val">${total}</div><div class="kpi-sub" style="color:var(--muted)">${period}</div></div>
-    <div class="kpi g"><div class="kpi-lbl">Con material BF</div><div class="kpi-val">${con}</div><div class="kpi-sub pos">${pct(con)}% del total</div></div>
-    <div class="kpi r"><div class="kpi-lbl">Sin material BF</div><div class="kpi-val">${sin}</div><div class="kpi-sub neg">${pct(sin)}% del total</div></div>
-    <div class="kpi y"><div class="kpi-lbl">Conocen la promo</div><div class="kpi-val">${conoce}</div><div class="kpi-sub ${pct(conoce)>=50?'pos':'mid'}">${pct(conoce)}% del total</div></div>
-  </div>`;
-}
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  const bf = DATA.bf_gastro;
+  const tiendas = DATA.tiendas;
+  const comp = DATA.competencia;
 
-// ── ALERTS BF ─────────────────────────────────────────────────
-function buildAlerts(rows, colObs, colBen, colLocal){
-  const seen=new Set(),al=[];
-  const add=(t,x)=>{if(!seen.has(x)){seen.add(x);al.push({t,x})}};
-  rows.forEach(r=>{
-    const loc=r[colLocal]||'',obs=(r[colObs]||'').toLowerCase(),ben=(r[colBen]||'').toUpperCase();
-    if(ben.includes('RETIRAR'))                             add('c',`${loc} — Beneficio marcado para retirar.`);
-    if(obs.includes('cerrado definitivamente'))             add('c',`${loc} — Local cerrado definitivamente.`);
-    if(obs.includes('cerrado por temporada'))              add('w',`${loc} — Cerrado por temporada baja.`);
-    if(obs.includes('no se permite')||obs.includes('no se puede colocar')) add('w',`${loc} — No permite exhibir material.`);
-    if(obs.includes('retir')&&!ben.includes('RETIRAR'))    add('c',`${loc} — Material retirado durante el relevamiento.`);
-    if(obs.includes('solicita')||obs.includes('pidi')||obs.includes('interesado')) add('i',`${loc} — Encargado solicita material BF.`);
-    if(obs.includes('no hay acuerdo'))                     add('w',`${loc} — Sin acuerdo vigente con BF.`);
-    if(obs.includes('nueva administraci'))                 add('i',`${loc} — Nueva administración, convenio en gestión.`);
-    if(obs.includes('local nuevo'))                        add('i',`${loc} — Local nuevo sin visita previa de BF.`);
-    if(obs.includes('pegatina')||(obs.includes('enero')||obs.includes('febrero'))&&obs.includes('anterior')) add('w',`${loc} — Material de campaña anterior sin retirar.`);
+  // -- Counts
+  const bfSi = bf.filter(r=>r.hay_material==='Si').length;
+  const bfNo = bf.filter(r=>r.hay_material==='No').length;
+  const tVisible = tiendas.filter(r=>r.estado_material?.includes('visible desde afuera')||r.estado_material?.includes('Sí, visible')).length;
+  const tConComp = tiendas.filter(r=>r.material_competencia&&r.material_competencia!=='nan'&&r.material_competencia!=='No').length;
+  const cConMat = comp.filter(r=>r.hay_material_competencia==='Si').length;
+  const cConPromo = comp.filter(r=>r.hay_promo==='Si').length;
+
+  // -- KPI Resumen
+  document.getElementById('kpi-resumen').innerHTML = [
+    {l:'Locales Relevados',v:bf.length+tiendas.length,sub:'Total gastro + tiendas',c:'var(--accent)',b:null},
+    {l:'Material BF Presente',v:bfSi,sub:`de ${bf.length} gastronómicos`,c:'var(--green)',b:'badge-green'},
+    {l:'Tiendas Visibles',v:tVisible,sub:`de ${tiendas.length} tiendas`,c:'var(--accent2)',b:'badge-blue'},
+    {l:'Competencia con Material',v:cConMat,sub:`de ${comp.length} locales`,c:'var(--red)',b:'badge-red'},
+    {l:'Comp. con Promo Activa',v:cConPromo,sub:'gastronómicos',c:'var(--orange)',b:'badge-orange'},
+    {l:'Tiendas con Competencia',v:tConComp,sub:`de ${tiendas.length} tiendas`,c:'var(--purple)',b:'badge-orange'},
+  ].map(k=>`<div class="kpi-card" style="--accent-bar:${k.c}">
+    <div class="kpi-label">${k.l}</div>
+    <div class="kpi-value">${k.v}</div>
+    <div class="kpi-sub">${k.sub}</div>
+    ${k.b?`<div class="kpi-badge ${k.b}">▲ ${Math.round(k.v/(k.l.includes('Relevados')?1:bf.length+tiendas.length)*100)}%</div>`:''}
+  </div>`).join('');
+
+  // -- Chart: material gastro
+  makeDonut('chart-material-gastro',
+    [{l:'Con Material',v:bfSi},{l:'Sin Material',v:bfNo}],
+    ['#3dd68c','#f05252']);
+
+  // -- Chart: estado tiendas
+  const estCounts = {};
+  tiendas.forEach(r => { if(r.estado_material&&r.estado_material!=='nan') estCounts[r.estado_material]=(estCounts[r.estado_material]||0)+1; });
+  const estItems = Object.entries(estCounts).sort((a,b)=>b[1]-a[1]).map(([l,v])=>({l:shorten(l,25),v}));
+  makeBarChart('chart-estado-tiendas', estItems, '#4b8be8');
+
+  // -- Conoce promo gastro
+  const conoceCounts = {};
+  bf.forEach(r => { if(r.encargado_conoce&&r.encargado_conoce!=='nan') conoceCounts[r.encargado_conoce]=(conoceCounts[r.encargado_conoce]||0)+1; });
+  const conoceColors = {'Si, la conoce bien':'#3dd68c','La conoce parcialmente':'#f5a623','No la conoce':'#f05252','No habia encargado disponible':'#6b7280'};
+  makeDonut('chart-conoce-gastro',
+    Object.entries(conoceCounts).map(([l,v])=>({l:shorten(l,22),v})),
+    Object.entries(conoceCounts).map(([l])=>conoceColors[l]||'#a78bfa'));
+
+  // -- Comp bancos tiendas
+  const bancosC = {};
+  tiendas.forEach(r => {
+    if(r.material_competencia&&r.material_competencia!=='nan'&&r.material_competencia!=='No')
+      r.material_competencia.split(',').forEach(b=>{ const bk=b.trim(); bancosC[bk]=(bancosC[bk]||0)+1; });
   });
-  if(!al.length) return'<div style="font-size:12px;color:var(--muted)">Sin alertas críticas detectadas.</div>';
-  return`<ul class="al">${al.slice(0,12).map(a=>`<li class="ai ${a.t}"><span class="ad"></span><span>${a.x}</span></li>`).join('')}</ul>`;
-}
+  makeBarChart('chart-comp-bancos',
+    Object.entries(bancosC).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([l,v])=>({l,v})),
+    '#f05252');
 
-// ── BAR ROWS ─────────────────────────────────────────────────
-function barRows(items,maxV,col,minW){
-  return items.map(([l,v])=>{
-    const p=Math.round(v/maxV*100),c=l==='Sin material'?'var(--red)':col;
-    const sh=l.length>30?l.substring(0,30)+'…':l;
-    return`<div class="br"><span class="bl" style="min-width:${minW||150}px;font-size:11px">${sh}</span><div class="bt"><div class="bf" style="width:${p}%;background:${c}"></div></div><span class="bv">${v}</span></div>`;
-  }).join('');
-}
-function cityDistBF(rows){const m={};rows.forEach(r=>{const c=r[BF.CIUDAD]||'Sin ciudad';m[c]=(m[c]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8)}
-function cityDistCP(rows){const m={};rows.forEach(r=>{const c=r[CP.CIUDAD]||'Sin ciudad';m[c]=(m[c]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8)}
-function matDistBF(rows){
-  const m={};
-  rows.forEach(r=>{if(isYes(r[BF.HAY_MAT])){const t=r[BF.TIPO_MAT]||'Sin especificar';m[t]=(m[t]||0)+1}});
-  const sin=rows.filter(r=>!isYes(r[BF.HAY_MAT])).length;
-  if(sin>0)m['Sin material']=sin;
-  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
-}
-function conoceDistBF(rows){
-  const b=rows.filter(r=>(r[BF.CONOCE]||'').toLowerCase().includes('bien')).length;
-  const p=rows.filter(r=>(r[BF.CONOCE]||'').toLowerCase().includes('parcial')).length;
-  const n=rows.filter(r=>(r[BF.CONOCE]||'').toLowerCase().includes('no la conoce')).length;
-  const o=rows.length-b-p-n;
-  return[['La conoce bien',b,'var(--green)'],['Parcialmente',p,'var(--orange)'],['No la conoce',n,'var(--red)'],['Sin encargado',o,'var(--muted)']].filter(x=>x[1]>0);
-}
+  // -- Ciudades
+  const cidC = {};
+  bf.forEach(r=>{ if(r.ciudad&&r.ciudad!=='nan') cidC[r.ciudad]=(cidC[r.ciudad]||0)+1; });
+  document.getElementById('city-grid').innerHTML = Object.entries(cidC).sort((a,b)=>b[1]-a[1]).map(([c,n])=>
+    `<div class="city-card"><div class="city-name">📍 ${c}</div><div class="city-count">${n}</div></div>`).join('');
 
-// ── LOCAL CARDS BF ────────────────────────────────────────────
-let _all={}, _filt={};
+  // -- Hallazgos
+  const pctMat = Math.round(bfSi/bf.length*100);
+  const pctVis = Math.round(tVisible/tiendas.length*100);
+  const pctComp = Math.round(cConMat/comp.length*100);
+  document.getElementById('hallazgos-lista').innerHTML = [
+    `Solo el <strong style="color:var(--accent)">${pctMat}%</strong> (${bfSi} de ${bf.length}) de los locales gastronómicos cuenta con material BF colocado.`,
+    `En tiendas, el <strong style="color:var(--green)">${pctVis}%</strong> del material es visible desde la vidriera, cumpliendo con el objetivo de visibilidad.`,
+    `El <strong style="color:var(--red)">${pctComp}%</strong> de los locales gastronómicos tiene material de competencia — Itaú, GNB y Continental son los más frecuentes.`,
+    `Solo el <strong style="color:var(--orange)">${Math.round(cConPromo/comp.length*100)}%</strong> de locales tiene promo activa de la competencia. El riesgo promocional es acotado.`,
+    `<strong>${Math.round(bf.filter(r=>r.encargado_conoce==='Si, la conoce bien').length/bf.length*100)}%</strong> de los encargados en gastronomía conoce bien la promoción. Hay oportunidad en el segmento "conoce parcialmente" (${bf.filter(r=>r.encargado_conoce==='La conoce parcialmente').length} locales).`,
+    `${bf.filter(r=>r.hay_material==='No'&&r.encargado_conoce?.includes('encargado')).length} locales no tenían encargado disponible al momento del relevamiento.`
+  ].map(h=>`<li>${h}</li>`).join('');
 
-function buildLocalesBF(rows, uid){
-  if(!rows.length) return'<div class="nodata">Sin resultados para los filtros aplicados.</div>';
-  return rows.map((r,i)=>{
-    const mt=matTagBF(r),et=estTagBF(r),ct=conoceTagBF(r[BF.CONOCE]);
-    const ph=getPhotosBF(r),obs=r[BF.OBS]||'';
-    const photoHTML=ph.length
-      ?ph.map(u=>`<img class="pt" src="${u}" alt="" onclick="openModal('${u}')" onerror="this.style.display='none'" loading="lazy"/>`).join('')
-      :`<div class="pp">Sin evidencia fotográfica</div>`;
-    const antHTML=isYes(r[BF.HAY_ANT])?`<div><div class="dk">Material anterior</div><div class="dv">${r[BF.TIPO_ANT]||'Sí'}</div></div>`:'';
-    const obsHTML=obs?`<div class="obs"><strong>Obs:</strong> ${obs}</div>`:'';
-    const id=`${uid}-${i}`;
-    return`<div class="lc">
-      <div class="lh" onclick="tog('lb-${id}','ch-${id}')">
-        <div class="li"><div class="ln">${r[BF.LOCAL]||'Sin nombre'}</div><div class="lci">${r[BF.CIUDAD]||''} · ${r[BF.TIPO_LOCAL]||''}</div></div>
-        <span class="tag ${mt.c}">${mt.l}</span>
-        ${r[BF.TIPO_MAT]?`<span class="tag tb" style="font-size:10px;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r[BF.TIPO_MAT].length>18?r[BF.TIPO_MAT].substring(0,18)+'…':r[BF.TIPO_MAT]}</span>`:''}
-        <span class="tag ${ct.c}">${ct.l}</span>
-        <span class="chv" id="ch-${id}">▾</span>
-      </div>
-      <div class="lb" id="lb-${id}">
-        <div class="dg">
-          <div><div class="dk">Beneficio vigente</div><div class="dv">${r[BF.BENEFICIO]||'—'}</div></div>
-          <div><div class="dk">Estado del material</div><div class="dv"><span class="tag ${et.c}">${et.l}</span></div></div>
-          ${r[BF.TIPO_MAT]?`<div><div class="dk">Tipo de material</div><div class="dv">${r[BF.TIPO_MAT]}</div></div>`:''}
-          ${r[BF.MAT_COL]?`<div><div class="dk">Materiales colocados</div><div class="dv">${r[BF.MAT_COL]}</div></div>`:''}
-          ${r[BF.OFERTA]?`<div><div class="dk">Oferta exhibida</div><div class="dv">${r[BF.OFERTA]}</div></div>`:''}
-          <div><div class="dk">Responsable</div><div class="dv">${r[BF.ENCARGADO]||'No informado'}</div></div>
-          ${antHTML}
-        </div>
-        ${obsHTML}
-        <div class="pl">Evidencia fotográfica</div>
-        <div class="pg">${photoHTML}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
+  // -- KPI Gastro
+  document.getElementById('kpi-gastro').innerHTML = [
+    {l:'Total Locales',v:bf.length,c:'var(--accent)'},
+    {l:'Con Material',v:bfSi,c:'var(--green)'},
+    {l:'Sin Material',v:bfNo,c:'var(--red)'},
+    {l:'Conocen la Promo',v:bf.filter(r=>r.encargado_conoce==='Si, la conoce bien').length,c:'var(--accent2)'},
+  ].map(k=>`<div class="kpi-card" style="--accent-bar:${k.c}"><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
 
-function buildLocalesCP(rows, uid){
-  if(!rows.length) return'<div class="nodata">Sin resultados.</div>';
-  return rows.map((r,i)=>{
-    const hayMat=isYes(r[CP.HAY_MAT]);
-    const vt=visTag(r[CP.VISIBILIDAD]);
-    const ph=getPhotosCP(r);
-    const photoHTML=ph.length
-      ?ph.map(u=>`<img class="pt" src="${u}" alt="" onclick="openModal('${u}')" onerror="this.style.display='none'" loading="lazy"/>`).join('')
-      :`<div class="pp">Sin evidencia fotográfica</div>`;
-    const obs=(r[CP.OBS_PROMO]||'');
-    const id=`${uid}-cp-${i}`;
-    return`<div class="lc">
-      <div class="lh" onclick="tog('lb-${id}','ch-${id}')">
-        <div class="li"><div class="ln">${r[CP.LOCAL]||'Sin nombre'}</div><div class="lci">${r[CP.CIUDAD]||''} · ${r[CP.TIPO_LOCAL]||''}</div></div>
-        <span class="tag ${hayMat?'tr':'tg'}">${hayMat?'Con competencia':'Sin competencia'}</span>
-        ${r[CP.MARCAS]?`<span class="tag to" style="font-size:10px;max-width:150px;overflow:hidden;text-overflow:ellipsis">${r[CP.MARCAS].length>20?r[CP.MARCAS].substring(0,20)+'…':r[CP.MARCAS]}</span>`:''}
-        <span class="tag ${vt.c}">${vt.l}</span>
-        <span class="chv" id="ch-${id}">▾</span>
-      </div>
-      <div class="lb" id="lb-${id}">
-        <div class="dg">
-          <div><div class="dk">Marcas identificadas</div><div class="dv">${r[CP.MARCAS]||'—'}</div></div>
-          <div><div class="dk">Visibilidad vs BF</div><div class="dv"><span class="tag ${vt.c}">${vt.l}</span></div></div>
-          <div><div class="dk">Hay promo competencia</div><div class="dv">${r[CP.HAY_PROMO]||'—'}</div></div>
-          ${r[CP.TIPO_PROMO]?`<div><div class="dk">Tipo de promo</div><div class="dv">${r[CP.TIPO_PROMO]}</div></div>`:''}
-        </div>
-        ${obs?`<div class="obs"><strong>Obs:</strong> ${obs}</div>`:''}
-        <div class="pl">Evidencia fotográfica</div>
-        <div class="pg">${photoHTML}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
+  // Donuts gastro
+  makeDonut('donut-hay-material',
+    [{l:'Con Material',v:bfSi},{l:'Sin Material',v:bfNo}],
+    ['#3dd68c','#f05252']);
+  const estadoGC = {};
+  bf.forEach(r=>{ if(r.estado_material&&r.estado_material!=='nan') estadoGC[r.estado_material]=(estadoGC[r.estado_material]||0)+1; });
+  makeDonut('donut-estado-gastro', Object.entries(estadoGC).map(([l,v])=>({l:shorten(l,20),v})), ['#3dd68c','#f5a623','#f05252','#a78bfa']);
+  makeDonut('donut-conoce', Object.entries(conoceCounts).map(([l,v])=>({l:shorten(l,20),v})),
+    Object.entries(conoceCounts).map(([l])=>conoceColors[l]||'#a78bfa'));
 
-// LOCAL CARDS TIENDAS (hoja 3 — columnas distintas)
-function buildLocalesTI(rows, uid, isCompe){
-  if(!rows.length) return'<div class="nodata">Sin resultados.</div>';
-  return rows.map((r,i)=>{
-    const matEst=r[TI.ESTADO_MAT]||'';
-    const hayComp=isCompe?(r[TI.MAT_COMP]||'').trim()!=='':isYes(r[TI.MUESTRA_PROMO]);
-    const ph=isCompe?getPhotosTI_COMP(r):getPhotosTI_BF(r);
-    const photoHTML=ph.length
-      ?ph.map(u=>`<img class="pt" src="${u}" alt="" onclick="openModal('${u}')" onerror="this.style.display='none'" loading="lazy"/>`).join('')
-      :`<div class="pp">Sin evidencia fotográfica</div>`;
-    const obs=r[TI.OBS]||'';
-    const id=`${uid}-ti-${i}`;
-    return`<div class="lc">
-      <div class="lh" onclick="tog('lb-${id}','ch-${id}')">
-        <div class="li"><div class="ln">${r[TI.LOCAL]||'Sin nombre'}</div><div class="lci">${r[TI.FECHA]||''}</div></div>
-        ${isCompe
-          ?`<span class="tag ${hayComp?'to':'tg'}">${hayComp?'Con comp.':'Sin comp.'}</span>${r[TI.MAT_COMP]?`<span class="tag tgr" style="font-size:10px">${r[TI.MAT_COMP].substring(0,20)}</span>`:''}`
-          :`<span class="tag ${hayComp?'tg':'tgr'}">${hayComp?'Muestra promo':'Sin promo'}</span><span class="tag ${matEst.includes('buen')||matEst.includes('bueno')?'tg':matEst?'to':'tgr'}">${matEst||'—'}</span>`
-        }
-        <span class="chv" id="ch-${id}">▾</span>
-      </div>
-      <div class="lb" id="lb-${id}">
-        <div class="dg">
-          ${isCompe
-            ?`<div><div class="dk">Material competencia</div><div class="dv">${r[TI.MAT_COMP]||'—'}</div></div>
-               <div><div class="dk">Promo otra entidad</div><div class="dv">${r[TI.PROMO_COMP]||'—'}</div></div>`
-            :`<div><div class="dk">Material encontrado</div><div class="dv">${r[TI.MAT_ENC]||'—'}</div></div>
-               <div><div class="dk">Estado del material</div><div class="dv">${r[TI.ESTADO_MAT]||'—'}</div></div>
-               <div><div class="dk">Beneficio indicado</div><div class="dv">${r[TI.BENEFICIO]||'—'}</div></div>
-               <div><div class="dk">Conoce promo</div><div class="dv">${r[TI.CONOCE]||'—'}</div></div>`
-          }
-        </div>
-        ${obs?`<div class="obs"><strong>Obs:</strong> ${obs}</div>`:''}
-        <div class="pl">Evidencia fotográfica</div>
-        <div class="pg">${photoHTML}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
+  // Populate filter ciudad
+  const ciudades = [...new Set(bf.map(r=>r.ciudad).filter(c=>c&&c!=='nan'))].sort();
+  const selCiudad = document.getElementById('filter-ciudad-gastro');
+  ciudades.forEach(c => { const o=document.createElement('option'); o.value=o.textContent=c; selCiudad.appendChild(o); });
 
-// ── FILTER BAR ───────────────────────────────────────────────
-function buildFilterBar(rows, uid, colCiudad, colTipo){
-  const cities=[...new Set(rows.map(r=>r[colCiudad]).filter(Boolean))].sort();
-  const tipos=colTipo!=null?[...new Set(rows.map(r=>r[colTipo]).filter(Boolean))].sort():[];
-  return`<div class="fb">
-    <span class="fl">Filtrar</span>
-    <select class="fs" id="fc-${uid}" onchange="applyF('${uid}')">
-      <option value="">Todas las ciudades</option>${cities.map(c=>`<option>${c}</option>`).join('')}
-    </select>
-    ${tipos.length?`<select class="fs" id="ft-${uid}" onchange="applyF('${uid}')">
-      <option value="">Todos los tipos</option>${tipos.map(t=>`<option>${t}</option>`).join('')}
-    </select>`:''}
-    <span class="rc" id="rc-${uid}">${rows.length} locales</span>
-  </div>`;
-}
+  // -- KPI Tiendas
+  document.getElementById('kpi-tiendas').innerHTML = [
+    {l:'Total Tiendas',v:tiendas.length,c:'var(--accent)'},
+    {l:'Visibles desde Vidriera',v:tVisible,c:'var(--green)'},
+    {l:'Con Competencia',v:tConComp,c:'var(--red)'},
+    {l:'Encargado Conoce',v:tiendas.filter(r=>r.encargado_conoce==='Sí'||r.encargado_conoce==='Si').length,c:'var(--accent2)'},
+  ].map(k=>`<div class="kpi-card" style="--accent-bar:${k.c}"><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
 
-function applyF(uid){
-  const ciudad=document.getElementById(`fc-${uid}`)?.value||'';
-  const tipoEl=document.getElementById(`ft-${uid}`);
-  const tipo=tipoEl?.value||'';
-  const meta=_all[uid]?.meta||{};
-  _filt[uid].rows=(_all[uid]?.rows||[]).filter(r=>{
-    if(ciudad&&r[meta.colCiudad]!==ciudad) return false;
-    if(tipo&&r[meta.colTipo]!==tipo)       return false;
-    return true;
+  // Charts tiendas
+  makeBarChart('chart-estado-t', estItems, '#3dd68c');
+  makeBarChart('chart-bancos-t',
+    Object.entries(bancosC).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([l,v])=>({l,v})),
+    '#f05252');
+
+  // Populate filter estado tienda
+  const estados = [...new Set(tiendas.map(r=>r.estado_material).filter(Boolean))];
+  const selEst = document.getElementById('filter-estado-tienda');
+  estados.forEach(e => { const o=document.createElement('option'); o.value=e; o.textContent=shorten(e,35); selEst.appendChild(o); });
+
+  // -- KPI Comp
+  document.getElementById('kpi-comp').innerHTML = [
+    {l:'Locales Relevados',v:comp.length,c:'var(--accent)'},
+    {l:'Con Material Comp.',v:cConMat,c:'var(--red)'},
+    {l:'Sin Material Comp.',v:comp.filter(r=>r.hay_material_competencia==='No').length,c:'var(--green)'},
+    {l:'Con Promo Activa',v:cConPromo,c:'var(--orange)'},
+  ].map(k=>`<div class="kpi-card" style="--accent-bar:${k.c}"><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+  makeDonut('donut-comp-material',
+    [{l:'Con Material',v:cConMat},{l:'Sin Material',v:comp.filter(r=>r.hay_material_competencia==='No').length}],
+    ['#f05252','#3dd68c']);
+  makeDonut('donut-comp-promo',
+    [{l:'Con Promo',v:cConPromo},{l:'Sin Promo',v:comp.filter(r=>r.hay_promo==='No').length}],
+    ['#f5a623','#3dd68c']);
+
+  // Marcas competencia
+  const marcasC = {};
+  comp.forEach(r => {
+    if(r.marcas&&r.marcas!=='nan')
+      r.marcas.split(',').forEach(m=>{ const mk=m.trim().replace('Banco ',''); marcasC[mk]=(marcasC[mk]||0)+1; });
   });
-  const rc=document.getElementById(`rc-${uid}`);
-  if(rc)rc.textContent=`${_filt[uid].rows.length} locales`;
-  const lc=document.getElementById(`lc-${uid}`);
-  if(!lc)return;
-  if(meta.renderer) lc.innerHTML=meta.renderer(_filt[uid].rows,uid);
+  makeBarChart('chart-marcas-comp',
+    Object.entries(marcasC).sort((a,b)=>b[1]-a[1]).map(([l,v])=>({l,v})),
+    '#f05252');
+
+  // Init tables
+  renderGastroTable();
+  renderTiendasTable();
+  renderCompTable();
+
+  // Init evidencias
+  switchEvTab('gastro');
 }
 
-function storeAndRender(uid, rows, colCiudad, colTipo, renderer){
-  _all[uid]={rows, meta:{colCiudad,colTipo,renderer}};
-  _filt[uid]={rows:[...rows]};
-}
-
-// ── BUILD GASTRO BF ───────────────────────────────────────────
-function buildGastroBF(rows){
-  const uid='g-bf';
-  storeAndRender(uid,rows,BF.CIUDAD,BF.TIPO_LOCAL,buildLocalesBF);
-  const cd=cityDistBF(rows),md=matDistBF(rows),kd=conoceDistBF(rows);
-  const cmx=cd[0]?.[1]||1,mmx=Math.max(...md.map(x=>x[1]),1);
-  return`
-    ${buildGlobal(rows,PERIOD.gastro,false,BF.LOCAL,BF.CIUDAD,BF.HAY_MAT,BF.CONOCE)}
-    ${buildTop(rows)}
-    ${buildKPIs(rows,PERIOD.gastro)}
-    <div class="two-col">
-      <div class="card"><div class="card-h">Locales por ciudad</div><div class="card-b">${barRows(cd,cmx,'var(--blue)',140)}</div></div>
-      <div class="card"><div class="card-h">Hallazgos y alertas</div><div class="card-b">${buildAlerts(rows,BF.OBS,BF.BENEFICIO,BF.LOCAL)}</div></div>
-    </div>
-    <div class="two-col">
-      <div class="card"><div class="card-h">Material por tipo</div><div class="card-b">${barRows(md,mmx,'var(--blue)',180)}</div></div>
-      <div class="card"><div class="card-h">Conocimiento de la promoción</div><div class="card-b">
-        ${kd.map(([l,v,col])=>{const p=rows.length?Math.round(v/rows.length*100):0;return`<div class="br"><span class="bl">${l}</span><div class="bt"><div class="bf" style="width:${p}%;background:${col}"></div></div><span class="bv">${v}</span></div>`;}).join('')}
-      </div></div>
-    </div>
-    <div class="sec-lbl" style="margin-bottom:12px">Detalle por local</div>
-    ${buildFilterBar(rows,uid,BF.CIUDAD,BF.TIPO_LOCAL)}
-    <div class="lg" id="lc-${uid}">${buildLocalesBF(rows,uid)}</div>`;
-}
-
-// ── BUILD GASTRO COMPE ────────────────────────────────────────
-function buildGastroCompe(rows){
-  const uid='g-cp';
-  storeAndRender(uid,rows,CP.CIUDAD,CP.TIPO_LOCAL,buildLocalesCP);
-  const cd=cityDistCP(rows),cmx=cd[0]?.[1]||1;
-  return`
-    ${buildGlobal(rows,PERIOD.gastro,true,CP.LOCAL,CP.CIUDAD,CP.HAY_MAT,null)}
-    ${buildCompeGastro(rows)}
-    <div class="two-col">
-      <div class="card"><div class="card-h">Locales con competencia por ciudad</div><div class="card-b">${barRows(cd,cmx,'var(--orange)',140)}</div></div>
-      <div class="card"><div class="card-h">Alertas de exposición</div><div class="card-b">${buildAlerts(rows,CP.OBS_PROMO,CP.MARCAS,CP.LOCAL)}</div></div>
-    </div>
-    <div class="sec-lbl" style="margin-bottom:12px">Detalle por local — competencia</div>
-    ${buildFilterBar(rows,uid,CP.CIUDAD,CP.TIPO_LOCAL)}
-    <div class="lg" id="lc-${uid}">${buildLocalesCP(rows,uid)}</div>`;
-}
-
-// ── BUILD TIENDAS ─────────────────────────────────────────────
-function buildTiendasBF(rows){
-  const uid='t-bf';
-  storeAndRender(uid,rows,TI.FECHA,null,r=>buildLocalesTI(r,uid,false));
-  const total=rows.length;
-  const conPromo=rows.filter(r=>isYes(r[TI.MUESTRA_PROMO])).length;
-  const pct=total?Math.round(conPromo/total*100):0;
-  return`
-    <div class="gc">
-      <div class="gc-lbl">Resumen Global — Tiendas</div>
-      <div class="gc-period">Período: ${PERIOD.tiendas}</div>
-      <div class="gc-metrics">
-        <div class="gm"><div class="gm-val">${total}</div><div class="gm-lbl">Locales relevados</div><div class="gm-sub sm">Relevamiento de tiendas</div></div>
-        <div class="gm"><div class="gm-val y">${conPromo}</div><div class="gm-lbl">Muestran promo BF</div><div class="gm-sub sp">${pct}% del total</div></div>
-        <div class="gm"><div class="gm-val">${total-conPromo}</div><div class="gm-lbl">Sin promo exhibida</div><div class="gm-sub sn">${100-pct}% del total</div></div>
-        <div class="gm"><div class="gm-val y">${rows.filter(r=>(r[TI.CONOCE]||'').toLowerCase().includes('si')||isYes(r[TI.CONOCE])).length}</div><div class="gm-lbl">Conocen la promo</div><div class="gm-sub sm">Encargados informados</div></div>
-      </div>
-    </div>
-    <div class="sec-lbl" style="margin-bottom:12px">Detalle por local — tiendas BF</div>
-    ${buildFilterBar(rows,uid,TI.FECHA,null)}
-    <div class="lg" id="lc-${uid}">${buildLocalesTI(rows,uid,false)}</div>`;
-}
-
-function buildTiendasCompe(rows){
-  const uid='t-cp';
-  const withComp=rows.filter(r=>(r[TI.MAT_COMP]||'').trim()!=='');
-  storeAndRender(uid,withComp,TI.FECHA,null,r=>buildLocalesTI(r,uid,true));
-  const total=rows.length, con=withComp.length;
-  const pct=total?Math.round(con/total*100):0;
-  return`
-    <div class="gc">
-      <div class="gc-lbl">Análisis de Competencia — Tiendas</div>
-      <div class="gc-period">Período: ${PERIOD.tiendas}</div>
-      <div class="gc-metrics">
-        <div class="gm"><div class="gm-val">${total}</div><div class="gm-lbl">Locales relevados</div><div class="gm-sub sm">Total del relevamiento</div></div>
-        <div class="gm"><div class="gm-val y">${con}</div><div class="gm-lbl">Con material competencia</div><div class="gm-sub sn">${pct}% del total</div></div>
-        <div class="gm"><div class="gm-val">${total-con}</div><div class="gm-lbl">Sin material competencia</div><div class="gm-sub sp">${100-pct}% del total</div></div>
-        <div class="gm"><div class="gm-val">${rows.filter(r=>isYes(r[TI.PROMO_COMP])).length}</div><div class="gm-lbl">Con promo competidora activa</div><div class="gm-sub sm">Promo exhibida</div></div>
-      </div>
-    </div>
-    <div class="sec-lbl" style="margin-bottom:12px">Locales con material de competencia</div>
-    ${buildFilterBar(withComp,uid,TI.FECHA,null)}
-    <div class="lg" id="lc-${uid}">${buildLocalesTI(withComp,uid,true)}</div>`;
-}
-
-// ── BUILD TAB GASTRO ──────────────────────────────────────────
-function buildTabGastro(bfRows, compeRows){
-  document.getElementById('pbadge').textContent=PERIOD.gastro;
-  const sub=`<div class="subnav" id="sn-g">
-    <div class="stab active" onclick="switchSub('g','bf')">Banco Familiar</div>
-    <div class="stab" onclick="switchSub('g','cp')">Análisis de Competencia</div>
-  </div>`;
-  const bfDiv =`<div id="sub-g-bf">${buildGastroBF(bfRows)}</div>`;
-  const cpDiv =`<div id="sub-g-cp" style="display:none">${buildGastroCompe(compeRows)}</div>`;
-  document.getElementById('tc-gastro').innerHTML=sub+bfDiv+cpDiv;
-}
-
-function buildTabTiendas(rows){
-  document.getElementById('pbadge').textContent=PERIOD.tiendas;
-  const sub=`<div class="subnav" id="sn-t">
-    <div class="stab active" onclick="switchSub('t','bf')">Banco Familiar</div>
-    <div class="stab" onclick="switchSub('t','cp')">Análisis de Competencia</div>
-  </div>`;
-  const bfDiv=`<div id="sub-t-bf">${buildTiendasBF(rows)}</div>`;
-  const cpDiv=`<div id="sub-t-cp" style="display:none">${buildTiendasCompe(rows)}</div>`;
-  document.getElementById('tc-tiendas').innerHTML=sub+bfDiv+cpDiv;
-}
-
-// ── SUBNAV ────────────────────────────────────────────────────
-function switchSub(tabKey, sub){
-  const tabs=document.querySelectorAll(`#sn-${tabKey} .stab`);
-  tabs.forEach((t,i)=>t.classList.toggle('active',(sub==='bf'&&i===0)||(sub==='cp'&&i===1)));
-  document.getElementById(`sub-${tabKey}-bf`).style.display = sub==='bf'?'':'none';
-  document.getElementById(`sub-${tabKey}-cp`).style.display = sub==='cp'?'':'none';
-}
-
-// ── FETCH ─────────────────────────────────────────────────────
-async function fetchCSV(gid, skipRows){
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET}/export?format=csv&gid=${gid}`;
-  const res=await fetch(url);
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  return parseCSV(await res.text(), skipRows||2);
-}
-
-async function loadGastro(){
-  try{
-    const [rawBF, rawCP]=await Promise.all([fetchCSV(GID.gastro_bf), fetchCSV(GID.gastro_compe)]);
-    const bfRows=dedupBF(rawBF);
-    const cpRows=cleanCP(rawCP);
-    buildTabGastro(bfRows, cpRows);
-  }catch(e){
-    document.getElementById('tc-gastro').innerHTML=`<div class="nodata">Error cargando gastronómico: ${e.message}</div>`;
-  }
-}
-
-async function loadTiendas(){
-  try{
-    // Hoja 3: encabezado doble — saltamos 1 fila (solo hay 1 fila de headers)
-    const rows=await fetchCSV(GID.tiendas, 1);
-    buildTabTiendas(rows.filter(r=>r[TI.LOCAL]&&r[TI.LOCAL].trim()!==''));
-  }catch(e){
-    document.getElementById('tc-tiendas').innerHTML=`<div class="nodata">Error cargando tiendas: ${e.message}</div>`;
-  }
-}
-
-// ── UI HELPERS ────────────────────────────────────────────────
-function tog(bId,cId){
-  const b=document.getElementById(bId),c=document.getElementById(cId);
-  if(!b)return;const o=b.classList.toggle('open');if(c)c.classList.toggle('open',o);
-}
-function openModal(url){if(!url||url==='null')return;document.getElementById('mimg').src=url;document.getElementById('modal').classList.add('open')}
-function closeModal(e,force){if(force||(e&&e.target===document.getElementById('modal')))document.getElementById('modal').classList.remove('open')}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal(null,true)});
-
-let _loaded={gastro:false,tiendas:false};
-function switchTab(tab){
-  document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('active',(tab==='gastro'&&i===0)||(tab==='tiendas'&&i===1)));
-  document.querySelectorAll('.tc').forEach((t,i)=>t.classList.toggle('active',(tab==='gastro'&&i===0)||(tab==='tiendas'&&i===1)));
-  document.getElementById('pbadge').textContent=PERIOD[tab];
-  if(!_loaded[tab]){_loaded[tab]=true;tab==='gastro'?loadGastro():loadTiendas()}
-}
-
-_loaded.gastro=true;loadGastro();
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
