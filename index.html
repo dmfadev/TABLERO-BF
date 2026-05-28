@@ -59,8 +59,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .sb{width:var(--sb);background:linear-gradient(180deg,#0A4A80 0%,#0D5C9B 60%,#1A7AC2 100%);position:fixed;top:0;left:0;height:100vh;z-index:300;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);overflow:hidden}
 .sb.collapsed{transform:translateX(calc(-1 * var(--sb)))}
 .sb-brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px}
-.sb-logo{height:38px;border-radius:6px;object-fit:contain;background:rgba(255,255,255,.08);padding:4px}
-.sb-logo-fb{color:#fff;font-weight:800;font-size:16px;letter-spacing:.02em}
+.sb-logo-mark{width:38px;height:38px;border-radius:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;letter-spacing:-.02em;flex-shrink:0}
 .sb-brand-txt{display:flex;flex-direction:column}
 .sb-brand-name{font-size:13px;font-weight:700;color:#fff;letter-spacing:.02em}
 .sb-brand-client{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px;text-transform:uppercase;letter-spacing:.08em}
@@ -326,10 +325,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- SIDEBAR -->
 <aside class="sb" id="sidebar">
   <div class="sb-brand">
-    <img src="https://raw.githubusercontent.com/dmfadev/TABLERO-BF/main/MASMARKA%20PNG%20(3).jpeg"
-         class="sb-logo" alt="+Marka"
-         onerror="this.style.display='none';document.getElementById('sbfb').style.display='block'"/>
-    <span id="sbfb" class="sb-logo-fb" style="display:none">+M</span>
+    <div class="sb-logo-mark">+M</div>
     <div class="sb-brand-txt">
       <div class="sb-brand-name">+Marka</div>
       <div class="sb-brand-client">Cliente: Banco Familiar</div>
@@ -631,44 +627,31 @@ function buildMapData(bfRows,cpRows){
   Object.keys(cp).forEach(d=>{_mapCPData[d]={total:cp[d],con:cpCon[d],pct:cp[d]?Math.round(cpCon[d]/cp[d]*100):0};});
 }
 
-function renderMap(mode){
-  // mode: 'bf' | 'cp'
+function renderMap(mode,mapId){
+  const id=mapId||'';
   const data=mode==='bf'?_mapBFData:_mapCPData;
-  const colorRange=mode==='bf'?['#EBF8FF','#BAE6FD','#7EB3D4','#2E8FD4','#0D5C9B']:['#FFF5EB','#FDDCB5','#F5BF8A','#E8A87C','#C07040'];
+  const colorRange=mode==='bf'?['#DBEAFE','#93C5FD','#3B82F6','#1D4ED8','#1E3A8A']:['#FEE2E2','#FCA5A5','#F87171','#DC2626','#991B1B'];
   const label=mode==='bf'?'Presencia Material BF':'Presencia Competencia';
-
+  const barColor=mode==='bf'?'#3B82F6':'#DC2626';
+  const barColorLight=mode==='bf'?'#DBEAFE':'#FEE2E2';
   const vals=Object.values(data).map(d=>d.pct);
   const maxPct=vals.length?Math.max(...vals):100;
   const colorScale=d3.scaleLinear().domain([0,maxPct||100]).range([colorRange[0],colorRange[colorRange.length-1]]);
-
-  const wrap=document.getElementById('map-svg-wrap');
+  const wrap=document.getElementById('map-svg-wrap'+id);
   if(!wrap)return;
-  wrap.innerHTML=`<svg id="map-svg"></svg>`;
-
-  const svg=d3.select('#map-svg');
-  const W=wrap.offsetWidth||500,H=340;
-  svg.attr('viewBox',`0 0 ${W} ${H}`);
-
-  const proj=d3.geoMercator().center([-58.5,-23.0]).scale(W*2.2).translate([W/2,H/2]);
+  wrap.innerHTML=`<svg id="map-svg${id}"></svg>`;
+  const svg=d3.select('#map-svg'+id);
+  const W=wrap.offsetWidth||400,H=300;
+  svg.attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height',H);
+  const proj=d3.geoMercator().center([-58.5,-23.0]).scale(W*2.4).translate([W/2,H/2]);
   const path=d3.geoPath().projection(proj);
   const tip=document.getElementById('map-tooltip');
-
   d3.json('https://cdn.jsdelivr.net/npm/datamaps@0.5.10/src/js/data/pry.topo.json').then(topo=>{
     const features=topojson.feature(topo,topo.objects.pry).features;
     svg.selectAll('path').data(features).enter().append('path')
-      .attr('d',path)
-      .attr('stroke','#fff')
-      .attr('stroke-width',0.8)
-      .attr('fill',d=>{
-        const name=d.properties.name||'';
-        const info=data[name];
-        return info?colorScale(info.pct):colorRange[0];
-      })
-      .attr('opacity',0)
-      .transition().duration(600).delay((_,i)=>i*18)
-      .attr('opacity',1);
-
-    // Eventos hover
+      .attr('d',path).attr('stroke','rgba(255,255,255,.8)').attr('stroke-width',0.7)
+      .attr('fill',d=>{const name=d.properties.name||'';const info=data[name];return info?colorScale(info.pct):colorRange[0];})
+      .attr('opacity',0).transition().duration(700).delay((_,i)=>i*20).attr('opacity',1);
     svg.selectAll('path')
       .on('mousemove',function(event,d){
         const name=d.properties.name||'';
@@ -677,67 +660,78 @@ function renderMap(mode){
         tip.style.display='block';
         tip.style.left=(event.clientX+14)+'px';
         tip.style.top=(event.clientY-10)+'px';
-        const pctColor=mode==='bf'?'#0D5C9B':'#C07040';
+        const pctColor=mode==='bf'?'#1D4ED8':'#DC2626';
         tip.innerHTML=`<div class="map-tooltip-name">${name}</div>
-          <div class="map-tooltip-city">Ciudad principal: ${city}</div>
+          <div class="map-tooltip-city">Ciudad: ${city}</div>
           <div class="map-tooltip-row"><span class="map-tooltip-key">Locales relevados</span><span class="map-tooltip-val">${info.total}</span></div>
           <div class="map-tooltip-row"><span class="map-tooltip-key">Con material</span><span class="map-tooltip-val">${info.con}</span></div>
-          <span class="map-tooltip-pct" style="background:${pctColor}20;color:${pctColor}">${info.pct}% presencia</span>`;
-        d3.select(this).attr('stroke','#0D5C9B').attr('stroke-width',2);
+          <span class="map-tooltip-pct" style="background:${pctColor}18;color:${pctColor}">${info.pct}% presencia</span>`;
+        d3.select(this).attr('stroke','#1E3A8A').attr('stroke-width',1.8);
       })
       .on('mouseleave',function(){
         tip.style.display='none';
-        d3.select(this).attr('stroke','#fff').attr('stroke-width',0.8);
+        d3.select(this).attr('stroke','rgba(255,255,255,.8)').attr('stroke-width',0.7);
       });
-
-    // Labels de departamentos visitados
-    svg.selectAll('text.dept-lbl').data(features.filter(d=>data[d.properties.name])).enter()
+    svg.selectAll('text.dept-lbl').data(features.filter(d=>data[d.properties.name]&&data[d.properties.name].total>0)).enter()
       .append('text').attr('class','dept-lbl')
-      .attr('x',d=>path.centroid(d)[0])
-      .attr('y',d=>path.centroid(d)[1])
-      .attr('text-anchor','middle').attr('font-size','7').attr('fill','rgba(13,92,155,.8)')
-      .attr('font-family','Inter').attr('font-weight','600').attr('pointer-events','none')
-      .text(d=>{const info=data[d.properties.name];return info?`${info.pct}%`:'';});
-
-    // Leyenda gradiente
-    const lgEl=document.getElementById('map-legend-bar');
-    if(lgEl){
-      lgEl.style.background=`linear-gradient(to top, ${colorRange[0]}, ${colorRange[colorRange.length-1]})`;
-    }
-    const lMax=document.getElementById('map-legend-max');
-    const lMin=document.getElementById('map-legend-min');
-    if(lMax)lMax.textContent=`${maxPct}%`;
-    if(lMin)lMin.textContent='0%';
-
-    // KPIs mapa
+      .attr('x',d=>path.centroid(d)[0]).attr('y',d=>path.centroid(d)[1])
+      .attr('text-anchor','middle').attr('font-size','7').attr('fill','rgba(10,30,80,.8)')
+      .attr('font-family','Inter').attr('font-weight','700').attr('pointer-events','none')
+      .text(d=>{const info=data[d.properties.name];return info&&info.total?`${info.pct}%`:'';});
+    const lgEl=document.getElementById('map-legend-bar'+id);
+    if(lgEl)lgEl.style.background=`linear-gradient(to top,${colorRange[0]},${colorRange[colorRange.length-1]})`;
+    const lMax=document.getElementById('map-legend-max'+id);
+    const lMin=document.getElementById('map-legend-min'+id);
+    if(lMax)lMax.textContent=`${maxPct}%`;if(lMin)lMin.textContent='0%';
     const totalD=Object.keys(data).length;
     const topD=Object.entries(data).sort((a,b)=>b[1].pct-a[1].pct)[0];
     const avgPct=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
-    const mkv=document.getElementById('map-kpi-vals');
-    if(mkv)mkv.innerHTML=`
-      <div class="map-kpi"><div class="map-kpi-val">${totalD}</div><div class="map-kpi-lbl">Depts relevados</div></div>
-      <div class="map-kpi"><div class="map-kpi-val">${topD?topD[0]:'—'}</div><div class="map-kpi-lbl">Mayor presencia</div></div>
-      <div class="map-kpi"><div class="map-kpi-val">${avgPct}%</div><div class="map-kpi-lbl">Promedio presencia</div></div>`;
-    const mtl=document.getElementById('map-title-lbl');
+    const mkv=document.getElementById('map-kpi-vals'+id);
+    if(mkv)mkv.innerHTML=`<div class="map-kpi"><div class="map-kpi-val">${totalD}</div><div class="map-kpi-lbl">Depts</div></div><div class="map-kpi"><div class="map-kpi-val">${topD?topD[0]:'—'}</div><div class="map-kpi-lbl">Mayor</div></div><div class="map-kpi"><div class="map-kpi-val">${avgPct}%</div><div class="map-kpi-lbl">Promedio</div></div>`;
+    const mtl=document.getElementById('map-title-lbl'+id);
     if(mtl)mtl.textContent=label;
-  }).catch(()=>{
-    if(wrap)wrap.innerHTML=`<div class="nodata">No se pudo cargar el mapa.</div>`;
-  });
+    const cityBarsEl=document.getElementById('map-city-bars'+id);
+    const cityBarsTitle=document.getElementById('map-bars-title'+id);
+    if(cityBarsTitle)cityBarsTitle.textContent=mode==='bf'?'Ciudades — Con vs Sin Material BF':'Ciudades — Con vs Sin Competencia';
+    if(cityBarsEl){
+      const rowData=mode==='bf'?_bfRows:_cpRows;
+      const colHay=mode==='bf'?BF.HAY_MAT:CP.HAY_MAT;
+      const colCiudad=mode==='bf'?BF.CIUDAD:CP.CIUDAD;
+      const cityMap2={};
+      rowData.forEach(r=>{const c=r[colCiudad]||'Sin ciudad';if(!cityMap2[c])cityMap2[c]={con:0,sin:0};if(isYes(r[colHay]))cityMap2[c].con++;else cityMap2[c].sin++;});
+      const cities2=Object.entries(cityMap2).sort((a,b)=>(b[1].con+b[1].sin)-(a[1].con+a[1].sin));
+      const maxCity=Math.max(...cities2.map(([,v])=>v.con+v.sin),1);
+      cityBarsEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">${cities2.map(([city,v])=>{
+        const total=v.con+v.sin,pctCon=Math.round(v.con/total*100),pctSin=100-pctCon;
+        return`<div><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;color:var(--text);font-weight:500">${city}</span><span style="font-size:10px;color:var(--muted)">${total} locales</span></div><div style="height:8px;border-radius:4px;overflow:hidden;background:${barColorLight};display:flex"><div style="width:${pctCon}%;background:${barColor};border-radius:4px 0 0 4px;transition:width .8s cubic-bezier(.34,1.56,.64,1)"></div></div><div style="display:flex;gap:8px;margin-top:3px"><span style="font-size:9px;color:${barColor};font-weight:600">${v.con} con (${pctCon}%)</span><span style="font-size:9px;color:var(--muted)">${v.sin} sin (${pctSin}%)</span></div></div>`;
+      }).join('')}</div>`;
+    }
+  }).catch(()=>{if(wrap)wrap.innerHTML=`<div class="nodata">No se pudo cargar el mapa.</div>`;});
 }
 
-function buildMapHTML(){
-  return`<div class="map-wrap anim-in">
-    <div class="map-header">
-      <div class="map-title" id="map-title-lbl">Presencia Material BF por Departamento</div>
-      <div class="map-kpis" id="map-kpi-vals"></div>
+
+function buildMapHTML(mapId){
+  const id=mapId||'';
+  return`<div class="charts-row map-and-bars anim-in" style="grid-template-columns:1fr 1fr;align-items:stretch">
+    <div class="map-wrap" style="margin-bottom:0">
+      <div class="map-header">
+        <div class="map-title" id="map-title-lbl${id}">Presencia por Departamento</div>
+        <div class="map-kpis" id="map-kpi-vals${id}"></div>
+      </div>
+      <div class="map-body">
+        <div class="map-svg-area" id="map-svg-wrap${id}" style="min-height:300px"><svg id="map-svg${id}"></svg></div>
+        <div class="map-legend">
+          <div class="map-legend-title">%</div>
+          <div class="map-legend-labels"><span id="map-legend-max${id}">100%</span></div>
+          <div class="map-legend-bar" id="map-legend-bar${id}" style="background:linear-gradient(to top,#DBEAFE,#1E3A8A)"></div>
+          <div class="map-legend-labels"><span id="map-legend-min${id}">0%</span></div>
+        </div>
+      </div>
     </div>
-    <div class="map-body">
-      <div class="map-svg-area" id="map-svg-wrap"><svg id="map-svg"></svg></div>
-      <div class="map-legend">
-        <div class="map-legend-title">Presencia</div>
-        <div class="map-legend-labels"><span id="map-legend-max">100%</span></div>
-        <div class="map-legend-bar" id="map-legend-bar" style="background:linear-gradient(to top,#EBF8FF,#0D5C9B)"></div>
-        <div class="map-legend-labels"><span id="map-legend-min">0%</span></div>
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="card-h" id="map-bars-title${id}">Presencia por Ciudad</div>
+      <div class="card-b" style="flex:1;overflow-y:auto" id="map-city-bars${id}">
+        <div class="loader-txt" style="padding:20px">Cargando...</div>
       </div>
     </div>
   </div>`;
@@ -935,15 +929,14 @@ function buildGastroBF(rows){
 
   const html=`
     ${buildGlobal(rows,PERIOD.gastro,false,BF.LOCAL,BF.CIUDAD,BF.HAY_MAT,BF.CONOCE)}
-    ${buildKPIs(rows,PERIOD.gastro)}
-    ${buildMapHTML()}
+    ${buildMapHTML('bf')}
     <div class="charts-row three anim-in">
       <div class="card"><div class="card-h">Presencia de material</div><div class="card-b" id="dnt-mat-bf"></div></div>
       <div class="card"><div class="card-h">Conocimiento de la promocion</div><div class="card-b" id="dnt-con-bf"></div></div>
       <div class="card"><div class="card-h">Estado del material</div><div class="card-b" id="dnt-est-bf"></div></div>
     </div>
     <div class="charts-row anim-in">
-      <div class="card"><div class="card-h">Locales por ciudad</div><div class="card-b">${vertBarChart(cd,()=>'var(--blue)')}</div></div>
+      <div class="card"><div class="card-h">Locales por ciudad</div><div class="card-b" id="dnt-city-bf"></div></div>
       <div class="card"><div class="card-h">Alertas y hallazgos</div><div class="card-b">${buildAlerts(rows,BF.OBS,BF.BENEFICIO,BF.LOCAL)}</div></div>
     </div>
     <div class="charts-row one anim-in">
@@ -951,11 +944,13 @@ function buildGastroBF(rows){
     </div>`;
 
   setTimeout(()=>{
-    donutCard('dnt-mat-bf',[{l:'Con material',v:con,c:'#7EB3D4'},{l:'Sin material',v:sin,c:'#F5BF8A'}]);
-    donutCard('dnt-con-bf',[{l:'Conoce bien',v:cBien,c:'#7EB3D4'},{l:'Parcialmente',v:cParc,c:'#FDDCB5'},{l:'No conoce',v:cNo,c:'#F5BF8A'},{l:'Sin enc.',v:cSin,c:'#D6EAF8'}].filter(x=>x.v>0));
-    donutCard('dnt-est-bf',[{l:'Perfecto',v:ePer,c:'#BAE6FD'},{l:'Deteriorado',v:eDet,c:'#FDDCB5'},{l:'Anterior',v:eCam,c:'#FDE68A'},{l:'Otro',v:eOtr,c:'#D6EAF8'}].filter(x=>x.v>0));
+    donutCard('dnt-mat-bf',[{l:'Con material',v:con,c:'#3B82F6'},{l:'Sin material',v:sin,c:'#FCA5A5'}]);
+    donutCard('dnt-con-bf',[{l:'Conoce bien',v:cBien,c:'#93C5FD'},{l:'Parcialmente',v:cParc,c:'#FDDCB5'},{l:'No conoce',v:cNo,c:'#FCA5A5'},{l:'Sin enc.',v:cSin,c:'#DBEAFE'}].filter(x=>x.v>0));
+    donutCard('dnt-est-bf',[{l:'Perfecto',v:ePer,c:'#93C5FD'},{l:'Deteriorado',v:eDet,c:'#FDDCB5'},{l:'Anterior',v:eCam,c:'#FDE68A'},{l:'Otro',v:eOtr,c:'#DBEAFE'}].filter(x=>x.v>0));
+    const cdSlices=cd.map(([l,v],i)=>({l,v,c:['#1D4ED8','#3B82F6','#60A5FA','#93C5FD','#BAE6FD','#DBEAFE','#6EE7B7','#A7F3D0'][i%8]}));
+    donutCard('dnt-city-bf',cdSlices);
     document.querySelectorAll('#sub-g-bf .vbar-wrap').forEach(animVBars);
-    renderMap('bf');
+    renderMap('bf','bf');
   },80);
   return html;
 }
@@ -981,31 +976,31 @@ function buildGastroCompe(rows){
       <div class="card"><div class="card-h">Presencia material competencia</div><div class="card-b" id="dnt-cp-mat"></div></div>
       <div class="card"><div class="card-h">Promo activa competencia</div><div class="card-b" id="dnt-cp-pro"></div></div>
     </div>
-    ${buildMapHTML()}
+    ${buildMapHTML('cp')}
     <div class="charts-row anim-in">
       <div class="card"><div class="card-h">Marcas competidoras detectadas</div><div class="card-b">
         ${brands.map(([b,v])=>`<div class="brand-row"><span class="brand-name">${b}</span><div class="brand-bar-t"><div class="brand-bar-f" data-w="${Math.round(v/maxB*100)}" style="width:0%"></div></div><span class="brand-val">${v}</span></div>`).join('')||'<div class="nodata">Sin marcas.</div>'}
       </div></div>
       <div class="card"><div class="card-h">Visibilidad vs BF</div><div class="card-b">
         <div class="vis-grid">
-          <div class="vis-cell"><div class="vis-val" style="color:#F5BF8A">${mayor}</div><div class="vis-lbl">Mayor que BF</div></div>
-          <div class="vis-cell"><div class="vis-val" style="color:#FDDCB5">${similar}</div><div class="vis-lbl">Similar a BF</div></div>
-          <div class="vis-cell"><div class="vis-val" style="color:#BAE6FD">${menor}</div><div class="vis-lbl">Menor que BF</div></div>
+          <div class="vis-cell"><div class="vis-val" style="color:#F87171">${mayor}</div><div class="vis-lbl">Mayor que BF</div></div>
+          <div class="vis-cell"><div class="vis-val" style="color:#FCA5A5">${similar}</div><div class="vis-lbl">Similar a BF</div></div>
+          <div class="vis-cell"><div class="vis-val" style="color:#93C5FD">${menor}</div><div class="vis-lbl">Menor que BF</div></div>
         </div>
       </div></div>
     </div>
     <div class="charts-row anim-in">
-      <div class="card"><div class="card-h">Locales por ciudad</div><div class="card-b">${vertBarChart(cd,()=>'#E8A87C')}</div></div>
+      <div class="card"><div class="card-h">Locales por ciudad</div><div class="card-b" id="dnt-city-cp"></div></div>
       <div class="card"><div class="card-h">Alertas de exposicion</div><div class="card-b">${buildAlerts(rows,CP.OBS_PROMO,CP.MARCAS,CP.LOCAL)}</div></div>
     </div>`;
 
   setTimeout(()=>{
-    donutCard('dnt-cp-mat',[{l:'Con material comp.',v:conC,c:'#E8A87C'},{l:'Sin material comp.',v:sinC,c:'#BAE6FD'}]);
-    donutCard('dnt-cp-pro',[{l:'Con promo activa',v:conP,c:'#FDDCB5'},{l:'Sin promo',v:sinP,c:'#BAE6FD'}]);
+    donutCard('dnt-cp-mat',[{l:'Con material comp.',v:conC,c:'#F87171'},{l:'Sin material comp.',v:sinC,c:'#93C5FD'}]);
+    donutCard('dnt-cp-pro',[{l:'Con promo activa',v:conP,c:'#FCA5A5'},{l:'Sin promo',v:sinP,c:'#93C5FD'}]);
+    const cdSlicesCP=cd.map(([l,v],i)=>({l,v,c:['#DC2626','#F87171','#FCA5A5','#FECACA','#FEE2E2','#DC2626','#F87171','#FCA5A5'][i%8]}));
+    donutCard('dnt-city-cp',cdSlicesCP);
     document.querySelectorAll('#sub-g-cp .brand-bar-f').forEach(b=>{const w=b.dataset.w;b.style.width='0';setTimeout(()=>{b.style.width=w+'%';},150);});
-    document.querySelectorAll('#sub-g-cp .vbar-wrap').forEach(animVBars);
-    // Re-render mapa en modo competencia
-    setTimeout(()=>renderMap('cp'),200);
+    renderMap('cp','cp');
   },80);
   return html;
 }
@@ -1121,7 +1116,7 @@ function switchSub(tabKey,sub){
   ['bf','cp','ti'].forEach(s=>{const el=document.getElementById(`sub-${tabKey}-${s}`);if(el)el.style.display=s===sub?'':'none';});
   // Re-render mapa cuando se cambia entre BF y CP
   if(tabKey==='g'){
-    setTimeout(()=>renderMap(sub==='bf'?'bf':'cp'),100);
+    setTimeout(()=>{if(sub==='bf')renderMap('bf','bf');else renderMap('cp','cp');},100);
   }
 }
 function tog(bId,cId){const b=document.getElementById(bId),c=document.getElementById(cId);if(!b)return;const o=b.classList.toggle('open');if(c)c.classList.toggle('open',o);}
