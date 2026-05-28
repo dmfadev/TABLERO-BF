@@ -175,8 +175,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .map-kpi{background:var(--white);border-radius:8px;padding:10px 12px;box-shadow:0 1px 6px rgba(13,92,155,.08);border-left:3px solid var(--yellow)}
 .map-kpi-val{font-size:20px;font-weight:800;color:var(--navy);line-height:1}
 .map-kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
-.map-body{display:flex;gap:0;align-items:stretch}
-.map-svg-area{flex:1;min-height:420px;position:relative}
+.map-body{display:flex;gap:0;align-items:stretch;overflow:hidden}
+.map-svg-area{flex:1;min-height:440px;position:relative;overflow:hidden}
 #map-svg{width:100%;height:340px;cursor:default}
 .map-legend{width:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 8px;gap:4px;border-left:1px solid var(--border2)}
 .map-legend-title{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;writing-mode:vertical-rl;margin-bottom:8px}
@@ -314,27 +314,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .gauge-center{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap}
 .gauge-pct{font-size:26px;font-weight:800;color:#fff;line-height:1}
 .gauge-lbl{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.07em}
-.rings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.ring-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:default;transition:background .2s}
-.ring-card:hover{background:rgba(255,255,255,.13)}
-.ring-svg-wrap{flex-shrink:0;position:relative;width:54px;height:54px}
-.ring-center-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
-.ring-info{flex:1;min-width:0}
-.ring-title{font-size:9px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
-.ring-val{font-size:17px;font-weight:800;color:#fff;line-height:1}
-.ring-desc{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px}
-.hero-cities{position:relative;z-index:1;background:rgba(255,255,255,.06);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.1)}
-.city-chart-wrap{display:flex;align-items:flex-end;gap:8px;height:130px;padding:0 4px}
-.city-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;cursor:default}
-.city-col:hover .city-bar-con,.city-col:hover .city-bar-sin{filter:brightness(1.2)}
-.city-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;width:100%;border-radius:5px 5px 0 0;overflow:hidden;transition:all .2s}
-.city-bar-con{background:#2563EB;border-radius:5px 5px 0 0;transition:height 1s cubic-bezier(.34,1.2,.64,1)}
-.city-bar-sin{background:rgba(255,255,255,.2);transition:height 1s cubic-bezier(.34,1.2,.64,1)}
-.city-bar-total{font-size:10px;font-weight:700;color:#fff;text-align:center;margin-bottom:2px}
-.city-bar-lbl{font-size:9px;color:rgba(255,255,255,.55);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px;margin-top:4px}
-.city-chart-legend{display:flex;gap:14px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)}
-.city-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.6)}
-.city-legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.city-rings{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;position:relative;z-index:1}
+.cring{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:default;transition:background .2s,transform .18s}
+.cring:hover{background:rgba(255,255,255,.13);transform:translateY(-2px)}
+.cring-svg-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
+.cring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.cring-pct{font-size:14px;font-weight:800;color:#fff;line-height:1}
+.cring-n{font-size:10px;font-weight:600;color:rgba(255,255,255,.55);line-height:1}
+.cring-name{font-size:9px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.06em;text-align:center;max-width:80px;line-height:1.3}
+.cring-sub{font-size:9px;color:rgba(255,255,255,.4);text-align:center}
 .hero-tooltip{position:fixed;background:rgba(3,21,45,.96);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 14px;font-size:11px;color:rgba(255,255,255,.85);pointer-events:none;z-index:600;display:none;max-width:230px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .hero-tooltip-title{font-weight:700;color:#fff;margin-bottom:6px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:5px}
 .hero-tooltip-row{display:flex;justify-content:space-between;gap:16px;margin-bottom:3px}
@@ -714,9 +702,9 @@ function renderMap(mode,mapId){
   if(!wrap)return;
   wrap.innerHTML=`<svg id="map-svg${id}"></svg>`;
   const svg=d3.select('#map-svg'+id);
-  const W=wrap.offsetWidth||400,H=420;
-  svg.attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height',H);
-  const proj=d3.geoMercator().center([-58.5,-23.0]).scale(W*3.0).translate([W/2,H/2]);
+  const W=wrap.offsetWidth||420,H=440;
+  svg.attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height','100%').style('display','block');
+  const proj=d3.geoMercator().center([-58.5,-23.2]).scale(W*3.4).translate([W/2,H/2]);
   const path=d3.geoPath().projection(proj);
   const tip=document.getElementById('map-tooltip');
   d3.json('https://cdn.jsdelivr.net/npm/datamaps@0.5.10/src/js/data/pry.topo.json').then(topo=>{
@@ -810,6 +798,7 @@ function buildMapHTML(mapId){
         <div class="loader-txt" style="padding:20px">Cargando...</div>
       </div>
     </div>
+    <div style="padding:6px 14px;font-size:10px;color:var(--muted);border-top:1px solid var(--border2);background:var(--bxpal);line-height:1.8">* BK Plaza City &mdash; Local cerrado durante el relevamiento<br>* Monai Kua &mdash; Local cerrado durante el relevamiento</div>
   </div>`;
 }
 
@@ -923,32 +912,37 @@ function buildHero(rows, period){
   rows.forEach(r=>{const c=r[BF.CIUDAD]||'Sin ciudad';if(!cityMap[c])cityMap[c]={total:0,con:0};cityMap[c].total++;if(isYes(r[BF.HAY_MAT]))cityMap[c].con++;});
   const cities=Object.entries(cityMap).sort((a,b)=>b[1].total-a[1].total).slice(0,6);
 
-  const maxCityTotal=Math.max(...cities.map(([,st])=>st.total),1);
-  const cityBars=cities.map(([name,st])=>{
+  const cityRings=cities.map(([name,st])=>{
     const pct=st.total?Math.round(st.con/st.total*100):0;
-    const totalH=Math.round((st.total/maxCityTotal)*110);
-    const conH=Math.round(totalH*(st.con/st.total));
-    const sinH=totalH-conH;
-    const shortName=name.length>12?name.slice(0,11)+'…':name;
-    return`<div class="city-col"
-      onmouseenter="showHeroTip(event,'${name}',[['Locales relevados','${st.total}'],['Con material BF','${st.con} (${pct}%)'],['Sin material BF','${st.total-st.con} (${100-pct}%)']])"
+    const r=30,cx=36,cy=36,circ=2*Math.PI*r;
+    const filled=(pct/100)*circ;
+    const sinPct=100-pct;
+    const sinFilled=(sinPct/100)*circ;
+    const shortName=name.length>14?name.slice(0,13)+'..':name;
+    return`<div class="cring"
+      onmouseenter="showHeroTip(event,'${name}',[['Locales relevados','${st.total}'],['Con material BF','${st.con} (${pct}%)'],['Sin material BF','${st.total-st.con} (${sinPct}%)']])"
       onmouseleave="hideHeroTip()">
-      <div class="city-bar-total">${st.total}</div>
-      <div style="display:flex;flex-direction:column;width:100%;height:${totalH}px;border-radius:5px 5px 0 0;overflow:hidden">
-        <div class="city-bar-sin" style="height:${sinH}px;flex-shrink:0"></div>
-        <div class="city-bar-con" style="height:${conH}px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
-          ${pct>0?`<span style="font-size:9px;font-weight:700;color:rgba(255,255,255,.9)">${pct}%</span>`:''}
+      <div class="cring-svg-wrap">
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/>
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="7"
+            stroke-dasharray="${sinFilled} ${circ}" stroke-dashoffset="${circ*0.25}"
+            style="transform-origin:center;transform:rotate(-90deg)"/>
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#2563EB" stroke-width="7"
+            stroke-linecap="round" stroke-dasharray="${filled} ${circ}" stroke-dashoffset="${circ*0.25}"
+            style="transform-origin:center;transform:rotate(-90deg);transition:stroke-dasharray 1s cubic-bezier(.34,1.2,.64,1)"/>
+        </svg>
+        <div class="cring-center">
+          <div class="cring-pct">${pct}%</div>
+          <div class="cring-n">${st.total}</div>
         </div>
       </div>
-      <div class="city-bar-lbl">${shortName}</div>
+      <div class="cring-name">${shortName}</div>
+      <div class="cring-sub">${st.con} con / ${st.total-st.con} sin</div>
     </div>`;
   }).join('');
 
-  const cityHTML=`<div class="city-chart-wrap">${cityBars}</div>
-    <div class="city-chart-legend">
-      <div class="city-legend-item"><div class="city-legend-dot" style="background:#2563EB"></div>Con material BF</div>
-      <div class="city-legend-item"><div class="city-legend-dot" style="background:rgba(255,255,255,.2)"></div>Sin material BF</div>
-    </div>`;
+  const cityHTML=cityRings;
 
   return`<div class="hero">
     <div class="hero-top">
@@ -991,58 +985,9 @@ function buildHero(rows, period){
       </div>
     </div>
 
-    <!-- GAUGE + RINGS -->
-    <div class="hero-gauge-row">
-      <div>
-        <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Cobertura global</div>
-        <div class="gauge-wrap" id="gauge-wrap">
-          ${makeGaugeSVG(pctCon,'#B8860B')}
-          <div class="gauge-center">
-            <div class="gauge-pct" id="gauge-pct-txt">${pctCon}%</div>
-            <div class="gauge-lbl">Material BF</div>
-          </div>
-        </div>
-      </div>
-      <div class="rings-grid">
-        <div class="ring-card" onmouseenter="showHeroTip(event,'Buen estado',[['Con material','${con}'],['En perfecto estado','${ePer}'],['Deteriorado / Anterior','${con-ePer}'],['% en buen estado','${pctPer}%']])" onmouseleave="hideHeroTip()">
-          <div class="ring-svg-wrap" id="ring-wrap-1">
-            ${makeRingSVG(pctPer,'#4ADE80')}
-            <div class="ring-center-txt">${pctPer}%</div>
-          </div>
-          <div class="ring-info">
-            <div class="ring-title">Buen estado</div>
-            <div class="ring-val">${ePer}</div>
-            <div class="ring-desc">de ${con} con material</div>
-          </div>
-        </div>
-        <div class="ring-card" onmouseenter="showHeroTip(event,'Conoce la promo',[['Conoce bien','${cBien}'],['Parcialmente','${cParc}'],['No conoce','${cNo}'],['Sin encargado','${cSin}'],['% conoce bien','${pctConoce}%']])" onmouseleave="hideHeroTip()">
-          <div class="ring-svg-wrap" id="ring-wrap-2">
-            ${makeRingSVG(pctConoce,'#60A5FA')}
-            <div class="ring-center-txt">${pctConoce}%</div>
-          </div>
-          <div class="ring-info">
-            <div class="ring-title">Conoce promo</div>
-            <div class="ring-val">${cBien}</div>
-            <div class="ring-desc">de ${total} encargados</div>
-          </div>
-        </div>
-        <div class="ring-card" onmouseenter="showHeroTip(event,'Sin material BF',[['Sin material','${sin}'],['% sin material','${pctSin}%'],['Oportunidad de mejora','${sin} locales'],['Locales cerrados','2 (excluidos)']])" onmouseleave="hideHeroTip()">
-          <div class="ring-svg-wrap" id="ring-wrap-3">
-            ${makeRingSVG(pctSin,'#F87171')}
-            <div class="ring-center-txt">${pctSin}%</div>
-          </div>
-          <div class="ring-info">
-            <div class="ring-title">Sin material</div>
-            <div class="ring-val">${sin}</div>
-            <div class="ring-desc">locales sin colocar</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CITY BAR CHART -->
-    <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;position:relative;z-index:1">Presencia por ciudad</div>
-    <div class="hero-cities">${cityHTML}</div>
+    <!-- CITY RINGS -->
+    <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;position:relative;z-index:1">Presencia de material BF por ciudad</div>
+    <div class="city-rings">${cityHTML}</div>
   </div>`;
 }
 
@@ -1226,17 +1171,7 @@ function buildGastroBF(rows){
 
   const html=`
     ${buildHero(rows,PERIOD.gastro)}
-    <div class="closed-card anim-in">
-      <div class="closed-icon">&#128683;</div>
-      <div style="flex:1">
-        <div class="closed-title">Locales cerrados durante el relevamiento</div>
-        <div class="closed-note">Los siguientes locales se encontraron cerrados y no forman parte de los totales relevados:</div>
-        <div class="closed-list">
-          <span class="closed-tag">BK Plaza City</span>
-          <span class="closed-tag">Moñai Kua</span>
-        </div>
-      </div>
-    </div>
+
     ${buildMapHTML('bf')}
     <div class="charts-row three anim-in">
       <div class="card"><div class="card-h">Presencia de material</div><div class="card-b" id="dnt-mat-bf"></div></div>
