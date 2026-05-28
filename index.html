@@ -14,7 +14,7 @@
 :root{
   --navy:#0D5C9B;--blue:#1A7AC2;--blue-mid:#2E8FD4;
   --bsoft:#D6EAF8;--bpale:#EBF5FB;--bxpal:#F4FAFF;
-  --yellow:#F5A800;--ysoft:#FFF8E6;
+  --yellow:#B8860B;--ysoft:#FDF6E3;
   --white:#fff;--bg:#EEF6FC;--border:#C8DFF0;--border2:#DCF0FA;
   --text:#0B2A4A;--muted:#4A7CA0;--muted2:#7EB3D4;
   --green:#1A7A4A;--gsoft:#E8F5EE;
@@ -295,7 +295,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;position:relative;z-index:1}
 .hero-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:3px}
 .hero-period{font-size:12px;color:rgba(255,255,255,.55)}
-.hero-badge{background:rgba(245,168,0,.15);border:1px solid rgba(245,168,0,.35);color:var(--yellow);font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px}
+.hero-badge{background:rgba(184,134,11,.15);border:1px solid rgba(184,134,11,.35);color:var(--yellow);font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px}
 .hero-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;position:relative;z-index:1}
 .hkpi{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);border-radius:11px;padding:14px 16px;position:relative;overflow:hidden;cursor:default;transition:background .2s,transform .2s}
 .hkpi:hover{background:rgba(255,255,255,.13);transform:translateY(-2px)}
@@ -323,7 +323,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .ring-title{font-size:9px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
 .ring-val{font-size:17px;font-weight:800;color:#fff;line-height:1}
 .ring-desc{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px}
-.hero-cities{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:relative;z-index:1}
+.hero-cities{position:relative;z-index:1;background:rgba(255,255,255,.06);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.1)}
+.city-chart-wrap{display:flex;align-items:flex-end;gap:8px;height:130px;padding:0 4px}
+.city-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;cursor:default}
+.city-col:hover .city-bar-con,.city-col:hover .city-bar-sin{filter:brightness(1.2)}
+.city-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;width:100%;border-radius:5px 5px 0 0;overflow:hidden;transition:all .2s}
+.city-bar-con{background:#2563EB;border-radius:5px 5px 0 0;transition:height 1s cubic-bezier(.34,1.2,.64,1)}
+.city-bar-sin{background:rgba(255,255,255,.2);transition:height 1s cubic-bezier(.34,1.2,.64,1)}
+.city-bar-total{font-size:10px;font-weight:700;color:#fff;text-align:center;margin-bottom:2px}
+.city-bar-lbl{font-size:9px;color:rgba(255,255,255,.55);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px;margin-top:4px}
+.city-chart-legend{display:flex;gap:14px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)}
+.city-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.6)}
+.city-legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
 .hero-tooltip{position:fixed;background:rgba(3,21,45,.96);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 14px;font-size:11px;color:rgba(255,255,255,.85);pointer-events:none;z-index:600;display:none;max-width:230px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .hero-tooltip-title{font-weight:700;color:#fff;margin-bottom:6px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:5px}
 .hero-tooltip-row{display:flex;justify-content:space-between;gap:16px;margin-bottom:3px}
@@ -912,19 +923,32 @@ function buildHero(rows, period){
   rows.forEach(r=>{const c=r[BF.CIUDAD]||'Sin ciudad';if(!cityMap[c])cityMap[c]={total:0,con:0};cityMap[c].total++;if(isYes(r[BF.HAY_MAT]))cityMap[c].con++;});
   const cities=Object.entries(cityMap).sort((a,b)=>b[1].total-a[1].total).slice(0,6);
 
-  const cityHTML=cities.map(([name,st])=>{
+  const maxCityTotal=Math.max(...cities.map(([,st])=>st.total),1);
+  const cityBars=cities.map(([name,st])=>{
     const pct=st.total?Math.round(st.con/st.total*100):0;
-    return`<div class="cpill">
-      <div class="cpill-name">${name}</div>
-      <div style="display:flex;align-items:baseline;gap:4px">
-        <div class="cpill-num">${st.total}</div>
-        <span style="font-size:10px;color:rgba(255,255,255,.55);font-weight:500">locales</span>
-        <span class="cpill-pct" style="margin-left:auto">${pct}%</span>
+    const totalH=Math.round((st.total/maxCityTotal)*110);
+    const conH=Math.round(totalH*(st.con/st.total));
+    const sinH=totalH-conH;
+    const shortName=name.length>12?name.slice(0,11)+'…':name;
+    return`<div class="city-col"
+      onmouseenter="showHeroTip(event,'${name}',[['Locales relevados','${st.total}'],['Con material BF','${st.con} (${pct}%)'],['Sin material BF','${st.total-st.con} (${100-pct}%)']])"
+      onmouseleave="hideHeroTip()">
+      <div class="city-bar-total">${st.total}</div>
+      <div style="display:flex;flex-direction:column;width:100%;height:${totalH}px;border-radius:5px 5px 0 0;overflow:hidden">
+        <div class="city-bar-sin" style="height:${sinH}px;flex-shrink:0"></div>
+        <div class="city-bar-con" style="height:${conH}px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+          ${pct>0?`<span style="font-size:9px;font-weight:700;color:rgba(255,255,255,.9)">${pct}%</span>`:''}
+        </div>
       </div>
-      <div class="cpill-stat">${st.con} con material &mdash; ${st.total-st.con} sin material</div>
-      <div class="cpill-bar"><div class="cpill-fill" style="width:${pct}%"></div></div>
+      <div class="city-bar-lbl">${shortName}</div>
     </div>`;
   }).join('');
+
+  const cityHTML=`<div class="city-chart-wrap">${cityBars}</div>
+    <div class="city-chart-legend">
+      <div class="city-legend-item"><div class="city-legend-dot" style="background:#2563EB"></div>Con material BF</div>
+      <div class="city-legend-item"><div class="city-legend-dot" style="background:rgba(255,255,255,.2)"></div>Sin material BF</div>
+    </div>`;
 
   return`<div class="hero">
     <div class="hero-top">
@@ -972,7 +996,7 @@ function buildHero(rows, period){
       <div>
         <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Cobertura global</div>
         <div class="gauge-wrap" id="gauge-wrap">
-          ${makeGaugeSVG(pctCon,'#F5A800')}
+          ${makeGaugeSVG(pctCon,'#B8860B')}
           <div class="gauge-center">
             <div class="gauge-pct" id="gauge-pct-txt">${pctCon}%</div>
             <div class="gauge-lbl">Material BF</div>
@@ -1016,8 +1040,8 @@ function buildHero(rows, period){
       </div>
     </div>
 
-    <!-- CITY CARDS -->
-    <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;position:relative;z-index:1">Principales ciudades relevadas</div>
+    <!-- CITY BAR CHART -->
+    <div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;position:relative;z-index:1">Presencia por ciudad</div>
     <div class="hero-cities">${cityHTML}</div>
   </div>`;
 }
@@ -1233,7 +1257,7 @@ function buildGastroBF(rows){
     // Donuts
     donutCard('dnt-mat-bf',[{l:'Con material',v:con,c:'#1D4ED8'},{l:'Sin material',v:sin,c:'#EF4444'}]);
     donutCard('dnt-con-bf',[{l:'Conoce bien',v:cBien,c:'#1D4ED8'},{l:'Parcialmente',v:cParc,c:'#F59E0B'},{l:'No conoce',v:cNo,c:'#EF4444'},{l:'Sin enc.',v:cSin,c:'#94A3B8'}].filter(x=>x.v>0));
-    donutCard('dnt-est-bf',[{l:'Perfecto',v:ePer,c:'#1D4ED8'},{l:'Deteriorado',v:eDet,c:'#F59E0B'},{l:'Anterior',v:eCam,c:'#F5A800'},{l:'Otro',v:eOtr,c:'#60A5FA'}].filter(x=>x.v>0));
+    donutCard('dnt-est-bf',[{l:'Perfecto',v:ePer,c:'#1D4ED8'},{l:'Deteriorado',v:eDet,c:'#F59E0B'},{l:'Anterior',v:eCam,c:'#B8860B'},{l:'Otro',v:eOtr,c:'#60A5FA'}].filter(x=>x.v>0));
     // Vbars
     document.querySelectorAll('#sub-g-bf .vbar-wrap').forEach(animVBars);
     // Map
