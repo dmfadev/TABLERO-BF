@@ -114,12 +114,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .gm-sub{font-size:10px;margin-top:3px;font-weight:500}
 .sp{color:#86EFAC}.sn{color:#FCA5A5}.sm{color:#FDE68A}
 .gc-insight{background:rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.85);line-height:1.6;border-left:3px solid var(--yellow);margin-bottom:12px}
-.city-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.cpill{background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12)}
-.cpill-name{font-size:9px;font-weight:700;color:#A8D8F0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
-.cpill-stat{font-size:11px;color:rgba(255,255,255,.75)}
-.cpill-bar{height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin-top:6px;overflow:hidden}
-.cpill-fill{height:100%;border-radius:2px;background:var(--yellow)}
+.city-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.cpill{background:var(--white);border-radius:10px;padding:14px 16px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.1);position:relative;overflow:hidden}
+.cpill::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--yellow)}
+.cpill-name{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.cpill-num{font-size:28px;font-weight:800;color:var(--navy);line-height:1;margin-bottom:2px}
+.cpill-stat{font-size:11px;color:var(--muted);margin-bottom:8px}
+.cpill-bar{height:5px;background:#E2E8F0;border-radius:3px;overflow:hidden;margin-top:4px}
+.cpill-fill{height:100%;border-radius:3px;background:var(--yellow);transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+.cpill-pct{font-size:18px;font-weight:700;color:var(--navy);margin-left:4px}
 
 /* ── KPI CARDS ─────────────────────────────────── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
@@ -166,14 +169,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 /* ── MAPA DE CALOR ─────────────────────────────── */
 .map-wrap{position:relative;background:var(--white);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;box-shadow:var(--sh);margin-bottom:16px}
-.map-header{padding:12px 16px;border-bottom:1px solid var(--border2);background:var(--bxpal);display:flex;align-items:center;justify-content:space-between}
-.map-title{font-size:9px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.09em}
-.map-kpis{display:flex;gap:16px}
-.map-kpi{text-align:center}
-.map-kpi-val{font-size:16px;font-weight:700;color:var(--navy)}
-.map-kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.map-header{padding:10px 14px;border-bottom:1px solid var(--border2);background:var(--bxpal)}
+.map-title{font-size:9px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px}
+.map-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0}
+.map-kpi{background:var(--white);border-radius:8px;padding:10px 12px;box-shadow:0 1px 6px rgba(13,92,155,.08);border-left:3px solid var(--yellow)}
+.map-kpi-val{font-size:20px;font-weight:800;color:var(--navy);line-height:1}
+.map-kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .map-body{display:flex;gap:0;align-items:stretch}
-.map-svg-area{flex:1;min-height:340px;position:relative}
+.map-svg-area{flex:1;min-height:420px;position:relative}
 #map-svg{width:100%;height:340px;cursor:default}
 .map-legend{width:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 8px;gap:4px;border-left:1px solid var(--border2)}
 .map-legend-title{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;writing-mode:vertical-rl;margin-bottom:8px}
@@ -199,6 +202,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .vis-lbl{font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
 
 /* ── ALERTS ────────────────────────────────────── */
+.closed-card{background:var(--rsoft);border:1px solid #FECACA;border-radius:var(--r);padding:12px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px}
+.closed-icon{width:32px;height:32px;background:#FEE2E2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.closed-title{font-size:11px;font-weight:700;color:#991B1B;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.closed-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.closed-tag{background:#FEE2E2;border:1px solid #FECACA;color:#991B1B;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px}
+.closed-note{font-size:11px;color:#B91C1C;line-height:1.5}
 .al{list-style:none}
 .ai{padding:7px 10px;border-radius:6px;margin-bottom:5px;font-size:11px;display:flex;align-items:flex-start;gap:7px;line-height:1.5;border-left:3px solid}
 .ai.c{background:var(--rsoft);border-color:var(--red);color:#7A1F1F}
@@ -482,7 +491,18 @@ const DEPT_CITY={
 const BF={FECHA:0,HORA:1,LOCAL:3,NOMBRE_ID:4,CIUDAD:5,TIPO_LOCAL:6,TIPO_MAT_ASIG:7,DIA_PROMO:8,BENEFICIO:9,HAY_MAT:10,TIPO_MAT:11,MAT_COL:12,CORRESPONDE:13,ESTADO_MAT:14,BEN_EXH:15,OFERTA:16,HAY_ANT:17,TIPO_ANT:18,CONOCE:19,ENCARGADO:20,OBS:21,ESTADO_ENVIO:22,F1:23,F2:24,F3:25,FAUS:26,FANT:27};
 const CP={FECHA:0,HORA:1,LOCAL:3,CIUDAD:4,TIPO_LOCAL:5,HAY_MAT:6,MARCAS:7,VISIBILIDAD:8,HAY_PROMO:9,TIPO_PROMO:10,OBS_PROMO:11,MOTIVO_SIN_FOTO:12,F1:13,F2:14,F3:15};
 const TI={FECHA:0,HORA:1,LOCAL:3,MAT_ENC:4,OTRO_MAT:5,ESTADO_MAT:6,MUESTRA_PROMO:7,BENEFICIO:8,MAT_ANT:9,F1:10,F2:11,F3:12,F4:13,F5:14,F6:15,FANT1:16,FANT2:17,FANT3:18,MAT_COMP:22,PROMO_COMP:23,FC1:24,FC2:25,FC3:26,CONOCE:30,OBS:31,OBS_COMP:32,OBS_OTRO:33};
-const DROP=new Set(['595 LOUNGE|Ciudad del Este|14:00:43','LA CAROLINA CAFE BISTRO|Ciudad del Este|15:13:43','BURGER KING VILLARRICA|Villarrica|16:31:21','BURGER KING VILLARRICA|Villarrica|16:32:39','BURGER KING 3 DE FEBRERO|Ciudad del Este|10:34:35','BURGER KING CORONEL OVIEDO|Coronel Oviedo|11:54:13','LA MADAME|Concepcion|19:36:07','MANSION IRIGOYEN|Concepcion|10:36:55']);
+// DROP: duplicados — se conserva el registro MAS RECIENTE de cada local
+// Misma logica aplica a BF y CP (ambas hojas tienen los mismos 8 locales duplicados)
+const DROP=new Set([
+  '595 LOUNGE|Ciudad del Este|09:49:31',
+  'BURGER KING 3 DE FEBRERO|Ciudad del Este|10:34:35',
+  'BURGER KING CORONEL OVIEDO|Coronel Oviedo|11:54:13',
+  'BURGER KING VILLARRICA|Villarrica|16:31:21',
+  'BURGER KING VILLARRICA|Villarrica|16:32:39',
+  'LA CAROLINA CAFE BISTRO|Ciudad del Este|15:13:17',
+  'LA MADAME|Concepcion|19:36:07',
+  'MANSION IRIGOYEN|Concepcion|10:36:55',
+]);
 
 /* ============================================================
    SIDEBAR / NAV
@@ -641,9 +661,9 @@ function renderMap(mode,mapId){
   if(!wrap)return;
   wrap.innerHTML=`<svg id="map-svg${id}"></svg>`;
   const svg=d3.select('#map-svg'+id);
-  const W=wrap.offsetWidth||400,H=300;
+  const W=wrap.offsetWidth||400,H=420;
   svg.attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height',H);
-  const proj=d3.geoMercator().center([-58.5,-23.0]).scale(W*2.4).translate([W/2,H/2]);
+  const proj=d3.geoMercator().center([-58.5,-23.0]).scale(W*3.0).translate([W/2,H/2]);
   const path=d3.geoPath().projection(proj);
   const tip=document.getElementById('map-tooltip');
   d3.json('https://cdn.jsdelivr.net/npm/datamaps@0.5.10/src/js/data/pry.topo.json').then(topo=>{
@@ -687,7 +707,10 @@ function renderMap(mode,mapId){
     const topD=Object.entries(data).sort((a,b)=>b[1].pct-a[1].pct)[0];
     const avgPct=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
     const mkv=document.getElementById('map-kpi-vals'+id);
-    if(mkv)mkv.innerHTML=`<div class="map-kpi"><div class="map-kpi-val">${totalD}</div><div class="map-kpi-lbl">Depts</div></div><div class="map-kpi"><div class="map-kpi-val">${topD?topD[0]:'—'}</div><div class="map-kpi-lbl">Mayor</div></div><div class="map-kpi"><div class="map-kpi-val">${avgPct}%</div><div class="map-kpi-lbl">Promedio</div></div>`;
+    if(mkv)mkv.innerHTML=`
+      <div class="map-kpi"><div class="map-kpi-val">${totalD}</div><div class="map-kpi-lbl">Departamentos</div></div>
+      <div class="map-kpi"><div class="map-kpi-val" style="font-size:13px">${topD?topD[0]:'—'}</div><div class="map-kpi-lbl">Mayor presencia</div></div>
+      <div class="map-kpi"><div class="map-kpi-val">${avgPct}%</div><div class="map-kpi-lbl">Promedio</div></div>`;
     const mtl=document.getElementById('map-title-lbl'+id);
     if(mtl)mtl.textContent=label;
     const cityBarsEl=document.getElementById('map-city-bars'+id);
@@ -719,7 +742,7 @@ function buildMapHTML(mapId){
         <div class="map-kpis" id="map-kpi-vals${id}"></div>
       </div>
       <div class="map-body">
-        <div class="map-svg-area" id="map-svg-wrap${id}" style="min-height:300px"><svg id="map-svg${id}"></svg></div>
+        <div class="map-svg-area" id="map-svg-wrap${id}" style="min-height:420px"><svg id="map-svg${id}"></svg></div>
         <div class="map-legend">
           <div class="map-legend-title">%</div>
           <div class="map-legend-labels"><span id="map-legend-max${id}">100%</span></div>
@@ -750,7 +773,15 @@ function visTag(v){const s=(v||'').toLowerCase();if(s.includes('mayor'))return{c
 ============================================================= */
 function parseCSV(txt,skip){return txt.split('\n').slice(skip||2).map(line=>{const cols=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){inQ=!inQ}else if(ch===','&&!inQ){cols.push(cur.trim());cur=''}else cur+=ch;}cols.push(cur.trim());return cols;}).filter(r=>r.some(c=>c.trim()!==''));}
 function dedupBF(rows){return rows.filter(r=>{const k=`${(r[BF.LOCAL]||'').trim()}|${(r[BF.CIUDAD]||'').trim()}|${(r[BF.HORA]||'').trim()}`;return!DROP.has(k);}).filter(r=>r[BF.LOCAL]&&r[BF.LOCAL].trim()!=='');}
-function cleanCP(rows){return rows.filter(r=>r[CP.LOCAL]&&r[CP.LOCAL].trim()!=='');}
+function cleanCP(rows){
+  // Deduplication: same locales were visited twice — keep most recent (same DROP set, same key structure)
+  return rows
+    .filter(r=>{
+      const k=`${(r[CP.LOCAL]||'').trim()}|${(r[CP.CIUDAD]||'').trim()}|${(r[CP.HORA]||'').trim()}`;
+      return !DROP.has(k);
+    })
+    .filter(r=>r[CP.LOCAL]&&r[CP.LOCAL].trim()!=='');
+}
 
 /* ============================================================
    GLOBAL BANNER
@@ -770,8 +801,17 @@ function buildGlobal(rows,period,isCompe,colLocal,colCiudad,colHayMat,colConoce)
   const knowRow=colConoce!=null
     ?`<div class="gm"><div class="gm-val">${conoce}</div><div class="gm-lbl">Conocen la promo</div><div class="gm-sub ${pctKnow>=50?'sp':'sm'}">${pctKnow}%</div></div>`
     :`<div class="gm"><div class="gm-val y">${pctCon}%</div><div class="gm-lbl">Cobertura</div><div class="gm-sub sm">Con material</div></div>`;
-  const cityHTML=cities.map(([name,st])=>{const pct=Math.round(st.con/st.total*100),bar=Math.round(st.total/maxT*100);
-    return`<div class="cpill"><div class="cpill-name">${name}</div><div class="cpill-stat">${st.total} relevados &mdash; <strong>${pct}%</strong></div><div class="cpill-bar"><div class="cpill-fill" style="width:${bar}%"></div></div></div>`;}).join('');
+  const cityHTML=cities.map(([name,st])=>{const pct=Math.round(st.con/st.total*100);
+    return`<div class="cpill">
+      <div class="cpill-name">${name}</div>
+      <div style="display:flex;align-items:baseline;gap:4px">
+        <div class="cpill-num">${st.total}</div>
+        <span style="font-size:10px;color:var(--muted);font-weight:500">locales</span>
+        <span class="cpill-pct" style="margin-left:auto">${pct}%</span>
+      </div>
+      <div class="cpill-stat">${st.con} con material &mdash; ${st.total-st.con} sin material</div>
+      <div class="cpill-bar"><div class="cpill-fill" style="width:${pct}%"></div></div>
+    </div>`;}).join('');
   return`<div class="gc anim-in">
     <div class="gc-lbl">${isCompe?'Analisis de Competencia':'Resumen Global'}</div>
     <div class="gc-period">Periodo: ${period}</div>
@@ -929,6 +969,17 @@ function buildGastroBF(rows){
 
   const html=`
     ${buildGlobal(rows,PERIOD.gastro,false,BF.LOCAL,BF.CIUDAD,BF.HAY_MAT,BF.CONOCE)}
+    <div class="closed-card anim-in">
+      <div class="closed-icon">&#128683;</div>
+      <div style="flex:1">
+        <div class="closed-title">Locales cerrados durante el relevamiento</div>
+        <div class="closed-note">Los siguientes locales se encontraron cerrados y no forman parte de los totales relevados:</div>
+        <div class="closed-list">
+          <span class="closed-tag">BK Plaza City</span>
+          <span class="closed-tag">Moñai Kua</span>
+        </div>
+      </div>
+    </div>
     ${buildMapHTML('bf')}
     <div class="charts-row three anim-in">
       <div class="card"><div class="card-h">Presencia de material</div><div class="card-b" id="dnt-mat-bf"></div></div>
@@ -944,10 +995,10 @@ function buildGastroBF(rows){
     </div>`;
 
   setTimeout(()=>{
-    donutCard('dnt-mat-bf',[{l:'Con material',v:con,c:'#3B82F6'},{l:'Sin material',v:sin,c:'#FCA5A5'}]);
-    donutCard('dnt-con-bf',[{l:'Conoce bien',v:cBien,c:'#93C5FD'},{l:'Parcialmente',v:cParc,c:'#FDDCB5'},{l:'No conoce',v:cNo,c:'#FCA5A5'},{l:'Sin enc.',v:cSin,c:'#DBEAFE'}].filter(x=>x.v>0));
-    donutCard('dnt-est-bf',[{l:'Perfecto',v:ePer,c:'#93C5FD'},{l:'Deteriorado',v:eDet,c:'#FDDCB5'},{l:'Anterior',v:eCam,c:'#FDE68A'},{l:'Otro',v:eOtr,c:'#DBEAFE'}].filter(x=>x.v>0));
-    const cdSlices=cd.map(([l,v],i)=>({l,v,c:['#1D4ED8','#3B82F6','#60A5FA','#93C5FD','#BAE6FD','#DBEAFE','#6EE7B7','#A7F3D0'][i%8]}));
+    donutCard('dnt-mat-bf',[{l:'Con material',v:con,c:'#1D4ED8'},{l:'Sin material',v:sin,c:'#EF4444'}]);
+    donutCard('dnt-con-bf',[{l:'Conoce bien',v:cBien,c:'#1D4ED8'},{l:'Parcialmente',v:cParc,c:'#F59E0B'},{l:'No conoce',v:cNo,c:'#EF4444'},{l:'Sin enc.',v:cSin,c:'#94A3B8'}].filter(x=>x.v>0));
+    donutCard('dnt-est-bf',[{l:'Perfecto',v:ePer,c:'#1D4ED8'},{l:'Deteriorado',v:eDet,c:'#F59E0B'},{l:'Anterior',v:eCam,c:'#F5A800'},{l:'Otro',v:eOtr,c:'#60A5FA'}].filter(x=>x.v>0));
+    const cdSlices=cd.map(([l,v],i)=>({l,v,c:['#1D4ED8','#2563EB','#3B82F6','#0EA5E9','#0891B2','#0D9488','#059669','#16A34A'][i%8]}));
     donutCard('dnt-city-bf',cdSlices);
     document.querySelectorAll('#sub-g-bf .vbar-wrap').forEach(animVBars);
     renderMap('bf','bf');
@@ -995,9 +1046,9 @@ function buildGastroCompe(rows){
     </div>`;
 
   setTimeout(()=>{
-    donutCard('dnt-cp-mat',[{l:'Con material comp.',v:conC,c:'#F87171'},{l:'Sin material comp.',v:sinC,c:'#93C5FD'}]);
-    donutCard('dnt-cp-pro',[{l:'Con promo activa',v:conP,c:'#FCA5A5'},{l:'Sin promo',v:sinP,c:'#93C5FD'}]);
-    const cdSlicesCP=cd.map(([l,v],i)=>({l,v,c:['#DC2626','#F87171','#FCA5A5','#FECACA','#FEE2E2','#DC2626','#F87171','#FCA5A5'][i%8]}));
+    donutCard('dnt-cp-mat',[{l:'Con material comp.',v:conC,c:'#DC2626'},{l:'Sin material comp.',v:sinC,c:'#1D4ED8'}]);
+    donutCard('dnt-cp-pro',[{l:'Con promo activa',v:conP,c:'#DC2626'},{l:'Sin promo',v:sinP,c:'#1D4ED8'}]);
+    const cdSlicesCP=cd.map(([l,v],i)=>({l,v,c:['#DC2626','#B91C1C','#EF4444','#F87171','#991B1B','#BE123C','#E11D48','#C2410C'][i%8]}));
     donutCard('dnt-city-cp',cdSlicesCP);
     document.querySelectorAll('#sub-g-cp .brand-bar-f').forEach(b=>{const w=b.dataset.w;b.style.width='0';setTimeout(()=>{b.style.width=w+'%';},150);});
     renderMap('cp','cp');
