@@ -515,9 +515,10 @@ const DEPT_CITY = {
 const SHEET_ID  = "1YrNdJ_Hf9AyrKm_MpO3FgyqLWs4x3iNRuQv9AfNpnok";
 const API_BASE  = "https://opensheet.elk.sh/" + SHEET_ID + "/";
 const SHEETS    = {
-  gastro:  "RE_BF_GASTRO_INT",
-  compe:   "RE_COMPE_GASTRO_INT",
-  tiendas: "RE_BF_TIENDAS",
+  gastro:     "RE_BF_GASTRO_INT",
+  compe:      "RE_COMPE_GASTRO_INT",
+  tiendas:    "RE_BF_TIENDAS",
+  tiendasOT:  "RE_BF_TIENDAS_OT",
 };
 
 /* opensheet returns row-0 as keys.
@@ -545,7 +546,7 @@ const N   = v => v == null ? "" : String(v).trim();
 const YES = v => { const u = N(v).toUpperCase(); return u==="SI"||u==="SÍ"||u==="YES"||u==="1"||u==="TRUE"||u==="SÍ, LA CONOCE BIEN"||u.startsWith("SI,"); };
 const uniq = a => [...new Set(a.map(v => N(v)).filter(Boolean))].sort();
 
-function buildTableroData(rawG, rawC, rawT) {
+function buildTableroData(rawG, rawC, rawT, rawOT=[]) {
   /* ── deptBF ── */
   const deptBF = {}, deptCP = {};
   rawG.forEach(r => {
@@ -703,11 +704,32 @@ function buildTableroData(rawG, rawC, rawT) {
   const tConComp = rawT.filter(r=>N(r[T_COMP])!=="No"&&N(r[T_COMP])!=="").length;
   const depts    = Object.keys(deptBF).length;
 
+  /* ── tiendas OT (circuito adicional) ── */
+  const localesOT = rawOT.map(r => ({
+    name:      N(r["LOCAL"] || r["Local"] || r["local"]),
+    material:  N(r["MATERIAL ENCONTRADO"] || r["Material Encontrado"] || r["material encontrado"]),
+    obs:       N(r["OBS"] || r["Obs"] || r["obs"] || r["OBSERVACIONES"] || r["Observaciones"]),
+    encargado: N(r["ENCARGADO"] || r["Encargado"] || r["encargado"]),
+    link:      N(r["LINK CON SUB CARPETAS"] || r["Link Con Sub Carpetas"] || r["link con sub carpetas"] || r["LINK"] || r["Link"]),
+  })).filter(r => r.name);
+
+  const otMatMap = {};
+  localesOT.forEach(r => {
+    const v = r.material || "Sin material";
+    otMatMap[v] = (otMatMap[v]||0) + 1;
+  });
+  const otMaterialChart = Object.entries(otMatMap)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([label,value]) => ({ label, value }));
+
+  const otConMat = localesOT.filter(r => r.material && r.material !== "" && r.material.toLowerCase() !== "ninguno" && r.material.toLowerCase() !== "sin material").length;
+
   return {
     deptBF, deptCP, DEPT_CITY,
     cityBF, materialType, competitors, promoKnowledge,
     materialState, visibilityVsBF,
     locales, localesTiendas, tiendasBancos, estadoTiendas,
+    localesOT, otMaterialChart, otConMat,
     period: "20 al 25 de mayo 2026",
     periodTiendas: "11 al 22 de mayo 2026",
     kpi: {
@@ -761,19 +783,24 @@ function hideLoader() {
     setProgress(70, "Cargando");
     const rT = await fetch(API_BASE + encodeURIComponent(SHEETS.tiendas)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status+" — "+SHEETS.tiendas);return r.json();});
 
-    setProgress(88, "Procesando datos…");
+    setProgress(82, "Cargando circuito adicional…");
+    const rOT = await fetch(API_BASE + encodeURIComponent(SHEETS.tiendasOT)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status+" — "+SHEETS.tiendasOT);return r.json();}).catch(()=>[]);
+
+    setProgress(90, "Procesando datos…");
     const rawG = normalizeSheet(rG);
     const rawC = normalizeSheet(rC);
     const rawT = rT; // TIENDAS: row 0 is real header
+    const rawOT = rOT; // TIENDAS OT: row 0 is real header
 
-    window.TableroData = buildTableroData(rawG, rawC, rawT);
+    window.TableroData = buildTableroData(rawG, rawC, rawT, rawOT);
 
     /* Store raw sheets for detail/evidencias views */
-    window.__rawGastro  = rawG;
-    window.__rawCompe   = rawC;
-    window.__rawTiendas = rawT;
+    window.__rawGastro   = rawG;
+    window.__rawCompe    = rawC;
+    window.__rawTiendas  = rawT;
+    window.__rawTiendasOT = rawOT;
 
-    setProgress(100, `¡Listo! ${rawG.length} gastro · ${rawT.length} tiendas · ${rawC.length} competencia`);
+    setProgress(100, `¡Listo! ${rawG.length} gastro · ${rawT.length} tiendas · ${rawOT.length} OT · ${rawC.length} competencia`);
     setTimeout(() => {
       hideLoader();
       /* Mount React app after data is ready */
@@ -790,7 +817,7 @@ function hideLoader() {
     if (txt) txt.innerHTML = `<span style="color:#FCA5A5">❌ ${err.message}</span><br><span style="font-size:11px;margin-top:6px;display:block">Verificá que el Google Sheet esté publicado y compartido públicamente.<br>ID: ${SHEET_ID}</span>`;
     if (bar) { bar.style.background="#F87171"; bar.style.width="100%"; }
     /* Fallback: mount with empty data so UI doesn't break */
-    window.TableroData = buildTableroData([],[],[]);
+    window.TableroData = buildTableroData([],[],[],[]);
     setTimeout(()=>{ hideLoader(); if(!window.__reactRoot){window.__reactRoot=ReactDOM.createRoot(document.getElementById('root'));} window.__reactRoot.render(React.createElement(App)); }, 3000);
   }
 })();
@@ -1289,6 +1316,7 @@ function PageGastro() {
 
 function PageTiendas() {
   const D = window.TableroData; if(!D) return null;
+  const [tab, setTab] = React.useState('principal');
   const k = D.kpi;
   const tConMat = k.tConMat, tTotal = k.tTotal;
   const tiendasEstadoDonut = [
@@ -1297,32 +1325,111 @@ function PageTiendas() {
     { label:'Sin colocar',          value: D.estadoTiendas.find(e=>e.label.includes('colocado'))?.value||0, color:'#EF4444' },
     { label:'No aplica',            value: D.estadoTiendas.find(e=>e.label.includes('aplica'))?.value||0, color:'#94A3B8' },
   ].filter(e=>e.value>0);
+
+  const ot = D.localesOT || [];
+  const otTotal = ot.length;
+  const otConMat = D.otConMat || 0;
+  const otSinMat = otTotal - otConMat;
+
   return (
     <>
-      <div className="kpi-grid">
-        <KpiCard accent="b" label="Tiendas relevadas"    value={tTotal}           sub={D.periodTiendas} subTone="muted" />
-        <KpiCard accent="g" label="Con material BF"      value={tConMat}          sub={`${Math.round(tConMat/tTotal*100)}%`} subTone="pos" />
-        <KpiCard accent="b" label="Visibles desde vidriera" value={k.tVisible}   sub={`${Math.round(k.tVisible/tTotal*100)}%`} subTone="pos" />
-        <KpiCard accent="y" label="Encargado conoce"     value={k.tConoce}        sub={`${Math.round(k.tConoce/tTotal*100)}%`} subTone="mid" />
-        <KpiCard accent="r" label="Con competencia"      value={k.tConComp}       sub={`${Math.round(k.tConComp/tTotal*100)}%`} subTone="neg" />
+      {/* Tab switcher */}
+      <div style={{display:'flex',gap:'8px',marginBottom:'18px'}}>
+        {[['principal','Circuito Principal'],['ot','Circuito Adicional']].map(([id,label])=>(
+          React.createElement('button',{
+            key:id,
+            onClick:()=>setTab(id),
+            style:{
+              padding:'8px 20px',borderRadius:'8px',border:'none',cursor:'pointer',
+              fontFamily:'inherit',fontSize:'13px',fontWeight:'600',
+              background: tab===id ? 'var(--navy)' : 'var(--bsoft)',
+              color: tab===id ? '#fff' : 'var(--navy)',
+              transition:'all .15s',
+            }
+          }, label)
+        ))}
       </div>
-      <div className="grid-2">
-        <Card title="Estado del material en tiendas">
-          <HBarChart data={D.estadoTiendas} color="var(--blue-mid)" />
-        </Card>
-        <Card title="Bancos competidores en tiendas">
-          <HBarChart data={D.tiendasBancos} color="var(--red)" />
-        </Card>
-      </div>
-      <div className="grid-2">
-        <Card title="Visibilidad del material"><Donut data={tiendasEstadoDonut} /></Card>
-        <Card title="Conocimiento de la promo">
-          <Donut data={[
-            {label:'Sí conoce',   value:k.tConoce,              color:'#1D4ED8'},
-            {label:'No / N-D',    value:tTotal-k.tConoce,       color:'#94A3B8'},
-          ]} />
-        </Card>
-      </div>
+
+      {tab === 'principal' && <>
+        <div className="kpi-grid">
+          <KpiCard accent="b" label="Tiendas relevadas"       value={tTotal}      sub={D.periodTiendas} subTone="muted" />
+          <KpiCard accent="g" label="Con material BF"         value={tConMat}     sub={`${Math.round(tConMat/tTotal*100)}%`} subTone="pos" />
+          <KpiCard accent="b" label="Visibles desde vidriera" value={k.tVisible}  sub={`${Math.round(k.tVisible/tTotal*100)}%`} subTone="pos" />
+          <KpiCard accent="y" label="Encargado conoce"        value={k.tConoce}   sub={`${Math.round(k.tConoce/tTotal*100)}%`} subTone="mid" />
+          <KpiCard accent="r" label="Con competencia"         value={k.tConComp}  sub={`${Math.round(k.tConComp/tTotal*100)}%`} subTone="neg" />
+        </div>
+        <div className="grid-2">
+          <Card title="Estado del material en tiendas">
+            <HBarChart data={D.estadoTiendas} color="var(--blue-mid)" />
+          </Card>
+          <Card title="Bancos competidores en tiendas">
+            <HBarChart data={D.tiendasBancos} color="var(--red)" />
+          </Card>
+        </div>
+        <div className="grid-2">
+          <Card title="Visibilidad del material"><Donut data={tiendasEstadoDonut} /></Card>
+          <Card title="Conocimiento de la promo">
+            <Donut data={[
+              {label:'Sí conoce', value:k.tConoce,        color:'#1D4ED8'},
+              {label:'No / N-D',  value:tTotal-k.tConoce, color:'#94A3B8'},
+            ]} />
+          </Card>
+        </div>
+      </>}
+
+      {tab === 'ot' && <>
+        {otTotal === 0
+          ? React.createElement('div',{style:{padding:'40px',textAlign:'center',color:'var(--muted)',fontSize:'14px'}},'No hay datos en la hoja RE_BF_TIENDAS_OT aún.')
+          : <>
+            <div className="kpi-grid">
+              <KpiCard accent="b" label="Tiendas relevadas"  value={otTotal}  sub="Circuito adicional" subTone="muted" />
+              <KpiCard accent="g" label="Con material BF"    value={otConMat} sub={otTotal>0?`${Math.round(otConMat/otTotal*100)}% cobertura`:''} subTone="pos" />
+              <KpiCard accent="r" label="Sin material BF"    value={otSinMat} sub={otTotal>0?`${Math.round(otSinMat/otTotal*100)}% del total`:''} subTone="neg" />
+            </div>
+            <Card title="Material encontrado por tienda">
+              <HBarChart data={D.otMaterialChart} color="var(--blue-mid)" />
+            </Card>
+            <Card title="Detalle por local — Circuito Adicional">
+              <div style={{overflowX:'auto'}}>
+                <table style={{width:'100%',borderCollapse:'collapse',fontSize:'13px'}}>
+                  <thead>
+                    <tr style={{background:'var(--navy)',color:'#fff'}}>
+                      {['Local','Material encontrado','Encargado','Observaciones','Fotos'].map(h=>
+                        React.createElement('th',{key:h,style:{padding:'10px 12px',textAlign:'left',fontWeight:'600',whiteSpace:'nowrap'}},h)
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ot.map((r,i)=>
+                      React.createElement('tr',{key:i,style:{background:i%2===0?'#fff':'var(--bsoft)',borderBottom:'1px solid var(--border)'}},
+                        React.createElement('td',{style:{padding:'9px 12px',fontWeight:'600',color:'var(--navy)'}},r.name||'—'),
+                        React.createElement('td',{style:{padding:'9px 12px'}},
+                          React.createElement('span',{style:{
+                            display:'inline-block',padding:'2px 10px',borderRadius:'20px',fontSize:'11px',fontWeight:'600',
+                            background: r.material && r.material.toLowerCase()!=='ninguno' && r.material.toLowerCase()!=='sin material' ? '#DCFCE7' : '#FEE2E2',
+                            color:      r.material && r.material.toLowerCase()!=='ninguno' && r.material.toLowerCase()!=='sin material' ? '#166534' : '#991B1B',
+                          }}, r.material||'Sin material')
+                        ),
+                        React.createElement('td',{style:{padding:'9px 12px',color:'var(--muted)'}},r.encargado||'—'),
+                        React.createElement('td',{style:{padding:'9px 12px',maxWidth:'220px',color:'var(--muted)'}},r.obs||'—'),
+                        React.createElement('td',{style:{padding:'9px 12px'}},
+                          r.link
+                            ? React.createElement('a',{href:r.link,target:'_blank',rel:'noopener noreferrer',style:{
+                                display:'inline-flex',alignItems:'center',gap:'5px',padding:'5px 12px',
+                                background:'var(--navy)',color:'#fff',borderRadius:'6px',fontSize:'11px',
+                                fontWeight:'600',textDecoration:'none',
+                              }},'📷 Ver fotos')
+                            : React.createElement('span',{style:{color:'var(--muted)',fontSize:'11px'}},'Sin link')
+                        ),
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </>
+        }
+      </>}
     </>
   );
 }
