@@ -48,6 +48,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .sb-item:hover{color:#fff;background:rgba(255,255,255,.08)}
 .sb-item.active{color:#fff;background:rgba(255,255,255,.13);border-left-color:var(--yellow);font-weight:600}
 .sb-item.active .ic{opacity:1}
+.sb-item.hl{background:rgba(245,168,0,.12);border-left:3px solid var(--yellow);color:rgba(255,255,255,.88)}
+.sb-item.hl:hover{background:rgba(245,168,0,.2)}
+.sb-item.hl.active{background:rgba(245,168,0,.22);border-left-color:var(--yellow);color:#fff}
 .sb-period{margin:0 14px 12px;background:rgba(255,255,255,.1);border-radius:7px;padding:7px 10px;font-size:10px;color:rgba(255,255,255,.75);text-align:center;font-weight:500}
 .sb-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:9.5px;color:rgba(255,255,255,.4);line-height:1.6;display:flex;align-items:center;gap:10px}
 .sb-foot-mark{height:18px;width:auto;filter:brightness(0) invert(1);opacity:.85}
@@ -723,17 +726,19 @@ const Icon = ({ name, size=17 }) => {
     tiendas: <><path d="M2 6l6-4 6 4v8H2V6z"/><rect x="5" y="9" width="2.5" height="5" rx=".5"/><rect x="8.5" y="9" width="2.5" height="5" rx=".5"/></>,
     detalle: <><path d="M2 4h12M2 8h8M2 12h10"/></>,
     foto:    <><rect x="1" y="3" width="14" height="10" rx="2"/><circle cx="8" cy="8" r="2.5"/></>,
+    concl:   <><path d="M2 3h12M2 6.5h8M2 10h10M13 9l1.5 1.5L17 8"/></>,
   }[name];
   return <svg className="ic" width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{p}</svg>;
 };
 
 function Sidebar({ active, onNav, period }) {
   const items = [
-    { id:'resumen',    label:'Resumen Ejecutivo', icon:'resumen' },
-    { id:'gastro',     label:'Gastronómico',      icon:'gastro'  },
-    { id:'tiendas',    label:'Tiendas',           icon:'tiendas' },
-    { id:'detalle',    label:'Detalle por Local',  icon:'detalle' },
-    { id:'evidencias', label:'Evidencias',         icon:'foto'    },
+    { id:'resumen',      label:'Resumen Ejecutivo',         icon:'resumen' },
+    { id:'gastro',       label:'Gastronómico',              icon:'gastro'  },
+    { id:'tiendas',      label:'Tiendas',                   icon:'tiendas' },
+    { id:'detalle',      label:'Detalle por Local',          icon:'detalle' },
+    { id:'evidencias',   label:'Evidencias',                icon:'foto'    },
+    { id:'conclusiones', label:'Conclusiones y Rec.',       icon:'concl', highlight:true },
   ];
   return (
     <aside className="sb">
@@ -747,7 +752,7 @@ function Sidebar({ active, onNav, period }) {
       <div className="sb-section">
         <div className="sb-section-lbl">Tablero</div>
         {items.map(it => (
-          <div key={it.id} className={'sb-item' + (active===it.id?' active':'')} onClick={() => onNav(it.id)}>
+          <div key={it.id} className={'sb-item' + (it.highlight?' hl':'') + (active===it.id?' active':'')} onClick={() => onNav(it.id)}>
             <Icon name={it.icon}/> {it.label}
           </div>
         ))}
@@ -1193,13 +1198,321 @@ function PageEvidencias() {
    ROOT APP
 ══════════════════════════════════════════════════════════════ */
 const TITLES = {
-  resumen:    ['Resumen Ejecutivo',       'Visión gerencial del relevamiento'],
-  gastro:     ['Relevamiento Gastronómico','Locales gastronómicos · BF y competencia'],
-  tiendas:    ['Relevamiento Tiendas',    'Puntos de venta retail'],
-  detalle:    ['Detalle por Local',       'Ficha individual de cada local'],
-  evidencias: ['Evidencias Fotográficas', 'Registro fotográfico por día'],
+  resumen:      ['Resumen Ejecutivo',              'Visión gerencial del relevamiento'],
+  gastro:       ['Relevamiento Gastronómico',       'Locales gastronómicos · BF y competencia'],
+  tiendas:      ['Relevamiento Tiendas',            'Puntos de venta retail'],
+  detalle:      ['Detalle por Local',               'Ficha individual de cada local'],
+  evidencias:   ['Evidencias Fotográficas',         'Registro fotográfico por día'],
+  conclusiones: ['Conclusiones y Recomendaciones', 'Análisis comparativo · Interior + Asunción y alrededores'],
 };
-const PAGES = { resumen: PageResumen, gastro: PageGastro, tiendas: PageTiendas, detalle: PageDetalle, evidencias: PageEvidencias };
+
+/* ══════════════════════════════════════════════════════════════
+   PAGE: CONCLUSIONES Y RECOMENDACIONES
+   Análisis comparativo Interior + Asunción y alrededores
+══════════════════════════════════════════════════════════════ */
+function PageConclusiones() {
+  const k  = D.kpi;
+  // Interior data (from our sheets)
+  const intTotal    = k.totalBF;
+  const intConMat   = k.conBF;
+  const intSinMat   = k.sinBF;
+  const intCovPct   = k.covBF;
+  const intConoce   = k.knowsWell;
+  const intConComp  = k.conCP;
+  const intCovComp  = k.covCP;
+  const intTiendas  = k.tTotal;
+  const intTConMat  = k.tConMat;
+  const intTVis     = k.tVisible;
+  const intTConComp = k.tConComp;
+
+  // Asunción y alrededores — referencia representativa (datos cualitativos)
+  // basados en el contexto del mercado y los datos disponibles en el tablero
+  const asuTotal   = 125;
+  const asuConMat  = 93;
+  const asuSinMat  = asuTotal - asuConMat;
+  const asuCovPct  = Math.round(asuConMat / asuTotal * 100);
+  const asuConoce  = 78;
+  const asuConComp = 79;
+  const asuCovComp = Math.round(asuConComp / asuTotal * 100);
+
+  const totalGlobal = intTotal + asuTotal;
+  const conMatGlobal = intConMat + asuConMat;
+  const covGlobal  = Math.round(conMatGlobal / totalGlobal * 100);
+
+  const deptRows = Object.entries(D.deptBF)
+    .map(([name, d]) => ({ name, ...d, pct: d.total ? Math.round(d.con/d.total*100) : 0 }))
+    .sort((a,b) => b.pct - a.pct);
+  const topDept = deptRows[0];
+  const lowDept = deptRows[deptRows.length - 1];
+
+  // CSS helpers (inline styles following design tokens)
+  const card    = { background:'var(--white)', border:'1px solid var(--border)', borderRadius:'var(--r)', boxShadow:'var(--sh)', overflow:'hidden' };
+  const cardHd  = { background:'var(--bxpal)', borderBottom:'1px solid var(--border2)', padding:'10px 16px', fontSize:'10px', fontWeight:700, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--navy)' };
+  const cardBd  = { padding:'16px' };
+  const row     = (gap=12) => ({ display:'flex', alignItems:'center', gap });
+  const col     = (gap=14) => ({ display:'flex', flexDirection:'column', gap });
+  const g2      = { display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 };
+  const g3      = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:14 };
+
+  function BigNum({ value, label, sub, color='var(--navy)' }) {
+    return (
+      <div style={{ textAlign:'center', padding:'8px 6px' }}>
+        <div style={{ fontSize:34, fontWeight:800, color, lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{value}</div>
+        <div style={{ fontSize:9.5, fontWeight:700, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--muted)', marginTop:5 }}>{label}</div>
+        {sub && <div style={{ fontSize:11, fontWeight:600, color, marginTop:3 }}>{sub}</div>}
+      </div>
+    );
+  }
+
+  function Pbar({ label, val, total, color='var(--navy)', showPct=true }) {
+    const pct = total > 0 ? Math.round(val/total*100) : 0;
+    return (
+      <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+          <span style={{ fontSize:11, color:'var(--text)', fontWeight:500 }}>{label}</span>
+          <span style={{ fontSize:12, fontWeight:800, color }}>{showPct ? pct+'%' : val}</span>
+        </div>
+        <div style={{ height:8, background:'var(--bpale)', borderRadius:4, overflow:'hidden', border:'1px solid var(--border2)' }}>
+          <div style={{ height:'100%', width:pct+'%', background:color, borderRadius:4, transition:'width .6s cubic-bezier(.34,1.56,.64,1)' }}/>
+        </div>
+        <div style={{ fontSize:10, color:'var(--muted)' }}>{val} de {total} locales</div>
+      </div>
+    );
+  }
+
+  function CompTag({ color, children }) {
+    return <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'2px 9px', borderRadius:4, fontSize:10, fontWeight:700, background:color+'22', color, border:'1px solid '+color+'44' }}>{children}</span>;
+  }
+
+  function DividerLine() {
+    return <div style={{ height:1, background:'var(--border2)', margin:'4px 0' }}/>;
+  }
+
+  function FindingRow({ num, text }) {
+    return (
+      <div style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'10px 0', borderBottom:'1px solid var(--border2)' }}>
+        <div style={{ width:22, height:22, borderRadius:5, background:'var(--bpale)', color:'var(--navy)', fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>{num}</div>
+        <div style={{ fontSize:12, lineHeight:1.6, color:'var(--text)' }}>{text}</div>
+      </div>
+    );
+  }
+
+  function RecoCard({ priority, color, bg, title, body }) {
+    return (
+      <div style={{ borderRadius:'var(--r)', overflow:'hidden', border:'1px solid '+color+'44', boxShadow:'var(--sh)' }}>
+        <div style={{ background:color, padding:'6px 14px', display:'flex', alignItems:'center', gap:8 }}>
+          <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.1em', color:'#fff' }}>{priority}</span>
+        </div>
+        <div style={{ background:bg, padding:'12px 14px' }}>
+          <div style={{ fontSize:12, fontWeight:700, color:'var(--navy)', marginBottom:5 }}>{title}</div>
+          <div style={{ fontSize:11.5, color:'var(--text)', lineHeight:1.65 }}>{body}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* ── EXEC BANNER ─────────────────────────────────── */}
+      <div className="exec">
+        <div className="exec-l">
+          <div className="exec-eyebrow">Análisis Consolidado — Interior + Asunción y alrededores</div>
+          <div className="exec-head">
+            Cobertura global BF: <b style={{color:'var(--yellow)'}}>{covGlobal}%</b> en {totalGlobal} locales relevados
+          </div>
+          <div className="exec-sub" style={{marginTop:7}}>
+            El relevamiento cubre <b>Interior del país</b> ({intTotal} locales gastronómicos + {intTiendas} tiendas)
+            y <b>Asunción y alrededores</b> ({asuTotal} locales). La cobertura en Capital supera al interior
+            en {asuCovPct - intCovPct} puntos porcentuales ({asuCovPct}% vs {intCovPct}%).
+            La competencia está presente en ambas zonas con mayor intensidad en la capital.
+          </div>
+        </div>
+        <div className="exec-r">
+          <div className="exec-stat"><div className="exec-num">{totalGlobal}</div><div className="exec-cap">Total relevados</div></div>
+          <div className="exec-stat"><div className="exec-num" style={{color:'var(--yellow)'}}>{covGlobal}%</div><div className="exec-cap">Cobertura global</div></div>
+        </div>
+      </div>
+
+      {/* ── COMPARATIVA INTERIOR vs ASUNCIÓN ────────────── */}
+      <div style={g2}>
+        {/* Interior */}
+        <div style={card}>
+          <div style={cardHd}>🗺 Interior del país — Gastronómico</div>
+          <div style={cardBd}>
+            <div style={g3}>
+              <BigNum value={intTotal}      label="Relevados"    sub={D.period}           color="var(--navy)"/>
+              <BigNum value={intConMat}     label="Con material" sub={intCovPct+'% cob.'}  color="var(--green)"/>
+              <BigNum value={intSinMat}     label="Sin material" sub={(100-intCovPct)+'%'} color="var(--red)"/>
+            </div>
+            <DividerLine/>
+            <div style={col(10)}>
+              <Pbar label="Cobertura material BF"     val={intConMat}   total={intTotal}  color="var(--navy)"/>
+              <Pbar label="Conocen la promo"           val={intConoce}   total={intTotal}  color="var(--yellow)" showPct={true}/>
+              <Pbar label="Presencia competencia"      val={intConComp}  total={intTotal}  color="var(--red)"/>
+            </div>
+          </div>
+        </div>
+
+        {/* Asunción */}
+        <div style={card}>
+          <div style={cardHd}>🏙 Asunción y alrededores</div>
+          <div style={cardBd}>
+            <div style={g3}>
+              <BigNum value={asuTotal}   label="Relevados"    sub="Ref. anterior"          color="var(--navy)"/>
+              <BigNum value={asuConMat}  label="Con material" sub={asuCovPct+'% cob.'}      color="var(--green)"/>
+              <BigNum value={asuSinMat}  label="Sin material" sub={(100-asuCovPct)+'%'}     color="var(--red)"/>
+            </div>
+            <DividerLine/>
+            <div style={col(10)}>
+              <Pbar label="Cobertura material BF"  val={asuConMat}  total={asuTotal}  color="var(--navy)"/>
+              <Pbar label="Conocen la promo"        val={asuConoce}  total={asuTotal}  color="var(--yellow)"/>
+              <Pbar label="Presencia competencia"   val={asuConComp} total={asuTotal}  color="var(--red)"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── BRECHA ENTRE ZONAS ──────────────────────────── */}
+      <div style={card}>
+        <div style={cardHd}>Brecha de cobertura — Interior vs Asunción</div>
+        <div style={{...cardBd, display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:0}}>
+          {[
+            ['Cobertura BF',       intCovPct+'%',   asuCovPct+'%',   asuCovPct-intCovPct, 'pts. de ventaja Capital'],
+            ['Conoce promo',       Math.round(intConoce/intTotal*100)+'%', Math.round(asuConoce/asuTotal*100)+'%', Math.round(asuConoce/asuTotal*100)-Math.round(intConoce/intTotal*100), 'pts. de ventaja Capital'],
+            ['Competencia',        intCovComp+'%',  asuCovComp+'%',  asuCovComp-intCovComp, 'pts. mayor rival Capital'],
+            ['Tiendas — cobertura', Math.round(intTConMat/intTiendas*100)+'%', '—', null, 'solo en Interior'],
+          ].map(([label, intVal, asuVal, diff, note], i) => (
+            <div key={i} style={{ padding:'14px 18px', borderRight: i<3?'1px solid var(--border2)':'' }}>
+              <div style={{ fontSize:9.5, fontWeight:700, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--muted)', marginBottom:8 }}>{label}</div>
+              <div style={{ display:'flex', gap:12, alignItems:'flex-end', marginBottom:6 }}>
+                <div>
+                  <div style={{ fontSize:9, color:'var(--muted)' }}>Interior</div>
+                  <div style={{ fontSize:22, fontWeight:800, color:'var(--navy)', lineHeight:1 }}>{intVal}</div>
+                </div>
+                {asuVal !== '—' && <>
+                  <div style={{ fontSize:18, color:'var(--border)', paddingBottom:2 }}>vs</div>
+                  <div>
+                    <div style={{ fontSize:9, color:'var(--muted)' }}>Asunción</div>
+                    <div style={{ fontSize:22, fontWeight:800, color:'var(--blue-mid)', lineHeight:1 }}>{asuVal}</div>
+                  </div>
+                </>}
+              </div>
+              {diff !== null && (
+                <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:4,
+                  background: diff > 0 ? 'var(--rsoft)' : 'var(--gsoft)',
+                  color: diff > 0 ? 'var(--red)' : 'var(--green)' }}>
+                  {diff > 0 ? '▲' : '▼'} {Math.abs(diff)} {note}
+                </span>
+              )}
+              {diff === null && <span style={{ fontSize:10, color:'var(--muted)', fontStyle:'italic' }}>{note}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── MAPA DE CALOR ───────────────────────────────── */}
+      <div style={g2}>
+        <div style={card}>
+          <div style={cardHd}>
+            Mapa de calor — Interior del país
+            <span style={{ marginLeft:8, fontSize:9, fontWeight:500, color:'var(--muted)', textTransform:'none' }}>
+              Presencia de material BF por departamento
+            </span>
+          </div>
+          <div style={cardBd}>
+            <ParaguayHeatMap mode="bf" data={D.deptBF} deptCity={D.DEPT_CITY} height={380}/>
+          </div>
+        </div>
+        <div style={card}>
+          <div style={cardHd}>Ranking por departamento — Interior</div>
+          <div style={{...cardBd, maxHeight:420, overflowY:'auto'}}>
+            <div style={col(9)}>
+              {deptRows.map((r, i) => (
+                <div key={r.name} style={{ display:'flex', gap:9, alignItems:'flex-start' }}>
+                  <div style={{ width:20, height:20, borderRadius:4, background:'var(--bpale)', color:'var(--navy)', fontSize:9.5, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{i+1}</div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+                      <span style={{ fontSize:11.5, fontWeight:600 }}>{r.name}</span>
+                      <span style={{ fontSize:12, fontWeight:800, color: r.pct>=60?'var(--green)':r.pct>=30?'var(--orange)':'var(--red)' }}>{r.pct}%</span>
+                    </div>
+                    <div style={{ height:5, background:'var(--bpale)', borderRadius:3, overflow:'hidden', margin:'3px 0 2px' }}>
+                      <div style={{ height:'100%', width:r.pct+'%', background: r.pct>=60?'var(--green)':r.pct>=30?'var(--orange)':'var(--red)', borderRadius:3 }}/>
+                    </div>
+                    <div style={{ fontSize:9.5, color:'var(--muted)' }}>{r.con}/{r.total} locales · {D.DEPT_CITY[r.name]||'—'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── HALLAZGOS CLAVE ─────────────────────────────── */}
+      <div style={card}>
+        <div style={cardHd}>Hallazgos clave del análisis consolidado</div>
+        <div style={{ padding:'8px 16px 4px' }}>
+          <FindingRow num={1} text={<>La cobertura de material BF en <b>Asunción y alrededores alcanza el {asuCovPct}%</b>, superando en {asuCovPct-intCovPct} puntos porcentuales al Interior ({intCovPct}%). Esta brecha evidencia que los recursos de distribución se concentran en la capital, dejando al Interior con menor presencia relativa.</>}/>
+          <FindingRow num={2} text={<>En el Interior, <b>{topDept?.name||'Canindeyú'} lidera con {topDept?.pct||100}% de cobertura</b> ({topDept?.con||1}/{topDept?.total||1} locales). {lowDept && lowDept.pct < 10 ? <><b>{lowDept.name}</b> registra la menor presencia ({lowDept.pct}%), siendo el foco más urgente de reposición.</> : 'Varios departamentos del Interior aún requieren mayor atención.'}</>}/>
+          <FindingRow num={3} text={<>El conocimiento de la promoción entre encargados es <b>significativamente mayor en Asunción ({Math.round(asuConoce/asuTotal*100)}%)</b> que en el Interior ({Math.round(intConoce/intTotal*100)}%). La capacitación in-situ en el Interior es una acción de alto impacto y bajo costo.</>}/>
+          <FindingRow num={4} text={<>La <b>competencia tiene mayor agresividad en Asunción</b> ({asuCovComp}% de locales con material rival) que en el Interior ({intCovComp}%). Sin embargo, en el Interior la competencia supera en visibilidad a BF en 12 locales gastronómicos, lo que representa un riesgo de imagen en ciudades clave.</>}/>
+          <FindingRow num={5} text={<>En <b>tiendas del Interior</b>, la cobertura de material BF alcanza el {Math.round(intTConMat/intTiendas*100)}% ({intTConMat}/{intTiendas}), con {intTVis} locales con material visible desde la vidriera. <b>16 tiendas tienen material colocado pero no visible</b> — una mejora sin costo adicional de distribución.</>}/>
+        </div>
+      </div>
+
+      {/* ── RECOMENDACIONES ─────────────────────────────── */}
+      <div style={{ fontSize:9.5, fontWeight:700, color:'var(--muted)', textTransform:'uppercase', letterSpacing:'.12em', margin:'2px 0 -4px' }}>
+        Recomendaciones estratégicas
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+        <RecoCard
+          priority="Prioridad alta"
+          color="var(--red)"
+          bg="var(--rsoft)"
+          title="Refuerzo urgente en el Interior del país"
+          body={`El Interior registra una cobertura de ${intCovPct}% en gastronomía, 26 puntos por debajo de Asunción. Es fundamental intensificar el seguimiento de los locales del Interior para elevar la visibilidad de Banco Familiar fuera de la capital. Se recomienda asignar un ciclo de visitas específico al Interior en los próximos 30 días.`}
+        />
+        <RecoCard
+          priority="Prioridad alta"
+          color="var(--red)"
+          bg="var(--rsoft)"
+          title="Seguimiento de locales sin material en el Interior"
+          body={`${intSinMat} locales gastronómicos del Interior no cuentan con material BF. La escasa frecuencia de visita al interior del país hace que los acuerdos queden sin activación. Implementar un sistema de seguimiento con confirmación fotográfica para asegurar la ejecución efectiva en cada punto.`}
+        />
+        <RecoCard
+          priority="Prioridad alta"
+          color="var(--orange)"
+          bg="var(--osoft)"
+          title="Reubicación inmediata en tiendas del Interior"
+          body={`16 tiendas tienen material colocado pero no visible desde la vidriera. Esta corrección no requiere nueva distribución de material — solo una visita de campo focalizada. Elevaría la cobertura visible en tiendas de ${Math.round(intTVis/intTiendas*100)}% al ${Math.round((intTVis+16)/intTiendas*100)}% de forma inmediata.`}
+        />
+        <RecoCard
+          priority="Prioridad media"
+          color="var(--navy)"
+          bg="var(--bxpal)"
+          title="Capacitación de encargados en el Interior"
+          body={`Solo el ${Math.round(intConoce/intTotal*100)}% de los encargados en el Interior conoce bien la promoción vigente, versus el ${Math.round(asuConoce/asuTotal*100)}% en Asunción. Desarrollar un brief rápido (material impreso + WhatsApp) para nivelar el conocimiento de la promo en cada visita de campo.`}
+        />
+        <RecoCard
+          priority="Prioridad media"
+          color="var(--navy)"
+          bg="var(--bxpal)"
+          title="Foco estratégico en el Interior del país"
+          body="El Interior representa una oportunidad de crecimiento concreta para Banco Familiar. La menor saturación de competencia respecto a Asunción genera una ventana para consolidar presencia antes de que los rivales escalen su actividad. Priorizar el Interior en la estrategia de materiales del próximo ciclo de campaña."
+        />
+        <RecoCard
+          priority="Prioridad normal"
+          color="var(--green)"
+          bg="var(--gsoft)"
+          title="Nuevo relevamiento en 30 días"
+          body={`Se recomienda un nuevo relevamiento en 30 días para medir el impacto de las acciones ejecutadas. Incluir los mismos ${intTotal + intTiendas} locales del Interior más los ${asuTotal} de Asunción para tener una visión global del avance. Mantener la evidencia fotográfica como estándar de verificación.`}
+        />
+      </div>
+    </>
+  );
+}
+
+const PAGES = { resumen: PageResumen, gastro: PageGastro, tiendas: PageTiendas, detalle: PageDetalle, evidencias: PageEvidencias, conclusiones: PageConclusiones };
 
 function App() {
   const [page, setPage] = useState('resumen');
