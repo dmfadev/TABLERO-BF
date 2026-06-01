@@ -752,13 +752,13 @@ function hideLoader() {
 (async function bootstrap() {
   showLoader("Conectando con Google Sheets…");
   try {
-    setProgress(10, "Cargando RE_BF_GASTRO_INT…");
+    setProgress(10, "Cargando");
     const rG = await fetch(API_BASE + encodeURIComponent(SHEETS.gastro)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status+" — "+SHEETS.gastro);return r.json();});
 
-    setProgress(40, "Cargando RE_COMPE_GASTRO_INT…");
+    setProgress(40, "Cargando");
     const rC = await fetch(API_BASE + encodeURIComponent(SHEETS.compe)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status+" — "+SHEETS.compe);return r.json();});
 
-    setProgress(70, "Cargando RE_BF_TIENDAS…");
+    setProgress(70, "Cargando");
     const rT = await fetch(API_BASE + encodeURIComponent(SHEETS.tiendas)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status+" — "+SHEETS.tiendas);return r.json();});
 
     setProgress(88, "Procesando datos…");
@@ -1488,7 +1488,7 @@ const TITLES = {
 function PageConclusiones() {
   const D = window.TableroData; if(!D) return null;
   const k  = D.kpi;
-  // Interior data (from our sheets)
+  // Interior gastronómico (RE_BF_GASTRO_INT + RE_COMPE_GASTRO_INT)
   const intTotal    = k.totalBF;
   const intConMat   = k.conBF;
   const intSinMat   = k.sinBF;
@@ -1496,20 +1496,15 @@ function PageConclusiones() {
   const intConoce   = k.knowsWell;
   const intConComp  = k.conCP;
   const intCovComp  = k.covCP;
-  const intTiendas  = k.tTotal;
-  const intTConMat  = k.tConMat;
-  const intTVis     = k.tVisible;
-  const intTConComp = k.tConComp;
 
-  // Asunción y alrededores — referencia representativa (datos cualitativos)
-  // basados en el contexto del mercado y los datos disponibles en el tablero
-  const asuTotal   = 125;
-  const asuConMat  = 93;
+  // Asunción y alrededores — RE_BF_TIENDAS (datos reales del relevamiento)
+  const asuTotal   = k.tTotal;
+  const asuConMat  = k.tConMat;
   const asuSinMat  = asuTotal - asuConMat;
-  const asuCovPct  = Math.round(asuConMat / asuTotal * 100);
-  const asuConoce  = 78;
-  const asuConComp = 79;
-  const asuCovComp = Math.round(asuConComp / asuTotal * 100);
+  const asuCovPct  = asuTotal > 0 ? Math.round(asuConMat / asuTotal * 100) : 0;
+  const asuConoce  = k.tConoce;
+  const asuConComp = k.tConComp;
+  const asuCovComp = asuTotal > 0 ? Math.round(asuConComp / asuTotal * 100) : 0;
 
   const totalGlobal = intTotal + asuTotal;
   const conMatGlobal = intConMat + asuConMat;
@@ -1597,8 +1592,8 @@ function PageConclusiones() {
             Cobertura global BF: <b style={{color:'var(--yellow)'}}>{covGlobal}%</b> en {totalGlobal} locales relevados
           </div>
           <div className="exec-sub" style={{marginTop:7}}>
-            El relevamiento cubre <b>Interior del país</b> ({intTotal} locales gastronómicos + {intTiendas} tiendas)
-            y <b>Asunción y alrededores</b> ({asuTotal} locales). La cobertura en Capital supera al interior
+            El relevamiento cubre <b>Interior del país</b> ({intTotal} locales gastronómicos)
+            y <b>Asunción y alrededores</b> ({asuTotal} puntos de venta relevados). La cobertura en Capital supera al interior
             en {asuCovPct - intCovPct} puntos porcentuales ({asuCovPct}% vs {intCovPct}%).
             La competencia está presente en ambas zonas con mayor intensidad en la capital.
           </div>
@@ -1656,7 +1651,7 @@ function PageConclusiones() {
             ['Cobertura BF',       intCovPct+'%',   asuCovPct+'%',   asuCovPct-intCovPct, 'pts. de ventaja Capital'],
             ['Conoce promo',       Math.round(intConoce/intTotal*100)+'%', Math.round(asuConoce/asuTotal*100)+'%', Math.round(asuConoce/asuTotal*100)-Math.round(intConoce/intTotal*100), 'pts. de ventaja Capital'],
             ['Competencia',        intCovComp+'%',  asuCovComp+'%',  asuCovComp-intCovComp, 'pts. mayor rival Capital'],
-            ['Tiendas — cobertura', Math.round(intTConMat/intTiendas*100)+'%', '—', null, 'solo en Interior'],
+            ['Sin material', intSinMat+' loc.', asuSinMat+' loc.', null, 'locales a recuperar'],
           ].map(([label, intVal, asuVal, diff, note], i) => (
             <div key={i} style={{ padding:'14px 18px', borderRight: i<3?'1px solid var(--border2)':'' }}>
               <div style={{ fontSize:9.5, fontWeight:700, textTransform:'uppercase', letterSpacing:'.07em', color:'var(--muted)', marginBottom:8 }}>{label}</div>
@@ -1731,7 +1726,7 @@ function PageConclusiones() {
           <FindingRow num={2} text={<>En el Interior, <b>{topDept?.name||'Canindeyú'} lidera con {topDept?.pct||100}% de cobertura</b> ({topDept?.con||1}/{topDept?.total||1} locales). {lowDept && lowDept.pct < 10 ? <><b>{lowDept.name}</b> registra la menor presencia ({lowDept.pct}%), siendo el foco más urgente de reposición.</> : 'Varios departamentos del Interior aún requieren mayor atención.'}</>}/>
           <FindingRow num={3} text={<>El conocimiento de la promoción entre encargados es <b>significativamente mayor en Asunción ({Math.round(asuConoce/asuTotal*100)}%)</b> que en el Interior ({Math.round(intConoce/intTotal*100)}%). La capacitación in-situ en el Interior es una acción de alto impacto y bajo costo.</>}/>
           <FindingRow num={4} text={<>La <b>competencia tiene mayor agresividad en Asunción</b> ({asuCovComp}% de locales con material rival) que en el Interior ({intCovComp}%). Sin embargo, en el Interior la competencia supera en visibilidad a BF en 12 locales gastronómicos, lo que representa un riesgo de imagen en ciudades clave.</>}/>
-          <FindingRow num={5} text={<>En <b>tiendas del Interior</b>, la cobertura de material BF alcanza el {Math.round(intTConMat/intTiendas*100)}% ({intTConMat}/{intTiendas}), con {intTVis} locales con material visible desde la vidriera. <b>16 tiendas tienen material colocado pero no visible</b> — una mejora sin costo adicional de distribución.</>}/>
+          <FindingRow num={5} text={<>En <b>Asunción y alrededores</b>, la cobertura de material BF en puntos de venta alcanza el {asuCovPct}% ({asuConMat}/{asuTotal}). {k.tVisible > 0 ? <><b>{k.tVisible} locales tienen material visible desde la vidriera</b> — un indicador clave de impacto visual en el punto de venta.</> : 'Reforzar la visibilidad del material en el punto de venta es una oportunidad de alto impacto.'}</>}/>
         </div>
       </div>
 
@@ -1759,8 +1754,8 @@ function PageConclusiones() {
           priority="Prioridad alta"
           color="var(--orange)"
           bg="var(--osoft)"
-          title="Reubicación inmediata en tiendas del Interior"
-          body={`16 tiendas tienen material colocado pero no visible desde la vidriera. Esta corrección no requiere nueva distribución de material — solo una visita de campo focalizada. Elevaría la cobertura visible en tiendas de ${Math.round(intTVis/intTiendas*100)}% al ${Math.round((intTVis+16)/intTiendas*100)}% de forma inmediata.`}
+          title="Optimizar visibilidad en puntos de venta de Asunción"
+          body={`En Asunción y alrededores, ${asuSinMat} puntos de venta no cuentan con material BF. Adicionalmente, mejorar la ubicación del material en los locales con baja visibilidad es una corrección de alto impacto que no requiere nueva distribución — solo una visita de campo focalizada.`}
         />
         <RecoCard
           priority="Prioridad media"
@@ -1781,7 +1776,7 @@ function PageConclusiones() {
           color="var(--green)"
           bg="var(--gsoft)"
           title="Nuevo relevamiento en 30 días"
-          body={`Se recomienda un nuevo relevamiento en 30 días para medir el impacto de las acciones ejecutadas. Incluir los mismos ${intTotal + intTiendas} locales del Interior más los ${asuTotal} de Asunción para tener una visión global del avance. Mantener la evidencia fotográfica como estándar de verificación.`}
+          body={`Se recomienda un nuevo relevamiento en 30 días para medir el impacto de las acciones ejecutadas. Incluir los mismos ${intTotal} locales gastronómicos del Interior más los ${asuTotal} puntos de venta de Asunción para tener una visión global del avance. Mantener la evidencia fotográfica como estándar de verificación.`}
         />
       </div>
     </>
