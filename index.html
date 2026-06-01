@@ -463,14 +463,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 </style>
 </head>
 <body>
-<div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
-  <div style="font-size:22px;font-weight:700;color:var(--navy)">Cargando datos...</div>
-  <div style="font-size:13px;color:var(--muted)">Conectando con Google Sheets</div>
-  <div style="width:200px;height:4px;background:var(--bpale);border-radius:2px;overflow:hidden">
-    <div style="width:60%;height:100%;background:var(--blue);border-radius:2px;animation:loadbar 1.2s ease-in-out infinite alternate"></div>
-  </div>
-</div>
-<style>@keyframes loadbar{from{transform:translateX(-100%)}to{transform:translateX(220%)}}</style>
 <div id="root"></div>
 
 <!-- LIGHTBOX (outside React for simplicity) -->
@@ -495,37 +487,50 @@ window.__resources = {
   pryTopo: 'https://cdn.jsdelivr.net/npm/datamaps@0.5.10/src/js/data/pry.topo.json',
 };
 
-/* ── DYNAMIC DATA — fetch desde Google Sheets CSV público ── */
-// La hoja debe estar publicada: Archivo > Compartir > Publicar en la web > CSV
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1Y4H9iM_EqiFOBOEU2SRERaH0KfH3dTfdy0DsFTBhBkWeaaaqlmCFwqip1gy010JR9iQn9TZzM06V/pub?output=csv';
+/* ── DATA — carga inmediata + actualización silenciosa ── */
+const SHEET_BF_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1Y4H9iM_EqiFOBOEU2SRERaH0KfH3dTfdy0DsFTBhBkWeaaaqlmCFwqip1gy010JR9iQn9TZzM06V/pub?output=csv&gid=0';
 
-// Mapa de departamentos por ciudad
-const DEPT_CITY_MAP = {
-  "Itapúa":"Encarnación","Alto Paraná":"Ciudad del Este","Cordillera":"San Bernardino",
-  "Guairá":"Villarrica","Concepción":"Concepción","Canindeyú":"Saltos del Guairá",
-  "Caaguazú":"Coronel Oviedo / Dr. J.E. Estigarribia","Amambay":"P.J. Caballero","Ñeembucú":"Pilar"
-};
-const CITY_DEPT_MAP = {
-  "Encarnacion":"Itapúa","Encarnación":"Itapúa",
-  "Ciudad del Este":"Alto Paraná","Cde. del Este":"Alto Paraná",
-  "San Bernardino":"Cordillera",
-  "Villarrica":"Guairá",
-  "Concepcion":"Concepción","Concepción":"Concepción",
-  "Saltos del Guaira":"Canindeyú","Saltos del Guairá":"Canindeyú",
-  "Coronel Oviedo":"Caaguazú","Dr J.E. Estigarribia":"Caaguazú","Dr. J.E. Estigarribia":"Caaguazú",
-  "Pedro Juan Caballero":"Amambay",
-  "Pilar":"Ñeembucú",
-  "Caacupe":"Cordillera","Caacupé":"Cordillera",
-  "Maria Auxiliadora":"Itapúa"
-};
+// ── Datos embebidos (render inmediato, sin espera de red) ──
+const raw = {"deptBF":{"Canindeyú":{"total":1,"con":1},"Alto Paraná":{"total":16,"con":10},"Itapúa":{"total":23,"con":11},"Ñeembucú":{"total":1,"con":0},"Concepción":{"total":9,"con":5},"Cordillera":{"total":8,"con":5},"Amambay":{"total":1,"con":0},"Guairá":{"total":9,"con":2},"Caaguazú":{"total":3,"con":0},},"deptCP":{"Canindeyú":{"total":1,"con":1},"Alto Paraná":{"total":16,"con":2},"Itapúa":{"total":23,"con":13},"Ñeembucú":{"total":1,"con":1},"Concepción":{"total":9,"con":2},"Cordillera":{"total":8,"con":1},"Amambay":{"total":1,"con":0},"Guairá":{"total":9,"con":4},"Caaguazú":{"total":3,"con":0},},"DEPT_CITY":{"Itapúa":"Encarnación","Alto Paraná":"Ciudad del Este","Cordillera":"San Bernardino","Guairá":"Villarrica","Concepción":"Concepción","Canindeyú":"Saltos del Guairá","Caaguazú":"Coronel Oviedo / Dr. J.E. Estigarribia","Amambay":"P.J. Caballero","Ñeembucú":"Pilar",},"cityBF":[{"city":"Encarnacion","con":11,"sin":11},{"city":"Ciudad del Este","con":10,"sin":6},{"city":"Concepcion","con":5,"sin":4},{"city":"Villarrica","con":2,"sin":7},{"city":"San Bernardino","con":5,"sin":2},{"city":"Coronel Oviedo","con":0,"sin":2},{"city":"Saltos del Guaira","con":1,"sin":0},{"city":"Pilar","con":0,"sin":1},{"city":"Caacupe","con":0,"sin":1},{"city":"Maria Auxiliadora","con":0,"sin":1},{"city":"Pedro Juan Caballero","con":0,"sin":1},{"city":"Dr J.E. Estigarribia","con":0,"sin":1}],"materialType":[{"label":"Restaurante (sabado y domingo)","value":19},{"label":"Fast Food (Lunes a Viernes)","value":13},{"label":"Fast Food (jueves y viernes)","value":3},{"label":"Sin material","value":37,"negative":true}],"competitors":[{"label":"Banco Continental","value":11},{"label":"Interfisa","value":5},{"label":"Banco GNB","value":4},{"label":"Ueno Bank","value":4},{"label":"Sudameris","value":4},{"label":"Progresar","value":2},{"label":"Banco Itaú","value":1},{"label":"Visanet/Bancard","value":1}],"promoKnowledge":[{"label":"Conoce bien","value":36,"color":"#1D4ED8"},{"label":"Parcialmente","value":11,"color":"#F59E0B"},{"label":"No conoce","value":16,"color":"#EF4444"},{"label":"Sin encargado","value":8,"color":"#94A3B8"}],"materialState":[{"label":"En perfecto estado","value":29,"color":"#1D4ED8"},{"label":"Deteriorado","value":1,"color":"#F59E0B"},{"label":"Poco visible","value":1,"color":"#F5A800"},{"label":"Sin colocar","value":3,"color":"#CBD5E1"}],"visibilityVsBF":[{"label":"Menos visible que BF","value":4,"color":"#1D4ED8"},{"label":"Similar a BF","value":8,"color":"#F59E0B"},{"label":"Más visible que BF","value":12,"color":"#DC2626"}],"locales":[{"name":"BURGER KING SALTOS DEL GUAIRA","city":"Saltos del Guaira","type":"Fast food","material":true,"state":"Visible pero deteriorado","knows":"Conoce bien","benefit":"B","obs":"","fotos":["https://drive.google.com/file/d/1abeq9q3qhPPAR6c0JBwtWVJ4zQTMaAo_/view?usp=drivesdk","https://drive.google.com/file/d/1teEOofx9KqkwhB2EPpYUe76e6ItxR4H5/view?usp=drivesdk","https://drive.google.com/file/d/1pKvq5jyYS7QPXpPw76xfweraIz97Ikxx/view?usp=drivesdk"]},{"name":"BURGER KING LAGO SHOPPING","city":"Ciudad del Este","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1GOZ8NTIjwigrykfWIIEZKAbLe2-FjLyj/view?usp=drivesdk"]},{"name":"595 LOUNGE","city":"Ciudad del Este","type":"Boliche","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1bcUceMQmF30OK4PivB45aLhq0T2aTdSI/view?usp=drivesdk","https://drive.google.com/file/d/1rIlfqXLmsAVX8eoI3SzSe_dr049PXG_O/view?usp=drivesdk"]},{"name":"BURGER KING CDE AREA 1","city":"Ciudad del Este","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1sV0rsnVLFvUmLDN9bA3EuR_Yivx4Oy-d/view?usp=drivesdk"]},{"name":"GALAXIA PIZZERIA COSTANERA","city":"Encarnacion","type":"Fast food","material":false,"state":"—","knows":"Conoce bien","benefit":"—","obs":"No hay acuerdo por eso no se puede colocar ningún material de BF según la encargada de turno.","fotos":["https://drive.google.com/file/d/1XXcaqHMFysfq3B1VbuPP7ai7-EcBfmEj/view?usp=drivesdk"]},{"name":"MORDISCO","city":"Encarnacion","type":"Fast food","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"El encargado de turno comenta que no tienen ningún material del banco familiar.","fotos":["https://drive.google.com/file/d/13aNHskYyYvwVab6fShAjF5XiuPBlzhbJ/view?usp=drivesdk"]},{"name":"KALA POKE","city":"Encarnacion","type":"Fast food","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/13JLyP-2Ye2kbTGNuvz_OvodGAmrp1CYa/view?usp=drivesdk"]},{"name":"MISTER KOMBI","city":"Pilar","type":"Fast food","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"El local actualmente no cuenta con los materiales del banco familiar, anteriormente sí contaban pero luego del mantenimiento de las paredes del local (pintura) no se volvieron a colocar. El personal de atención al cliente se encuentra interesado en conocer más sobre las promociones del banco para ofrecer a la clientela.","fotos":["https://drive.google.com/file/d/1xy_uhmQjHNFZmnYyXHUO7uxl5JxCEFqP/view?usp=drivesdk"]},{"name":"BUFFALO RESTO","city":"Encarnacion","type":"Restaurante","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/1k72EwA6H7W5karBX3Y00pMWDF92V28LN/view?usp=drivesdk"]},{"name":"AKIRA","city":"Encarnacion","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"Falta retirar la pegatina qué esta por la puerta principal que es válido para el  mes de enero y febrero.","fotos":["https://drive.google.com/file/d/1E4VRF2otFie_QNrIsiYBWdjC_Or5QU0h/view?usp=drivesdk","https://drive.google.com/file/d/1wzI4yHIsHxdYC7vPD152ReI1jQa0CCKI/view?usp=drivesdk","https://drive.google.com/file/d/1aO7fguks7amG_0oWbiM-kctEeGeV9l3R/view?usp=drivesdk"]},{"name":"MANSION IRIGOYEN","city":"Concepcion","type":"Restaurante","material":true,"state":"Poco visible / mal ubicado","knows":"Conoce bien","benefit":"A","obs":"Mozo de día encargado de organizar el salón, conoce las promociones","fotos":["https://drive.google.com/file/d/1xuv-ORYjuj8HFyfIkE07LvrjjbUHArBf/view?usp=drivesdk","https://drive.google.com/file/d/1gLhe0uhVkchfFweFqs9PqspT3hhto8fz/view?usp=drivesdk","https://drive.google.com/file/d/1gLhe0uhVkchfFweFqs9PqspT3hhto8fz/view?usp=drivesdk"]},{"name":"EL QUINCHO DE NACHO","city":"Concepcion","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"B","obs":"Encargado Local","fotos":["https://drive.google.com/file/d/1XyxJJpzc2C3zuGj5ke3meMOBWGelpOKe/view?usp=drivesdk","https://drive.google.com/file/d/130pPsJYGNrEysaDuw5G-8F3j6J0oaCGk/view?usp=drivesdk","https://drive.google.com/file/d/1_YVmQJ7NkB3K9AbejaK78t0a1NCt3m8u/view?usp=drivesdk","https://drive.google.com/file/d/12WBnopeWlzfFrmidSwck-AP-mUrW8xDC/view?usp=drivesdk"]},{"name":"MANSION IRIGOYEN","city":"Concepcion","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"B","obs":"Mozo y Encargado de Salon","fotos":["https://drive.google.com/file/d/1kM-ia_gtfAjTcDhhoTH0BmMXIVIuoBYq/view?usp=drivesdk","https://drive.google.com/file/d/10L-897LPIe-qATYPfqDoklTPVbeLXvG_/view?usp=drivesdk","https://drive.google.com/file/d/1rFfCif5tE_6dgclVHvxkmUtB0vIAuXkP/view?usp=drivesdk"]},{"name":"BURGER KING CAACUPE","city":"Caacupe","type":"Fast food","material":false,"state":"—","knows":"Conoce bien","benefit":"—","obs":"La encargada del local conoce la promoción activa, tiene una guía impresa detallado del porcentaje y los días de beneficio","fotos":["https://drive.google.com/file/d/1ZFVZTDduLOoxHzBi0vLoZt23f7mEYBdc/view?usp=drivesdk","https://drive.google.com/file/d/1yTdW3kHje0wSu97VEXXDbZwA9TNWTM_e/view?usp=drivesdk","https://drive.google.com/file/d/17kbRPADk5cHK4FpqQVdr5hoC2MQA6B32/view?usp=drivesdk"]},{"name":"MOÑAI KUA","city":"Concepcion","type":"Fast food","material":false,"state":"—","knows":"Sin encargado","benefit":"—","obs":"Local Cerrado","fotos":["https://drive.google.com/file/d/1PY5HSH0WXbArbZqEMEpHcUhs5Z368Bnx/view?usp=drivesdk","https://drive.google.com/file/d/13yf3HXNvo2Jc0LjluUUP8M2H0FbB7um9/view?usp=drivesdk","https://drive.google.com/file/d/1QaZUWrAy7i6R_EFNPEg-wAfvngBtA0E8/view?usp=drivesdk"]},{"name":"PORTOBELLO","city":"Encarnacion","type":"Restaurante","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"En  4 meses no se le visitó. No cuenta con ningún material.","fotos":["https://drive.google.com/file/d/1a7AM7sPEzw483kFRXlFt4ZA4YU2XSF0l/view?usp=drivesdk"]},{"name":"DOLCISSIMO","city":"Encarnacion","type":"Fast food","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"La jefa dio la orden de retirar todos los materiales ya que no estban vigentes.","fotos":["https://drive.google.com/file/d/18_gXW0kyyKVQ21qkcU5T3tljFmyzGLVb/view?usp=drivesdk"]},{"name":"MAKO'S HELADERIA","city":"Encarnacion","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"B","obs":"Tienen una saliente del banco ueno Bank pero ninguna promo actualmente con ellos.","fotos":[]},{"name":"BURGER KING ENCARNACION","city":"Encarnacion","type":"Fast food","material":false,"state":"—","knows":"Conoce bien","benefit":"—","obs":"Conocen la promo pero no se permite colocar ningún material ni del BF ni de la competencia.","fotos":["https://drive.google.com/file/d/16DO-wxABInlANI-OV2urNp4TLsXbHprv/view?usp=drivesdk"]},{"name":"DOÑA SUSANA","city":"Encarnacion","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"Me comenta la encargada que hace poquito le acercaron todos los materiales BF a su local","fotos":["https://drive.google.com/file/d/1p5jNvPJahZ16xabAIPAwHZC_sq5gmjCR/view?usp=drivesdk","https://drive.google.com/file/d/1xtVO3aj3Eu0z-uaDHmcryLicZIelRu-h/view?usp=drivesdk"]},{"name":"LA CAROLINA CAFE BISTRO","city":"Ciudad del Este","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1v_fSPPjMwNylWCmFgDD3xAgRt972EhGI/view?usp=drivesdk"]},{"name":"LA CAROLINA CAFE BISTRO","city":"Ciudad del Este","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":[]},{"name":"TAKUAREE COUNTRY","city":"Ciudad del Este","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"B","obs":"","fotos":["https://drive.google.com/file/d/1bzR_ImqOC7Fo5-277loHcVCC50qtG7Kk/view?usp=drivesdk"]},{"name":"STUDENKO MARIA AUXILIADORA","city":"Maria Auxiliadora","type":"Restaurante","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"No conoce sobre ninguna promoción del banco","fotos":["https://drive.google.com/file/d/1_z2Z2Z0GIKHbdzRrfPHxiGLMsWTUmgRG/view?usp=drivesdk","https://drive.google.com/file/d/1tG0OWxJWTVye82oDe-xMfspyliFFWL_s/view?usp=drivesdk","https://drive.google.com/file/d/1tyCwlM3fvoBRNCSfGYYckd6eM_Kgks5_/view?usp=drivesdk"]},{"name":"BURGER KING PJC","city":"Pedro Juan Caballero","type":"Fast food","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/1UwzsBSzFWtam-lTR6HLKZQpQysKCDmU4/view?usp=drivesdk","https://drive.google.com/file/d/1N7kvgS42M2o-FuTpYv8oYABNZEtYXlf7/view?usp=drivesdk","https://drive.google.com/file/d/1JICRYuiTwGm28dpcK_LOX0d0YKmhJ1fV/view?usp=drivesdk"]},{"name":"BURGER KING VILLARRICA","city":"Villarrica","type":"Fast food","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"Segun comentario de la encargada de turno, cuentan con los materiales de Banco Familiar pero no están exhibidos ya que deben tener la autorización de la gerencia. No se observa materiales de promociones de otros bancos.","fotos":["https://drive.google.com/file/d/1aJhCCHkqj-V4A3v8Dw6tHax7GNnarTcT/view?usp=drivesdk","https://drive.google.com/file/d/1qx0O-ekteUtZGZ97fHpwfy0yQ_MiAPNO/view?usp=drivesdk","https://drive.google.com/file/d/1P14t42l9IzQeJ3eUPFdyYiL7dhGTr12L/view?usp=drivesdk"]},{"name":"BURGER KING VILLARRICA","city":"Villarrica","type":"Fast food","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"Segun comentario de la encargada de turno, cuentan con los materiales de Banco Familiar pero no están exhibidos ya que deben tener la autorización de la gerencia. No se observa materiales de promociones de otros bancos.","fotos":["https://drive.google.com/file/d/1DuNz_GT3W8Dr-sTsPkLYGTWzFkDihHZ-/view?usp=drivesdk","https://drive.google.com/file/d/1YpUoAbNcgzT2rXgB8BaNiot2vozWEdU7/view?usp=drivesdk","https://drive.google.com/file/d/112BugQcXOFjhgRL9OQ1ly1GnSA12wJp-/view?usp=drivesdk"]},{"name":"BURGER KING VILLARRICA","city":"Villarrica","type":"Fast food","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"Segun comentario de la encargada de turno, cuentan con los materiales de Banco Familiar pero no están exhibidos ya que deben tener la autorización de la gerencia. No se observa materiales de promociones de otros bancos.","fotos":["https://drive.google.com/file/d/1U0As2-m8eC8ZIe4Dijhd6HMYo2QA5qmw/view?usp=drivesdk","https://drive.google.com/file/d/1dQTtALTqstEHTxEYKjyabl_i6ueh33T6/view?usp=drivesdk","https://drive.google.com/file/d/1hJ3hwgcaZlBfpdd5qSZ0jgMEaGB9_5I3/view?usp=drivesdk"]},{"name":"TUSS","city":"Villarrica","type":"Restaurante","material":false,"state":"—","knows":"Sin encargado","benefit":"—","obs":"La cajera comenta que no conoce si tienen beneficio con el banco familiar, anteriormente si pero luego tuss se separo de emprendimientos ybyturuzu y desde de ese momento  ya no cuentan con beneficios con Banco familiar.","fotos":["https://drive.google.com/file/d/1V-pEV8v6Z9l0e6jhMXfz0s6EwzytGaPl/view?usp=drivesdk","https://drive.google.com/file/d/1C96nZh_JPbgPvfJLW5mr7CNwoy0gOvxD/view?usp=drivesdk","https://drive.google.com/file/d/13edqVObTNFlpJ5I9xP15Ncn2--8jXgfA/view?usp=drivesdk"]},{"name":"TERRAZA BURGER","city":"Villarrica","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Sin encargado","benefit":"B","obs":"Las observaciones se realizo desde afuera, ya que el punto estaba totalmente cerrado y pareciera abandonado.","fotos":["https://drive.google.com/file/d/1w88vAgg7An444esCMLC7HGcKwXlJKZKE/view?usp=drivesdk","https://drive.google.com/file/d/17MKl0LCCSi36dXhTz-DEKQHb7xHX-iqy/view?usp=drivesdk","https://drive.google.com/file/d/1WMEEFSoeq1lG3v_agmCKBqBLANDRpYQG/view?usp=drivesdk"]},{"name":"EL SOTANO BAR","city":"Concepcion","type":"Restaurante","material":true,"state":"No esta colocado","knows":"Conoce bien","benefit":"A","obs":"Encargado del local","fotos":["https://drive.google.com/file/d/1z56BtLAkDI3jaFy9mZHXRMVb291JFNln/view?usp=drivesdk","https://drive.google.com/file/d/1cNB8HIX-fekQyhk3HpRtZBVCNKtBUxPg/view?usp=drivesdk","https://drive.google.com/file/d/1Ciyj4v0ptFh9lojMxgfbn6qYFHUWM5o3/view?usp=drivesdk"]},{"name":"LA MADAME","city":"Concepcion","type":"Restaurante","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"Encargado de Local","fotos":["https://drive.google.com/file/d/1YAB9bEYJxbaxdKaMYYh56BPx0h2-NOLH/view?usp=drivesdk"]},{"name":"COLONIAL RESTO BAR","city":"Concepcion","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"B","obs":"Encargo de local.","fotos":["https://drive.google.com/file/d/11FUnD2BXZ1b7MZ-ecNqf0OPvD8XcA8fQ/view?usp=drivesdk","https://drive.google.com/file/d/11QcmT2Y0erMTglgMufVuTLM35G7H8u_l/view?usp=drivesdk","https://drive.google.com/file/d/1Kfehb6KrFzc9Jp3QOsIBCSGMeS7vqDrF/view?usp=drivesdk"]},{"name":"LA MADAME","city":"Concepcion","type":"Restaurante","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"Es la propietaria actual","fotos":["https://drive.google.com/file/d/1mvFktNp3ZC1VdDp2V8v6g7PPma7MD-F3/view?usp=drivesdk"]},{"name":"MATAU PIZZAS","city":"Concepcion","type":"Fast food","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"Encargado Administrativa","fotos":["https://drive.google.com/file/d/1OQ6w8MIrWmMo1cw0Zw9C_8pgFFF3zEZm/view?usp=drivesdk","https://drive.google.com/file/d/1jtbAlh4nlRIgLrw6N-IOTe5VLOcKvyKT/view?usp=drivesdk"]},{"name":"CAPITAO","city":"Ciudad del Este","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"No conoce","benefit":"B","obs":"","fotos":["https://drive.google.com/file/d/1-cmCuNcVobMZI3-3wWaXy8iGt6-GEzbw/view?usp=drivesdk","https://drive.google.com/file/d/1dHPLymoiw9XGcYEiNWSip8pUtsCPW3Kw/view?usp=drivesdk","https://drive.google.com/file/d/13L4J1Lhx92fzlTmtWWIfEZgQDpzNTJyM/view?usp=drivesdk","https://drive.google.com/file/d/18BmKdJyQqIdhUjNBE1K22tRDXrAK7dLc/view?usp=drivesdk","https://drive.google.com/file/d/1OQQQF4qajqfpTVHP42X3jvbSXWU925un/view?usp=drivesdk"]},{"name":"595 LOUNGE","city":"Ciudad del Este","type":"Boliche","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/1BiNPqO3s0TIBOJHkIPb8qCny5XvasJQ1/view?usp=drivesdk"]},{"name":"ELEVEN","city":"Ciudad del Este","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1IKaWlYwjN0K3wuHVcIbCFoMwMdT0R-Oi/view?usp=drivesdk"]},{"name":"DISTRITO BREWING CO","city":"Ciudad del Este","type":"Restaurante","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"La encarga pidió 2 cartel de banco familiar sus locales","fotos":["https://drive.google.com/file/d/1AB2V52fXZjNKyMUAyNkOaEqUT_ZOo1is/view?usp=drivesdk"]},{"name":"BURGER KING 3 DE FEBRERO","city":"Ciudad del Este","type":"Fast food","material":false,"state":"—","knows":"Conoce bien","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/1L-qneqx9CN4lZOIcxOIEnBHjGtbhjK5M/view?usp=drivesdk"]},{"name":"BURGER KING 3 DE FEBRERO","city":"Ciudad del Este","type":"Fast food","material":false,"state":"—","knows":"Conoce bien","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/17dQj24XAM7yteSXDeBrkJSAWEBSEEmUm/view?usp=drivesdk"]},{"name":"BURGER KING CDE 2","city":"Ciudad del Este","type":"Fast food","material":false,"state":"—","knows":"Conoce bien","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/1dQi9oavcsL1kwohcrJvk9QHdOizeWhPr/view?usp=drivesdk"]},{"name":"BURGER KING PARIS","city":"Ciudad del Este","type":"Fast food","material":false,"state":"—","knows":"Conoce bien","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/1f7D-6GH2nCOJRJ2nUPToRYGyaQJELOTR/view?usp=drivesdk"]},{"name":"BISTRON","city":"Ciudad del Este","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1aqwxFBWl2u49msfKm1aPAP8o0rH4Zegh/view?usp=drivesdk"]},{"name":"PRIMOLI","city":"Encarnacion","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1JoM8BXFQ5mzLEeM4lgE-GIRQP7OA4I0g/view?usp=drivesdk"]},{"name":"BURGER KING CORONEL OVIEDO","city":"Coronel Oviedo","type":"Fast food","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"Bose3","fotos":["https://drive.google.com/file/d/1ZTl14fF5YHy9boQt8b9SBKQkZ8-Tuecc/view?usp=drivesdk"]},{"name":"SAX PALACE","city":"Ciudad del Este","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"Había muchas gente esperando en caja para pagar y no podía sacar las fotos correspondiente","fotos":["https://drive.google.com/file/d/1Y77wN7ttmmyWu2dd-W9zy7yuOe_MRzrC/view?usp=drivesdk"]},{"name":"BURGER KING CORONEL OVIEDO","city":"Coronel Oviedo","type":"Fast food","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"No se cuenta con materiales de BF, la encargada menciona que no tienen autorización de exchibir materiales y por eso no tienen de ningún banco.\nConoce la promoción parcialmente ya que puede verificar en su sistema.","fotos":["https://drive.google.com/file/d/1LEJ34lXqCMPLzuUTKdrbY5XLbu2gONiU/view?usp=drivesdk","https://drive.google.com/file/d/1abxZv4Yye6bTXGphJf7pu1yeH7OJYL2i/view?usp=drivesdk","https://drive.google.com/file/d/14eCe0PEDWusZeq-8u41hXuqFbIELFKVg/view?usp=drivesdk"]},{"name":"O REI DO ACAI","city":"Encarnacion","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1VW0ZPs4hLENjno3CYdnDGDOam300N7aj/view?usp=drivesdk"]},{"name":"BISTRO DEL CENTRO","city":"Encarnacion","type":"Restaurante","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/1SMb0XfipO5suU1xeAswTovAwQDLoFd0i/view?usp=drivesdk"]},{"name":"LAS DELICIAS","city":"Encarnacion","type":"Fast food","material":true,"state":"No esta colocado","knows":"Parcialmente","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1GMQrzAwAhO4KkgA3i_dQoXDFLrP0_2bV/view?usp=drivesdk"]},{"name":"SCALA TASTY","city":"Dr J.E. Estigarribia","type":"Restaurante","material":false,"state":"—","knows":"Sin encargado","benefit":"—","obs":"No había ninguna publicidad de ninguna forma ni trabajan con ninguna entidad Bancaria","fotos":["https://drive.google.com/file/d/1HGkYu6yMOJmAosfJ5sItGarg2nPsJ5Bn/view?usp=drivesdk"]},{"name":"HONORIO","city":"Encarnacion","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1GK1PNPuQ9aP0ygheHUrBrsxEu-9ZLMHO/view?usp=drivesdk"]},{"name":"HIROSHIMA ENCARNACION","city":"Encarnacion","type":"Restaurante","material":true,"state":"No esta colocado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/10MzGoQX-mxxOIgB7duGNmttJWTUYEWf2/view?usp=drivesdk"]},{"name":"STUDENKO","city":"Encarnacion","type":"Restaurante","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"Me comenta la encargada que en la semana vinieron a retirar todos los materiales que habían porque ya no tienen más reintegros con BF","fotos":["https://drive.google.com/file/d/13I6UYMRUBKS-0RjiJ-i0lw6-u-_AH5n6/view?usp=drivesdk"]},{"name":"GALAXIA PIZZERIA CENTRO","city":"Encarnacion","type":"Fast food","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"Local nuevo y hasta ahora de ningún Banco les visito y necesitan ya que los clientes consultan por promos y reintegros","fotos":["https://drive.google.com/file/d/1UiPZySf35WrS3dCYzpz98UXUIay3_qu9/view?usp=drivesdk"]},{"name":"BLEU","city":"Encarnacion","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Sin encargado","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1POQBdjSOD8NDhaVxWyQTusSr7BbK_QNb/view?usp=drivesdk"]},{"name":"KIAGUS","city":"Encarnacion","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1CS68ZwkNBMYeEXtnAAl4f5Gy90ezYMWz/view?usp=drivesdk","https://drive.google.com/file/d/1xDf7fgM6zCdS8FoCrxBf-_qN2kF-f8_J/view?usp=drivesdk"]},{"name":"NOVO RODEIO","city":"Encarnacion","type":"Restaurante","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"","fotos":["https://drive.google.com/file/d/1Hl4ENdQSy6_ig6An_H_omBLMYB_lJQO8/view?usp=drivesdk"]},{"name":"GREEN PARK","city":"Encarnacion","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"","fotos":["https://drive.google.com/file/d/1HWJsQHtsTrmTEo48W2A54Kk_wH8kCTjs/view?usp=drivesdk"]},{"name":"EL VIEJO MARINO","city":"San Bernardino","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"Cuentan con los materiales asignados.","fotos":["https://drive.google.com/file/d/1r19sP3eO0Fsvy5yVzEhZ_uKy5DaLTZqo/view?usp=drivesdk","https://drive.google.com/file/d/15mYDlOp1BfDo2z6M3G1feptNpC1NsvMt/view?usp=drivesdk"]},{"name":"BUCCA SAN BERNARDINO","city":"San Bernardino","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"A","obs":"La Encargada solicita más tabletent para todas las mesas.","fotos":["https://drive.google.com/file/d/1J8Pbh7pAutLI3-i50Hd9Km5NAY9y95pF/view?usp=drivesdk","https://drive.google.com/file/d/1Q2JLoQSQ9Bc-080qzsB3kesLtFEkcDjS/view?usp=drivesdk","https://drive.google.com/file/d/1e1o2SwzoVFqpv4lNjOvz31QDNnMdyRxd/view?usp=drivesdk"]},{"name":"SUBWAY SAN BERNARDINO","city":"San Bernardino","type":"Fast food","material":false,"state":"—","knows":"Sin encargado","benefit":"—","obs":"Cerrado por Temporada Baja.","fotos":["https://drive.google.com/file/d/1w3c2bbtROOY81nTpF8x7gaQ5tvCi3_Gj/view?usp=drivesdk","https://drive.google.com/file/d/1Fkoh8opS4HiDVJ53gNm7CIl1YY9WQ26g/view?usp=drivesdk"]},{"name":"MAR Y TIERRA","city":"San Bernardino","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"No conoce","benefit":"A","obs":"La propietaria informa que no tiene conocimiento de estar como aliados actualmente. Solicita se comuniquen con ella desde el banco.","fotos":["https://drive.google.com/file/d/1SaYLsxcQj-dc7u15MySvr_LyG5o0x6Zq/view?usp=drivesdk","https://drive.google.com/file/d/1hNmRu5jL31ehSNJJNjsn9ZQKnWTBTyNt/view?usp=drivesdk","https://drive.google.com/file/d/1j60Xsm4b7RdpXAwaJ-V37ixdhP8WLyC7/view?usp=drivesdk"]},{"name":"POPEYES","city":"San Bernardino","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"B","obs":"","fotos":["https://drive.google.com/file/d/1bkN-ls4RVI0x0ZsJh4tOnKw4itC61LJJ/view?usp=drivesdk","https://drive.google.com/file/d/1qzXTS2AkPVvHhVJrfiKDbsTIIQf18Q3h/view?usp=drivesdk"]},{"name":"BURGER KING SAN BERNARDINO DRIVE","city":"San Bernardino","type":"Fast food","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"B","obs":"","fotos":["https://drive.google.com/file/d/1l3mTfR4bpisra43-OUhwurawo8grXbED/view?usp=drivesdk","https://drive.google.com/file/d/1sMwaLSfce51PQejDpkVm3PQAkWIzRIlF/view?usp=drivesdk"]},{"name":"BURGER KING SAN BERNARDINO","city":"San Bernardino","type":"Fast food","material":false,"state":"—","knows":"Sin encargado","benefit":"—","obs":"Cerrado por temporada baja.","fotos":["https://drive.google.com/file/d/146WXHJNV-oPco3frHdJDP3y6aje48Znk/view?usp=drivesdk"]},{"name":"PAN Y CIRCO","city":"Villarrica","type":"Restaurante","material":true,"state":"Si, en perfecto estado","knows":"Conoce bien","benefit":"B","obs":"Materiales de Banco Familiar bien excibido y visible, los trabajadores conocen sobre la promoción.","fotos":["https://drive.google.com/file/d/1WwXX-g07rpuXAeZ-2we_lrdqdtxc_cPo/view?usp=drivesdk","https://drive.google.com/file/d/1icZzlS_EqGTTwrNZ3uTwxyeifGhLu_N6/view?usp=drivesdk","https://drive.google.com/file/d/1Azw23d-wt8bU5Zu9Ou6o8igV8CyoIrg8/view?usp=drivesdk"]},{"name":"ÑA CHINA","city":"Villarrica","type":"Restaurante","material":false,"state":"—","knows":"No conoce","benefit":"—","obs":"No se cuenta con materiales de Banco Familiar y según la administradora ahora no cuentan con  el convenio con BF ya que están con nueva administración y necesitan algunos documentos.","fotos":["https://drive.google.com/file/d/1Me99C7BrUr6cCU5jOC5uWXk2a9gZPoy_/view?usp=drivesdk","https://drive.google.com/file/d/11D1ClfggjTYvCoczfUq-D2lL0s6P7ZBx/view?usp=drivesdk","https://drive.google.com/file/d/17wYddFZqbNMrVqkGDtqbVCBmK0tqfJYs/view?usp=drivesdk"]},{"name":"MARIMER","city":"Villarrica","type":"Restaurante","material":false,"state":"—","knows":"Sin encargado","benefit":"—","obs":"Desconocen sobre la promoción de yBF, no cuentan con ningún tipo de material","fotos":["https://drive.google.com/file/d/1ArJCbstmXCwk3pukkzJE9nx_s8pxNADE/view?usp=drivesdk","https://drive.google.com/file/d/1N9sJRXU3K4Hr8k77qD5TvhPuHy4ESJE-/view?usp=drivesdk","https://drive.google.com/file/d/1D9Ll7jN7ULdii6YlcKZ_avZJiL2-eNGy/view?usp=drivesdk"]},{"name":"MARIMER 2","city":"Villarrica","type":"Restaurante","material":false,"state":"—","knows":"Parcialmente","benefit":"—","obs":"Según la encargada se le entregó los materiales, colocaron en Marimer 1 pero era muy grande cubría la caja y sacaron por ese motivo","fotos":["https://drive.google.com/file/d/1mjtUZUVe6IYGmzDo-eHMsCN8csQ5y7-k/view?usp=drivesdk","https://drive.google.com/file/d/1kuaEmKMoXvuqtwlyFc8a3pfdnebqEddo/view?usp=drivesdk","https://drive.google.com/file/d/14Q9mz9g-sl_cQKw4EV6CDSUR-T60a7sR/view?usp=drivesdk"]}],"localesTiendas":[{"name":"AMERICAN LOOK — PASEO 1811","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"Sport House y American Look comparten mismo local y misma Calco de Vidriera.","fotos":["https://drive.google.com/file/d/1PneVbsaeUWYmTKUm-YJMLpo6ZJr1QGn0/view","https://drive.google.com/file/d/1kq4zWhOcrkMwyUmwwck1s4yUzTic0lFr/view"]},{"name":"SPORT HOUSE — PASEO 1811","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"Buena visualización de materiales. Lince Benítez.","fotos":["https://drive.google.com/file/d/1qSJzgh3C5TnL_-gzX-ZrCkMFZoW_AcvX/view","https://drive.google.com/file/d/1-EUOFQKzgqIUOOyDkl9kJS373OMxiL_6/view","https://drive.google.com/file/d/1mUe0B4T7HxjNEW7wZ8kyOnv5bo4-X-zh/view","https://drive.google.com/file/d/1iysh0ioI5sRnn2hWEelTpfQZIoRTqxaC/view"]},{"name":"AMERICAN LOOK — FUENTE SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"No se encontraba colocado el Tabletent,  luego de consultar lo colocaron sobre el mostrador. \nEncargada Vanesa Nuñez.","fotos":["https://drive.google.com/file/d/19P7ywWmDqKa4Ymfd9KfuouNbvsdVK6B4/view","https://drive.google.com/file/d/15Unqad6e34mDTCGr3f1QDNxuzgr7tI7o/view","https://drive.google.com/file/d/1g6nCfl7sSAthgfSplm26T842rDczvG4F/view","https://drive.google.com/file/d/18KJc6HTohryQrRjmEauezxov5BY7bxCC/view","https://drive.google.com/file/d/1-f23_TaLaEntVRPcutCLlGB2U6IR_mKO/view"]},{"name":"SPORT HOUSE — FUENTE SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"—","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1yGtdq2BVfc-vDj5bdfVzGh0Ay598aOJC/view","https://drive.google.com/file/d/13i5H7N1wcsqydv27a93hJVxk_0sj5tyl/view","https://drive.google.com/file/d/1XtXOp-0crhQYoLOiFOtTIoBaav71owoX/view"]},{"name":"META — FUENTE SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Otro banco","obs":"Encargado Juan Acosta","fotos":["https://drive.google.com/file/d/1nKC6ig2tH_g4U44ABN6G0xWD3QlLK6he/view","https://drive.google.com/file/d/1BwIIk4WGrhOr9eXXzCN6sJ_ICQjeQixi/view"]},{"name":"META — SAN LORENZO SHOPPING","material":true,"state":"Visible pero mal ubicado","knows":"Conoce bien","comp":"Otro banco, Sudameris","obs":"","fotos":["https://drive.google.com/file/d/1FijHnF28i923ydx7d2Vz61VJjyeDXlpJ/view","https://drive.google.com/file/d/1zLzWWBeyyel2xIEmVhRnNJHBqwERle_w/view","https://drive.google.com/file/d/1Wf7yT0jalP_nYct5QZSkVstQfn1Jay7T/view"]},{"name":"AMERICAN LOOK — SAN LORENZO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"No cuentan con Calco de Vidriera.\nEncargada: Analia Villalba","fotos":["https://drive.google.com/file/d/1RdOkUdgoktaIXBySiNNN4LSYc32tvk7-/view","https://drive.google.com/file/d/1xJ7hzG836yJICz24WGfArbNd00kmvxb1/view","https://drive.google.com/file/d/1YdKbdh1JmjOGD_OJaPt4AHoKERy3YDgX/view"]},{"name":"KAPPA — SAN LORENZO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"GNB, Otro banco, Itaú","obs":"No recibieron Calco. ENCARGADO: HERNAN TABOADA.","fotos":["https://drive.google.com/file/d/10gMygdOuAnSkgnjDIWTMTy2ep2Q8gQRr/view","https://drive.google.com/file/d/1fK3zHJ_mANYG6F50v_XlOw8I-lPUzIdY/view"]},{"name":"AEROPOSTALE — SAN LORENZO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB","obs":"No cuentan con Calco de Vidriera.","fotos":["https://drive.google.com/file/d/1LzsWmUWgH1V8TY1cHPkxP4bnykjpsCOp/view"]},{"name":"OUTDOORS — SAN LORENZO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB","obs":"Tenían guardado en el depósito, lo colocaron al preguntar por el material.\nEncargada: Lidia Jara.","fotos":["https://drive.google.com/file/d/17gGN6d44KTs3ttJq40ez-a-FgfAklJRJ/view","https://drive.google.com/file/d/10z6vWCe6c5MJw_T4c49U3qjhKv4vlt9a/view","https://drive.google.com/file/d/1HePzAbAxcaAVr6nbm3CNtepnYJ-XPHM3/view"]},{"name":"SPORT HOUSE — SAN LORENZO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB","obs":"Sin calco de vidriera.","fotos":["https://drive.google.com/file/d/10_ouIO_TJ3EO-4_ISX5_V8FESdCKjZfj/view","https://drive.google.com/file/d/1u5vzK_iajHmfUyqvCmAQiFFyPdWnw_lJ/view"]},{"name":"PUMA — SAN LORENZO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB","obs":"","fotos":["https://drive.google.com/file/d/15jxMIUgqqPXwqVzNxI8KZvHieG_P3L0r/view"]},{"name":"OUTDOORS — ASUNCION - CENTRO","material":false,"state":"No aplica","knows":"Conoce bien","comp":"No","obs":"Colocaran desde la fecha de inicio de la promo, es decir el 13/05.\nLa visita se realizó el 11/05.","fotos":["https://drive.google.com/file/d/1wr8NLf9vgyJl4YgAGC_DZskgdHy6wegC/view","https://drive.google.com/file/d/1GKUewEFz0_qkjeVpxM0jNE1hjL2fbCRg/view"]},{"name":"ADIDAS — OUTLET ADIDAS","material":false,"state":"No aplica","knows":"—","comp":"No","obs":"Local cerrado permanentemente.","fotos":["https://drive.google.com/file/d/1BesGYufec8Nh17rEBv-ZcjQTaJ-NhxGT/view","https://drive.google.com/file/d/1rtmwe8Fkn1chUfOeBfRtRvxe2vh6vk4a/view"]},{"name":"NIKE — NIKE ARTIGAS","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"No","obs":"","fotos":["https://drive.google.com/file/d/1j685VpmiOtr6GyRsftajgtLNOBMgc9-L/view","https://drive.google.com/file/d/1hS68fpZq2ZMoUSVr12rNzfD4H8wEvNYb/view","https://drive.google.com/file/d/1hayhkPxJUW5dzU7L9eFC9ZTmDLZFlRau/view","https://drive.google.com/file/d/1TFsJMC5EIaAHtgYnPefQJsFRXNhIiTux/view","https://drive.google.com/file/d/146ayCF0hpqj4cHF1_liOxEAhGPZh3Aa1/view"]},{"name":"PUMA — PUMA STORE CCP","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Otro banco","obs":"","fotos":["https://drive.google.com/file/d/15_K8nWb3LTzbV_1aXeNs-fspQXTv3W0-/view","https://drive.google.com/file/d/1jy4kZ0KtMHG6fT3M_3KBaTlBQnTgl3sX/view","https://drive.google.com/file/d/1H7x28xt1EXbQU8NcyBsMoem4zn7ZT3L0/view","https://drive.google.com/file/d/1SKvEhcBZuu1wBwQbMdR8BQ3So9G-7_4y/view","https://drive.google.com/file/d/1_p1hitm77b-Pac98__Z6ImIdwNGQrVxn/view"]},{"name":"META — META FELIX BOGADO","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"GNB, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1SOPX_ZljnJpBb3HnWh_hIPGWZlFSKuIX/view","https://drive.google.com/file/d/1NYoCIJmYXNXSSw9XecrjpoNQzieF7g9G/view","https://drive.google.com/file/d/1LZ-Ozsb9Mafkl7IvZ19vamFHEA-G3OC4/view"]},{"name":"META — CENTURY PLAZA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Sudameris, GNB","obs":"","fotos":["https://drive.google.com/file/d/1xrPMmIoRSyXf9Ui6q4HXIdGXG9Y1tWbM/view","https://drive.google.com/file/d/1aby80p9Fnr42C-xxHp6zJ7TJ3sEpQtF7/view","https://drive.google.com/file/d/1Q9rHqHks36Nb1g7ZS3ohIFsljGbgB0TI/view","https://drive.google.com/file/d/1QzR3NtCDCCo5_HEhIf4DThEDpaGWyHAh/view"]},{"name":"ARTEMERA — PASEO CERRO ALTO","material":false,"state":"No aplica","knows":"Conoce bien","comp":"No","obs":"Alicia Miranda, la Encargada informa que desde la Administración le dieron orden de retirar los materiales colocados, ya que no estaría cerrada la alianza para las fechas 13 al 15 de mayo.","fotos":["https://drive.google.com/file/d/1GfwIJkxdxdkBJ0FgWl3JuTTWcq6wvT0v/view","https://drive.google.com/file/d/19TCPOI1dfEPmFWJ2D590AosDm0GnbI4g/view"]},{"name":"SPORT HOUSE — PASEO CERRO ALTO","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"Sin calco de vidriera. Exclusividad con Itau.","fotos":["https://drive.google.com/file/d/1O-KhAqt5GHADe2y9UKQ7TX9f5MaoIlvX/view","https://drive.google.com/file/d/1T8SM9nvMBxpRxFQAoCGNdMpY2c5sslQI/view"]},{"name":"OUTDOORS — PASEO CERRO ALTO","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1v4bMNtAMSB2QLAAnTMcUAW9YY-NamTa7/view","https://drive.google.com/file/d/1RuPpBtYb80Ihsl4XdDEFbIA6jF5A6WMY/view","https://drive.google.com/file/d/13GfQJ9GuC8r3Hda5yrTqyooWl3FDeZzv/view"]},{"name":"CHAMPS ELYSEES — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"No","obs":"","fotos":["https://drive.google.com/file/d/1-G8oBRsK4cpCaRSM_LHGA90vLAUFYvjK/view","https://drive.google.com/file/d/1G8ctcre-jWrFCMn5GP_THl2yYDf1ii5N/view","https://drive.google.com/file/d/14tnsWwFn22EuoNiIueAPu_qGq6i3URBX/view"]},{"name":"CROCS — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB","obs":"","fotos":["https://drive.google.com/file/d/1nftmNA1-nhop-C_BQevFGsNtCef5Fkh8/view","https://drive.google.com/file/d/1qg6pMWFdvU44JxO-FUICdOCA9bkL1ne0/view"]},{"name":"AEROPOSTALE — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB","obs":"","fotos":["https://drive.google.com/file/d/14hhbm0P5QNuEDmxyFnfQfBKJvNKUVafS/view","https://drive.google.com/file/d/1ze5okGXmFPzcuSm23O_00JxL_67_YBvS/view"]},{"name":"CAT — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1rLaBG_R0IlJ0oFMFrDpVOi6ZV7mcHcwN/view"]},{"name":"TIMBERLAND — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1qunBR_fSDKLoMJK5nWFwrNkLbH0eA1cI/view","https://drive.google.com/file/d/12t4fBo7zBPxwu54eM6gWudGxZuTHAtat/view","https://drive.google.com/file/d/1JOlGUNdytoaWuue3rsTNktGuon-poJyb/view"]},{"name":"PUMA — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1lmI3Eb3R1CpVK5_saL7oAC-AfypbkrGD/view","https://drive.google.com/file/d/1Lz8Xs_nxqIUo3IQdvM6gKKM6o_ab14Ft/view","https://drive.google.com/file/d/1RlCMI5ONS8clZ_61OXbzsU9Z9s7At9aI/view"]},{"name":"NEW BALANCE — PASEO LA GALERIA","material":false,"state":"No aplica","knows":"No conoce","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1I--c3KQBxWTVx90vh0bV0vCtRuMXuoHO/view"]},{"name":"NIKE — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Continental","obs":"","fotos":["https://drive.google.com/file/d/196knGBV6aQv6LXj-xGuKiYas3Dz8fkbW/view","https://drive.google.com/file/d/10o2HnQm6Q4UDB3On6F4TmwgjrV4Frg6b/view","https://drive.google.com/file/d/1AbZrqy_F5D5nFztSejAN62LoGznlzCn3/view"]},{"name":"SPORT HOUSE — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1RKcbRJs0B1RSD-WMfoxaI8lrScaU1hOC/view","https://drive.google.com/file/d/1Vc0G5vitZ0mJaseZN2POmCpmNZ6ex09W/view","https://drive.google.com/file/d/1cubS7O0BydI_o-EJloNXv3pLANGMK6yf/view"]},{"name":"SKECHERS — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1ymMNDjPfL5thzZ4TOgxEn3BOrfJBhemc/view","https://drive.google.com/file/d/1LF5Ka-XyrU1IKnAfUfrqWW7K9rZS9ad8/view"]},{"name":"NINE WEST — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1_lO5Ed2DZJxhc-sfRwOyS5z1yUigy26W/view","https://drive.google.com/file/d/1TxX3Nuu_3sKG8RRvtrDqtUxkw4FLgQBW/view"]},{"name":"VANS — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Continental, GNB","obs":"","fotos":["https://drive.google.com/file/d/1fAxmYGTv4LGrVZDvpyB1nUw_bItCZGVA/view","https://drive.google.com/file/d/1fHTwjkg3Rx-NTbd8ZrkwTjDj_tLD5E9Z/view"]},{"name":"MANGO — PASEO LA GALERIA","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/121Qszki6PhWwcGQDjb_kRBavBIkdaGAu/view","https://drive.google.com/file/d/1e-NX5v4B_mtP4Vz11EquGMFLOLFmTPRl/view","https://drive.google.com/file/d/1AbcvCffgqxTF4qNe--hh_LIfjdEntjZv/view"]},{"name":"ISDIN — PASEO LA GALERIA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1IRvXFkpn3XWiz_RnaGAeYYY9YIqrmv5L/view","https://drive.google.com/file/d/1BS5uuxkm7JPuKu5SrT15UfvpkikOV6f1/view","https://drive.google.com/file/d/17D1fNitozDn_sMOLFuk39LWnEmLBRz1F/view"]},{"name":"NEW BALANCE — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB, Continental, Ueno","obs":"","fotos":["https://drive.google.com/file/d/1TN6uSWcwWnZRAMJKIMUIL5x8CgqemIi0/view","https://drive.google.com/file/d/1GpAhaQ-0NiBXMm1PG0N70DMsmSEj8y69/view","https://drive.google.com/file/d/1H41SfbZlCe5UBOnyXULA1bybizL6-0lR/view"]},{"name":"TIMBERLAND — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Ueno, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1zMcL72hsrzSGNs0-rSYbuYgWoNUgti1v/view","https://drive.google.com/file/d/1hfXCsiAVa3F3067btgsYNQrcyrkO1Gke/view"]},{"name":"SKECHERS — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1N5TCAcV_keXwK1J7HM8dVZ95jWcLINmU/view","https://drive.google.com/file/d/1DvrPRXdB9a2GfViTobxiW7E5n1M78zEW/view"]},{"name":"360 — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Continental, Otro banco, GNB","obs":"","fotos":["https://drive.google.com/file/d/1T5aSU-hWMOcdYkIRg0jNXSwEhYIiENHV/view","https://drive.google.com/file/d/1DrHPct2FlmrOJPEonLggIn5OMUsd2FuS/view","https://drive.google.com/file/d/1216gOXLL__xW6tbmBdbza97T3xppmZRe/view"]},{"name":"META — SHOPPING DEL SOL","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"GNB, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1RtV-Ag6CWw32xzZJJUAkVepfR3nVtke7/view","https://drive.google.com/file/d/1lvRXKnzIVmv0QjKTN1LbDCH5ghJGEbIx/view","https://drive.google.com/file/d/1-azlWV2fg8Hzr_xQAPg8VyOsJsl0bNKa/view"]},{"name":"FOREVER 21 — SHOPPING DEL SOL","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/12y7eh0bCaqBjq1CgzvKWcyEE3jVBbboO/view","https://drive.google.com/file/d/1Pej3a7B8PzvZ6Tl4I07vEW6DgFOKMp8W/view","https://drive.google.com/file/d/1oeMxp9mAQm9TDrhJR98zpcDr8zDGbejn/view"]},{"name":"CAT — SHOPPING DEL SOL","material":true,"state":"Visible pero mal ubicado","knows":"Conoce bien","comp":"Itaú, GNB, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/13tCGWbbxeeljAD_py4uiHO10baqnyzDO/view","https://drive.google.com/file/d/1LZ8j6BFeqxjmnfZWJiSVsRzzDxLIaQs3/view"]},{"name":"NINE WEST — SHOPPING DEL SOL","material":true,"state":"No está colocado","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1r22oDcc2nGfcktMV-ZYSymg6j0LBvSee/view","https://drive.google.com/file/d/1dcjQv0BF0LSTtuDMQA7vMHPpoEOs_Vrw/view","https://drive.google.com/file/d/1Emc1MVcDb0PiK5GvuDRdwBeyymtL2hCQ/view","https://drive.google.com/file/d/15dva2jL9XBcg1x5XXPffodA2uCDpJVlP/view"]},{"name":"MANGO — SHOPPING DEL SOL","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1D0Kf7veqf9S8IoDbtGDJkxqDKQ3XUeXb/view","https://drive.google.com/file/d/1gMZslTkdFfvmdjDYP641S77VbY5TztdI/view","https://drive.google.com/file/d/1cUcQTzFixfGXdqnbjfFidle6O6dGNY2P/view"]},{"name":"COLE HAAN — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1Wfi3VCn0Kwto0byZgfif1MxCwZZ7diVZ/view","https://drive.google.com/file/d/1LFK147Zbl6XWcKURQRs1Hn14_7pFlC3N/view"]},{"name":"SPRINGFIELD — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1yTAXB4VuPvx2NJx5P1zLMMMl3kC1QEAA/view","https://drive.google.com/file/d/13DvnSMlIhdE88YcuxhxM_WQs54KGtFjz/view"]},{"name":"ADIDAS — SHOPPING DEL SOL","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Otro banco, GNB","obs":"","fotos":["https://drive.google.com/file/d/1ZSPAQ6a6cwyKVRpN1KOHzoYTpouVxjoh/view","https://drive.google.com/file/d/1KWuP8J5y1ehkBGv89F1X4VDTzX323Bne/view"]},{"name":"NIKE — SHOPPING DEL SOL","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"GNB, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1AFC7sf_iluKf-RqL2i-xtl0R72zJu51P/view","https://drive.google.com/file/d/1o9RmbxcWVe4vH31Gf5d-33vXqDXTCMU8/view"]},{"name":"CHAMPS ELYSEES — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1OhpE6PEBSHjImXKIf4JBnwCg4CbYUf-d/view","https://drive.google.com/file/d/1c9erTEzBDX6wHkVJ_lBpm6iO_UXU7P5f/view"]},{"name":"CROCS — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/19PFNJ6A7jbcqbgSsbtpstnVsvW8Q9I5o/view"]},{"name":"PRUNE — SHOPPING DEL SOL","material":true,"state":"No está colocado","knows":"Conoce bien","comp":"Itaú","obs":"Exclusividad con Itau","fotos":["https://drive.google.com/file/d/1fbYENrWVTGbOkYT8gJnr8EvG4yLi3BBf/view","https://drive.google.com/file/d/1OJTaYcp9ZxEICqTy-pWmJo8RHPg6qsHk/view"]},{"name":"WOMEN SECRET — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1MZM4YfcccbYmge9VmcgPj7cDNWfYI0fg/view","https://drive.google.com/file/d/1u0SXt7rksb4fGZHOTVPZAfADm6wYHxKa/view"]},{"name":"O BOTICARIO — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, GNB, Continental, Ueno","obs":"","fotos":["https://drive.google.com/file/d/1l5awW0IqKdp7m3MiiQNlL2deHMekflHj/view","https://drive.google.com/file/d/1jSHk_kYT1ICb1jYWtGs_rxe1pJiLLltp/view"]},{"name":"PEDRO DEL HIERRO Y CORTE FIEL — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/14rcgI2Bh_y-GrpeztoQWz1TRSGBxTR1U/view","https://drive.google.com/file/d/1dnzIAGUUGJqfL7S21LBjIjYVkDO8VR_9/view","https://drive.google.com/file/d/1Q8IL2jmRgU_GfyJ_R1izc0kFkzFGOSAj/view"]},{"name":"ROOKIE — SHOPPING DEL SOL","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"GNB, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1C4Dx1kg5WZxTK1IgQ3uxLtWupK5eYixW/view"]},{"name":"META — META KIDS - SENADOR LONG","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Otro banco","obs":"","fotos":["https://drive.google.com/file/d/15UaJPeSyhrV_TmUHhY3sjvalkTio6o_t/view","https://drive.google.com/file/d/1nQ2UH_qMJeAAv-01ctvNKHr6MqtafSMZ/view","https://drive.google.com/file/d/1QXDmzO55iF3jnLdKTlapNUPP7rbRayPX/view","https://drive.google.com/file/d/10_dJ6qLNCewkjlopXCE_lh6VCBJ69sEU/view"]},{"name":"META — META WOMENS - SENADOR LONG","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"GNB","obs":"","fotos":["https://drive.google.com/file/d/1Cfc9acziYWbwTGS0mZynFgP4b_zn0R4D/view","https://drive.google.com/file/d/1iCAJoTL-4hWrU5v8WikLCXPWAjxuXObd/view","https://drive.google.com/file/d/1t15u-MQS0KQdMAFk9RfHhAk4OPCmEKaQ/view","https://drive.google.com/file/d/1Nb2MHPk-M3YW2X800cVqbZ00eL4aZkXd/view"]},{"name":"META — PINEDO SHOPPING","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Continental, GNB","obs":"","fotos":["https://drive.google.com/file/d/1CtMFDBqqt_asgCj3RhAP2WFg56Idl6RN/view","https://drive.google.com/file/d/158BKty-FHU4yGzmilTgWDBZNqolk9Jaj/view"]},{"name":"TIMBERLAND — PINEDO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco, GNB, Continental, Ueno","obs":"","fotos":["https://drive.google.com/file/d/1b2HA8HNcV8OEWzhtQS_T6wdBkrHitwOA/view","https://drive.google.com/file/d/1FhJhp5X8KJSHhFqnwcryZiGZOVWFohsH/view","https://drive.google.com/file/d/1aknuKNww2EK0kEyamomxmuUb8t45ryXf/view"]},{"name":"AEROPOSTALE — PINEDO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"GNB","obs":"","fotos":["https://drive.google.com/file/d/1seAKa9Gms5KeGafSQ0Aqqf4nWEV-h9yk/view","https://drive.google.com/file/d/12xq8gWcAZfGK37cvMCNBoLSYAXo1JBZn/view"]},{"name":"SKECHERS — PINEDO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1ZoFFcfA9o10yj6mPWXEq-h5c_hActmp9/view","https://drive.google.com/file/d/1dpQ_Kr1b6HEMEkLDrAm7EzTS4dkqBANI/view"]},{"name":"PUMA — PINEDO SHOPPING","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"GNB, Itaú","obs":"","fotos":["https://drive.google.com/file/d/1XIuc2wcMgLBeK4CzXRe4ZqorGQbEh188/view","https://drive.google.com/file/d/1CPgyq7a_h7Ghdgh7KGh2Vk1MBcM4rdkT/view","https://drive.google.com/file/d/18RILizvAWXHKqejST_RcTV5ORsWH1h3S/view"]},{"name":"SPORT HOUSE — PINEDO SHOPPING","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"GNB, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1gTlrfUv4nlRFUqJRpX99rGmXZV2BnlaH/view","https://drive.google.com/file/d/1jh0eeuX4uSipLW3DipOU3Ofxn18hLWbX/view","https://drive.google.com/file/d/1s3RR4KnYB_7hUslFV25khPwkH6GOmuNs/view","https://drive.google.com/file/d/1n7G58NVQJRjH16uigJgMC8zZjSAUOeEp/view"]},{"name":"ARTEMERA — PINEDO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"GNB","obs":"","fotos":["https://drive.google.com/file/d/1FSbTy2bUCEwt6sICK6eAsHAfhrmoFXk9/view","https://drive.google.com/file/d/1xueK08yv4t8XNVVeC8P7oxiVKz1iAla2/view","https://drive.google.com/file/d/1tGozC3KTjg8vJDy9dQXm-VB1j_iRfjo-/view"]},{"name":"CROCS — PINEDO SHOPPING","material":true,"state":"Visible pero mal ubicado","knows":"Conoce bien","comp":"Itaú, Continental, GNB","obs":"","fotos":["https://drive.google.com/file/d/1NJ3IuC_TTRF1rzzRTPuVDoVEZoQdO038/view"]},{"name":"CAT — PINEDO SHOPPING","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"GNB, Itaú, Otro banco","obs":"","fotos":["https://drive.google.com/file/d/1L-C4zY-OVdNKHwAo45QKYYL3d9vhqlka/view","https://drive.google.com/file/d/1okZJ6pcf4Mm30VVc2Gb-GGzvbf8oNkZS/view"]},{"name":"ROOKIE — PINEDO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Continental","obs":"","fotos":["https://drive.google.com/file/d/1vRJrE6KOIElZ7eOPSgyOaDWuuRueKqnP/view","https://drive.google.com/file/d/1oWIgYea3kloBBuBewGnueEt7KSfL5yKm/view"]},{"name":"CHAMPS ELYSEES — PINEDO SHOPPING","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"No","obs":"","fotos":["https://drive.google.com/file/d/1COFs5AHaNrBQyoTP9eX4Btr1jCHkoHz_/view","https://drive.google.com/file/d/1-RVcSz3xANQVcvYWquWLKuOTTPtLp4HI/view"]},{"name":"CROCS — SHOPPING MULTIPLAZA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"GNB, Itaú","obs":"","fotos":["https://drive.google.com/file/d/1MRwZMbWDlszVsxXern_T6OqvWdM_hip5/view","https://drive.google.com/file/d/1sEzDm5pXvT5jtplq1MF1xipZL3-9GBz0/view"]},{"name":"O BOTICARIO — SHOPPING MULTIPLAZA","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Continental","obs":"","fotos":["https://drive.google.com/file/d/1A7AmaJg0fwlN_VF9LCYtsOfWzZOtqS6Q/view","https://drive.google.com/file/d/1aIrow_HRW6kMmYVp047DOaAlxdcRPaeU/view"]},{"name":"META — SHOPPING MULTIPLAZA","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Continental, GNB","obs":"","fotos":["https://drive.google.com/file/d/1MhNpRxxmRPbhN7GJ00Boyt22MFgSSEqj/view","https://drive.google.com/file/d/1QQkBP5oqh-Rz7qDON5zlJDlc4NjwcGBD/view"]},{"name":"PUMA — SHOPPING MULTIPLAZA","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1mFv3qSNFuQu08WTGa-yDQe6R8ClGxDhI/view","https://drive.google.com/file/d/1jD6ZTXIo8XH29vCtUOAY1netK67vaTN8/view","https://drive.google.com/file/d/11fXPdVoqxKzlkEL6n9KJ41TIjpHvqw60/view"]},{"name":"360 — SHOPPING MULTIPLAZA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"GNB, Continental","obs":"","fotos":["https://drive.google.com/file/d/1-dvx-2w81K28Tysb80lmxpaOSIwClD2_/view","https://drive.google.com/file/d/15AJk4Ej5e7rtLiqT4R1fyPOEBvpZUPqK/view","https://drive.google.com/file/d/1o36kNr1aTarP_GyMWRStdfC7Tq4001CP/view","https://drive.google.com/file/d/1XgVhyaO2YLfcsUAfioipLwdjeQol32yi/view"]},{"name":"SPORT HOUSE — SHOPPING MULTIPLAZA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Ueno","obs":"","fotos":["https://drive.google.com/file/d/1oZiEgccIEO9EPmGNtVOKfEHvYTGbMrXs/view","https://drive.google.com/file/d/1UcO6CnRwfpXq0EptT455U8prmzZtClvi/view","https://drive.google.com/file/d/1Y8JTCMjoBR_H9xuahvyppzeMu8fe_ieI/view"]},{"name":"CAT — SHOPPING MULTIPLAZA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"GNB, Continental","obs":"","fotos":["https://drive.google.com/file/d/1ZyoXcuzquH-XYPP43cAfg9_2SMGWwQlA/view","https://drive.google.com/file/d/1iQrLBJmWbIEatyx1csrlPCbv5r94eTEp/view"]},{"name":"AEROPOSTALE — SHOPPING MULTIPLAZA","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Ueno","obs":"","fotos":["https://drive.google.com/file/d/19ghne5f2NB5VMiN80ahk6hrF4f4i2KyN/view","https://drive.google.com/file/d/1StouWpQ_Z1J8a56J1nthMZa1eFZM4zxX/view","https://drive.google.com/file/d/1gjr_JrwOw8nifYdJ8b39QZIvudhjK3Y8/view","https://drive.google.com/file/d/1d2DdaVc9RURPrjO_N8J7Bj8ZOD2dFdFH/view"]},{"name":"ARTEMERA — LA PEREGRINA","material":false,"state":"No aplica","knows":"Conoce bien","comp":"GNB","obs":"","fotos":["https://drive.google.com/file/d/1Chv8OdMmvuFZVTn3QvtsOBjul7diEUIp/view","https://drive.google.com/file/d/1cxQ428ifu62GjS0fLfKNTwV3HC8koc6m/view","https://drive.google.com/file/d/1dWml-rg_UfpdZFgOXjXbNFttY4ogXYyW/view","https://drive.google.com/file/d/1SEKFMl0yuJQPbI0amaWjvfzWWWUYjWQp/view"]},{"name":"SPORT HOUSE — LA RURAL SHOPPING","material":true,"state":"Colocado pero no visible desde la vidriera","knows":"Conoce bien","comp":"No","obs":"","fotos":["https://drive.google.com/file/d/1PfZYAaiuncsLoUDhRCsw9KoOGrN_clZG/view","https://drive.google.com/file/d/1aDRWJm6MrgK52ZeCqWFOd0jxAwXFVITt/view"]},{"name":"PUMA — PASEO ALAMEDA","material":true,"state":"No está colocado","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1s5WOO-RCciwSoz-GdxjVpNygDkWTbpyE/view","https://drive.google.com/file/d/1_8PG19sEEJtrABrX32pF9GgVwMUWHZkx/view"]},{"name":"SPORT HOUSE — LUQUE","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1FdhJITYlGkDc1_6rRvm9-WSQZHNdTSuJ/view","https://drive.google.com/file/d/16d6AF9k9wxAXahnSKnMD69Gj8JTL8Pug/view"]},{"name":"NINE WEST — OUTLET","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1vmD-Vs6XThJ6Xam3omianHAD1PSmBspu/view","https://drive.google.com/file/d/17gokeeOxu-6uZkzpny7K7q58ZR7-7kU4/view"]},{"name":"ARTEMERA — TIENDA FABRICA","material":false,"state":"No aplica","knows":"No conoce","comp":"No","obs":"Desde administración les informaron que no están aliados para esta promo.","fotos":["https://drive.google.com/file/d/19sQC76X7MShM523iYmBvZf_K4Y6Hponx/view"]},{"name":"ARTEMERA — TIENDA LUQUE","material":false,"state":"No aplica","knows":"No conoce","comp":"No","obs":"","fotos":["https://drive.google.com/file/d/1Javb0Y5IrRsUx43wHPvAq898zHJQMa4v/view"]},{"name":"AMERICAN LOOK — PASEO CERRO ALTO","material":true,"state":"No está colocado","knows":"Conoce bien","comp":"Itaú","obs":"","fotos":["https://drive.google.com/file/d/1qh8wDUpVZktJSuO3lmf7icLlvwmP-ugf/view","https://drive.google.com/file/d/1W3JS4tlLbdOMirVcPIXhuU8WOiPe1KQ_/view"]},{"name":"META — META LUQUE","material":true,"state":"Sí, visible desde afuera","knows":"Conoce bien","comp":"No","obs":"","fotos":["https://drive.google.com/file/d/1gvHvZIPB2j_7hQPXRuQ-bHtKERn2zwG-/view","https://drive.google.com/file/d/1x1eZNjGwUrFXYrhtcoy0lANTDF47pQCW/view"]},{"name":"360 — SHOPPING MULTIPLAZA","material":true,"state":"Visible pero mal ubicado","knows":"No conoce","comp":"No","obs":"prueba","fotos":["https://drive.google.com/file/d/1EOuC395dZMIEjDLBWDN24sxCO1Z-O7rP/view"]}],"tiendasBancos":[{"label":"Itaú","value":50},{"label":"GNB","value":33},{"label":"Otro banco","value":29},{"label":"Continental","value":13},{"label":"Ueno","value":6},{"label":"Sudameris","value":2}],"estadoTiendas":[{"label":"Sí, visible desde afuera","value":55},{"label":"Colocado pero no visible desde la vidriera","value":16},{"label":"No aplica","value":7},{"label":"Visible pero mal ubicado","value":4},{"label":"No está colocado","value":4}],"period":"20 al 25 de mayo 2026","periodTiendas":"11 al 22 de mayo 2026","kpi":{"totalBF":71,"conBF":34,"sinBF":37,"covBF":48,"totalCP":71,"conCP":24,"covCP":34,"knowsWell":36,"perfect":29,"departments":9,"tTotal":86,"tConMat":79,"tVisible":71,"tConoce":80,"tConComp":75}};;
 
+function sum(o,k){ return Object.values(o).reduce((a,b)=>a+b[k],0); }
+
+function buildTableroDataFromRaw(r) {
+  const k = r.kpi;
+  return {
+    deptBF: r.deptBF, deptCP: r.deptCP, DEPT_CITY: r.DEPT_CITY,
+    cityBF: r.cityBF.map(c=>({
+      city: c.city.replace('Encarnacion','Encarnación').replace('Concepcion','Concepción')
+               .replace('Coronel Oviedo','Cnel. Oviedo').replace('Ciudad del Este','Cde. del Este')
+               .replace('San Bernardino','San Bern.').replace('Saltos del Guaira','Saltos G.')
+               .replace('Pedro Juan Caballero','P.J. Caballero'),
+      con: c.con, sin: c.sin
+    })),
+    materialType: r.materialType, competitors: r.competitors,
+    promoKnowledge: r.promoKnowledge, materialState: r.materialState,
+    visibilityVsBF: r.visibilityVsBF,
+    locales: r.locales, localesTiendas: r.localesTiendas,
+    tiendasBancos: r.tiendasBancos, estadoTiendas: r.estadoTiendas,
+    period: r.period, periodTiendas: r.periodTiendas,
+    kpi: {
+      totalBF: k.totalBF, conBF: k.conBF, sinBF: k.sinBF,
+      covBF: k.covBF, totalCP: k.totalCP, conCP: k.conCP, covCP: k.covCP,
+      knowsWell: k.knowsWell, perfect: k.perfect, departments: k.departments,
+      tTotal: k.tTotal, tConMat: k.tConMat, tVisible: k.tVisible,
+      tConoce: k.tConoce, tConComp: k.tConComp,
+    },
+  };
+}
+
+// Inicializar con datos embebidos — React renderiza de inmediato
+window.TableroData = buildTableroDataFromRaw(raw);
+
+// ── Parser CSV ──
 function parseCSV(text) {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
-  if (!lines.length) return [];
-  // Parser simple que maneja campos entre comillas
+  if (lines.length < 2) return [];
   function parseLine(line) {
-    const result = [];
-    let cur = '', inQ = false;
+    const result = []; let cur = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
       const c = line[i];
       if (c === '"') { inQ = !inQ; }
@@ -537,191 +542,173 @@ function parseCSV(text) {
   }
   const headers = parseLine(lines[0]);
   return lines.slice(1).map(l => {
-    const vals = parseLine(l);
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = (vals[i] || '').replace(/^"|"$/g, ''); });
+    const vals = parseLine(l); const obj = {};
+    headers.forEach((h, i) => { obj[h.trim()] = (vals[i] || '').replace(/^"|"$/g, ''); });
     return obj;
-  });
+  }).filter(r => Object.values(r).some(v => v));
 }
 
 function dedup(rows, keyFn) {
   const seen = new Set();
-  return rows.filter(r => {
-    const k = keyFn(r);
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
+  return rows.filter(r => { const k = keyFn(r); if (seen.has(k)) return false; seen.add(k); return true; });
 }
 
-function buildTableroData(rows) {
-  // Deduplicar por LOCAL+FECHA+HORA (clave única de visita)
-  const deduped = dedup(rows, r => `${r.LOCAL||r.AUDITOR||''}|${r.FECHA||''}|${r.HORA||''}`);
+// Columnas exactas de RE_BF_GASTRO_INT
+// FECHA,HORA,FISCALIZADOR,LOCAL,NOMBRE_IDENTIFICADO,CIUDAD,TIPO_LOCAL,
+// TIPO_MATERIAL_ASIGNADO,DIA_PROMO,BENEFICIO_VIGENTE,HAY_MATERIAL_DESIGNADO,
+// TIPO_MATERIAL_ENCONTRADO,MATERIALES_COLOCADOS,MATERIAL_CORRESPONDE_TIPO,
+// ESTADO_MATERIAL,BENEFICIO_EXHIBIDO,OFERTA_EXHIBIDA_CORRECTA,HAY_MATERIAL_ANTERIOR,
+// TIPO_MATERIAL_ANTERIOR,ENCARGADO_CONOCE_PROMO,NOMBRE_ENCARGADO,OBSERVACIONES,
+// ESTADO_ENVIO,FOTO_MATERIAL_1,FOTO_MATERIAL_2,FOTO_MATERIAL_3,FOTO_AUSENCIA,FOTO_ANTERIOR_1
 
-  // Detectar si es hoja gastro (RE_BF_GASTRO_INT) o tiendas (RE_BF_TIENDAS)
-  const isGastro = deduped.length > 0 && 'HAY_MATERIAL_DESIGNADO' in deduped[0];
-  const isTiendas = deduped.length > 0 && 'MATERIAL ENCONTRADO' in deduped[0];
+function buildLocalesFromCSV(unique) {
+  const DEPT_MAP = {
+    "Encarnacion":"Itapúa","Encarnación":"Itapúa",
+    "Ciudad del Este":"Alto Paraná","Saltos del Guaira":"Canindeyú","Saltos del Guairá":"Canindeyú",
+    "Concepcion":"Concepción","Concepción":"Concepción","San Bernardino":"Cordillera",
+    "Villarrica":"Guairá","Coronel Oviedo":"Caaguazú","Dr J.E. Estigarribia":"Caaguazú",
+    "Pedro Juan Caballero":"Amambay","Pilar":"Ñeembucú",
+    "Caacupe":"Cordillera","Caacupé":"Cordillera","Maria Auxiliadora":"Itapúa"
+  };
 
-  return { deduped, isGastro, isTiendas };
-}
-
-function computeGastroStats(rows) {
-  // Deduplicar por LOCAL+CIUDAD (un local = una entrada)
-  const byLocal = dedup(rows, r => `${(r.LOCAL||'').toUpperCase().trim()}|${(r.CIUDAD||'').trim()}`);
+  // Un local = una fila por nombre+ciudad (última visita gana)
+  const byLocal = dedup(unique, r => `${(r.LOCAL||'').toUpperCase().trim()}|${(r.CIUDAD||'').trim()}`);
 
   const locales = byLocal.map(r => {
-    const hasMat = (r.HAY_MATERIAL_DESIGNADO||'').toLowerCase() === 'si';
-    const fotoCols = ['FOTO_MATERIAL_1','FOTO_MATERIAL_2','FOTO_MATERIAL_3','FOTO_AUSENCIA','FOTO_ANTERIOR_1'];
-    const fotos = fotoCols.map(c => r[c]).filter(u => u && u.startsWith('http'));
+    const hasMat = (r.HAY_MATERIAL_DESIGNADO||'').toLowerCase().startsWith('si');
+    const fotos = ['FOTO_MATERIAL_1','FOTO_MATERIAL_2','FOTO_MATERIAL_3','FOTO_AUSENCIA','FOTO_ANTERIOR_1']
+      .map(c => r[c]).filter(u => u && u.startsWith('http'));
     const knows = r.ENCARGADO_CONOCE_PROMO || '';
     let knowsLabel = 'Sin encargado';
-    if (knows.includes('bien')) knowsLabel = 'Conoce bien';
-    else if (knows.includes('parcial')) knowsLabel = 'Parcialmente';
-    else if (knows.includes('No')) knowsLabel = 'No conoce';
-    const state = hasMat ? (r.ESTADO_MATERIAL || '—') : '—';
+    if (knows.toLowerCase().includes('bien')) knowsLabel = 'Conoce bien';
+    else if (knows.toLowerCase().includes('parcial')) knowsLabel = 'Parcialmente';
+    else if (knows.toLowerCase().includes('no la conoce') || knows.toLowerCase() === 'no conoce') knowsLabel = 'No conoce';
     return {
-      name: r.LOCAL, city: r.CIUDAD, type: r.TIPO_LOCAL,
-      material: hasMat, state, knows: knowsLabel,
-      benefit: r.TIPO_MATERIAL_ASIGNADO || '—',
-      obs: r.OBSERVACIONES || '', fotos
+      name: r.LOCAL, city: r.CIUDAD||'', type: r.TIPO_LOCAL||'',
+      material: hasMat,
+      state: hasMat ? (r.ESTADO_MATERIAL||'—') : '—',
+      knows: knowsLabel,
+      benefit: r.TIPO_MATERIAL_ASIGNADO||'—',
+      obs: r.OBSERVACIONES||'', fotos
     };
   }).filter(l => l.name);
 
-  // Estadísticas por departamento
-  const deptBF = {}, deptCP = {};
+  // Recalcular estadísticas
+  const deptBF = {};
   locales.forEach(l => {
-    const dept = CITY_DEPT_MAP[l.city] || l.city;
+    const dept = DEPT_MAP[l.city] || l.city;
     if (!deptBF[dept]) deptBF[dept] = {total:0, con:0};
     deptBF[dept].total++;
     if (l.material) deptBF[dept].con++;
   });
 
-  // Competencia (hoja RE_COMPE_GASTRO_INT no disponible en CSV único — usamos datos de BF)
-  Object.keys(deptBF).forEach(d => {
-    deptCP[d] = {total: deptBF[d].total, con: 0};
-  });
-
-  // Por ciudad
   const cityMap = {};
   locales.forEach(l => {
     if (!cityMap[l.city]) cityMap[l.city] = {city:l.city, con:0, sin:0};
     if (l.material) cityMap[l.city].con++; else cityMap[l.city].sin++;
   });
-  const cityBF = Object.values(cityMap).sort((a,b) => (b.con+b.sin)-(a.con+a.sin));
-
-  // Tipo de material
-  const matTypeMap = {};
-  locales.filter(l=>l.material).forEach(l => {
-    const t = l.state.includes('perfecto') ? 'En perfecto estado'
-            : l.state.includes('deterior') ? 'Deteriorado'
-            : l.state.includes('visible') || l.state.includes('Visible') ? 'Poco visible'
-            : 'Sin colocar';
-    matTypeMap[t] = (matTypeMap[t]||0)+1;
-  });
-
-  const materialState = [
-    {label:'En perfecto estado', value: matTypeMap['En perfecto estado']||0, color:'#1D4ED8'},
-    {label:'Deteriorado',        value: matTypeMap['Deteriorado']||0,        color:'#F59E0B'},
-    {label:'Poco visible',       value: matTypeMap['Poco visible']||0,       color:'#F5A800'},
-    {label:'Sin colocar',        value: matTypeMap['Sin colocar']||0,        color:'#CBD5E1'},
-  ].filter(x=>x.value>0);
-
-  // Tipo material encontrado
-  const matFoundMap = {};
-  locales.filter(l=>l.material).forEach(l => {
-    const t = l.benefit || 'Sin tipo';
-    matFoundMap[t] = (matFoundMap[t]||0)+1;
-  });
-  const sinMat = locales.filter(l=>!l.material).length;
-  const materialType = Object.entries(matFoundMap).map(([label,value])=>({label,value}));
-  if (sinMat > 0) materialType.push({label:'Sin material', value:sinMat, negative:true});
-
-  // Conocimiento
-  const knowMap = {};
-  locales.forEach(l => { knowMap[l.knows] = (knowMap[l.knows]||0)+1; });
-  const promoKnowledge = [
-    {label:'Conoce bien',   value: knowMap['Conoce bien']||0,    color:'#1D4ED8'},
-    {label:'Parcialmente',  value: knowMap['Parcialmente']||0,   color:'#F59E0B'},
-    {label:'No conoce',     value: knowMap['No conoce']||0,      color:'#EF4444'},
-    {label:'Sin encargado', value: knowMap['Sin encargado']||0,  color:'#94A3B8'},
-  ].filter(x=>x.value>0);
-
-  const totalBF = locales.length;
-  const conBF = locales.filter(l=>l.material).length;
-  const sinBF = totalBF - conBF;
-  const covBF = totalBF > 0 ? Math.round(conBF/totalBF*100) : 0;
-  const knowsWell = knowMap['Conoce bien']||0;
-  const perfect = matTypeMap['En perfecto estado']||0;
-  const departments = Object.keys(deptBF).length;
-
-  // Período
-  const dates = locales.map(l => l.city).filter(Boolean);
-  const period = rows.length > 0 ? (rows[0].FECHA || '') + ' – ' + (rows[rows.length-1].FECHA || '') : '';
-
-  return {
-    deptBF, deptCP,
-    DEPT_CITY: DEPT_CITY_MAP,
-    cityBF,
-    materialType,
-    materialState,
-    promoKnowledge,
-    competitors: [
-      {label:'Banco Continental', value:0},{label:'Interfisa', value:0},
-      {label:'Banco GNB', value:0},{label:'Ueno Bank', value:0},{label:'Sudameris', value:0},
-    ],
-    visibilityVsBF: [],
-    locales,
-    localesTiendas: [],
-    tiendasBancos: [],
-    estadoTiendas: [],
-    period,
-    periodTiendas: '',
-    kpi: {
-      totalBF, conBF, sinBF, covBF,
-      totalCP: totalBF, conCP: 0, covCP: 0,
-      knowsWell, perfect, departments,
-      tTotal: 0, tConMat: 0, tVisible: 0, tConoce: 0, tConComp: 0
-    }
-  };
-}
-
-// Pantalla de carga mientras se obtienen los datos
-window.TableroData = null;
-
-async function loadTableroData() {
-  try {
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_URL);
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error('fetch error');
-    const text = await res.text();
-    const rows = parseCSV(text);
-    if (!rows.length) throw new Error('empty');
-    const deduped = dedup(rows, r => `${(r.LOCAL||r['LOCAL']||'').toUpperCase()}|${r.FECHA||''}|${r.HORA||''}`);
-    window.TableroData = computeGastroStats(deduped);
-    // Normalizar cityBF labels
-    window.TableroData.cityBF = window.TableroData.cityBF.map(c=>({
+  const cityBF = Object.values(cityMap)
+    .sort((a,b) => (b.con+b.sin)-(a.con+a.sin))
+    .map(c => ({
       city: c.city.replace('Encarnacion','Encarnación').replace('Concepcion','Concepción')
                .replace('Coronel Oviedo','Cnel. Oviedo').replace('Ciudad del Este','Cde. del Este')
                .replace('San Bernardino','San Bern.').replace('Saltos del Guaira','Saltos G.')
                .replace('Pedro Juan Caballero','P.J. Caballero'),
       con: c.con, sin: c.sin
     }));
-    document.getElementById('loading-overlay').style.display = 'none';
-    // Re-renderizar React
-    if (window.__reactRoot) {
-      window.__reactRoot.render(React.createElement(App));
-    } else {
-      window.__reactRoot = ReactDOM.createRoot(document.getElementById('root'));
-      window.__reactRoot.render(React.createElement(App));
+
+  const knowMap = {};
+  locales.forEach(l => { knowMap[l.knows] = (knowMap[l.knows]||0)+1; });
+
+  const stateMap = {};
+  locales.filter(l=>l.material).forEach(l => {
+    const s = l.state || '';
+    let cat = 'Sin colocar';
+    if (s.toLowerCase().includes('perfecto')) cat = 'En perfecto estado';
+    else if (s.toLowerCase().includes('deterior')) cat = 'Deteriorado';
+    else if (s.toLowerCase().includes('visible') || s.toLowerCase().includes('mal ubic')) cat = 'Poco visible';
+    stateMap[cat] = (stateMap[cat]||0)+1;
+  });
+
+  const totalBF = locales.length;
+  const conBF   = locales.filter(l=>l.material).length;
+  const sinBF   = totalBF - conBF;
+  const covBF   = totalBF > 0 ? Math.round(conBF/totalBF*100) : 0;
+  const knowsWell = knowMap['Conoce bien']||0;
+  const perfect   = stateMap['En perfecto estado']||0;
+  const departments = Object.keys(deptBF).length;
+
+  // Tipo material
+  const benefitMap = {};
+  locales.filter(l=>l.material).forEach(l => {
+    const b = l.benefit || 'Otro';
+    benefitMap[b] = (benefitMap[b]||0)+1;
+  });
+  const materialType = Object.entries(benefitMap).map(([label,value])=>({label,value}));
+  if (sinBF > 0) materialType.push({label:'Sin material', value:sinBF, negative:true});
+
+  return {
+    locales, deptBF, cityBF,
+    materialState: [
+      {label:'En perfecto estado', value: stateMap['En perfecto estado']||0, color:'#1D4ED8'},
+      {label:'Deteriorado',        value: stateMap['Deteriorado']||0,        color:'#F59E0B'},
+      {label:'Poco visible',       value: stateMap['Poco visible']||0,       color:'#F5A800'},
+      {label:'Sin colocar',        value: stateMap['Sin colocar']||0,        color:'#CBD5E1'},
+    ].filter(x=>x.value>0),
+    promoKnowledge: [
+      {label:'Conoce bien',   value: knowMap['Conoce bien']||0,    color:'#1D4ED8'},
+      {label:'Parcialmente',  value: knowMap['Parcialmente']||0,   color:'#F59E0B'},
+      {label:'No conoce',     value: knowMap['No conoce']||0,      color:'#EF4444'},
+      {label:'Sin encargado', value: knowMap['Sin encargado']||0,  color:'#94A3B8'},
+    ].filter(x=>x.value>0),
+    materialType,
+    kpi: { totalBF, conBF, sinBF, covBF, knowsWell, perfect, departments }
+  };
+}
+
+async function refreshFromSheet() {
+  try {
+    const res = await fetch(SHEET_BF_URL);
+    if (!res.ok) return;
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (rows.length < 2) return;
+    // Verificar que tiene las columnas esperadas
+    if (!('LOCAL' in rows[0]) || !('HAY_MATERIAL_DESIGNADO' in rows[0])) return;
+
+    // Deduplicar por LOCAL+FECHA+HORA
+    const unique = dedup(rows, r => `${(r.LOCAL||'').toUpperCase()}|${r.FECHA||''}|${r.HORA||''}`);
+    const stats  = buildLocalesFromCSV(unique);
+
+    window.TableroData = {
+      ...window.TableroData,
+      locales:        stats.locales,
+      deptBF:         stats.deptBF,
+      cityBF:         stats.cityBF,
+      materialState:  stats.materialState,
+      promoKnowledge: stats.promoKnowledge,
+      materialType:   stats.materialType,
+      kpi: {
+        ...window.TableroData.kpi,
+        totalBF:     stats.kpi.totalBF,
+        conBF:       stats.kpi.conBF,
+        sinBF:       stats.kpi.sinBF,
+        covBF:       stats.kpi.covBF,
+        knowsWell:   stats.kpi.knowsWell,
+        perfect:     stats.kpi.perfect,
+        departments: stats.kpi.departments,
+      }
+    };
+
+    if (window.__reactRoot && window.__appComponent) {
+      window.__reactRoot.render(React.createElement(window.__appComponent));
     }
   } catch(e) {
-    console.error('Error cargando datos:', e);
-    document.getElementById('loading-overlay').innerHTML =
-      '<div style="text-align:center;padding:40px;color:#B03A2E"><b>Error al cargar datos del Sheet.</b><br><small>Verificá que el Sheet esté publicado como CSV.</small></div>';
+    // silencioso — los datos embebidos siguen activos
   }
 }
 
-window.addEventListener('DOMContentLoaded', loadTableroData);
+window.addEventListener('load', () => setTimeout(refreshFromSheet, 1000));
 
 /* ── LIGHTBOX ── */
 
@@ -1691,11 +1678,9 @@ function App() {
   );
 }
 
-// El render inicial lo dispara loadTableroData() después del fetch
-// window.__reactRoot se asigna allí
-if (typeof window !== 'undefined') {
-  window.__appComponent = App;
-}
+window.__appComponent = App;
+window.__reactRoot = ReactDOM.createRoot(document.getElementById('root'));
+window.__reactRoot.render(React.createElement(App));
 </script>
 <div id="report-mount"></div>
 <!-- ── REPORT A4 — verbatim from design system report.jsx ── -->
