@@ -1029,7 +1029,6 @@ const Icon = ({ name, size=17 }) => {
 
 function Sidebar({ active, onNav, period }) {
   const items = [
-    { id:'resumen',      label:'Resumen Ejecutivo',         icon:'resumen' },
     { id:'gastro',       label:'Gastronómico',              icon:'gastro'  },
     { id:'tiendas',      label:'Promoción Día de las Madres', icon:'tiendas' },
     { id:'detalle',      label:'Detalle por Local',          icon:'detalle' },
@@ -1973,7 +1972,7 @@ function PageConclusiones() {
 const PAGES = { resumen: PageResumen, gastro: PageGastro, tiendas: PageTiendas, detalle: PageDetalle, evidencias: PageEvidencias, conclusiones: PageConclusiones };
 
 function App() {
-  const [page, setPage] = useState('resumen');
+  const [page, setPage] = useState('gastro');
   // Guard: TableroData may not be ready if called before bootstrap completes
   const D_safe = window.TableroData;
   if (!D_safe || !D_safe.period) {
