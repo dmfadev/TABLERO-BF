@@ -1031,10 +1031,10 @@ function Sidebar({ active, onNav, period }) {
   const items = [
     { id:'resumen',      label:'Resumen Ejecutivo',         icon:'resumen' },
     { id:'gastro',       label:'Gastronómico',              icon:'gastro'  },
-    { id:'tiendas',      label:'Tiendas',                   icon:'tiendas' },
+    { id:'tiendas',      label:'Promoción Día de las Madres', icon:'tiendas' },
     { id:'detalle',      label:'Detalle por Local',          icon:'detalle' },
     { id:'evidencias',   label:'Evidencias',                icon:'foto'    },
-    { id:'conclusiones', label:'Conclusiones y Rec.',       icon:'concl', highlight:true },
+    { id:'conclusiones', label:'Conclusiones',               icon:'concl', highlight:true },
   ];
   return (
     <aside className="sb">
@@ -1068,7 +1068,6 @@ function Topbar({ title, sub, badge }) {
       <div><div className="tb-title">{title}</div><div className="tb-sub">{sub}</div></div>
       <div className="tb-right">
         <span className="tb-badge">{badge}</span>
-        <button id="export-btn" className="tb-btn" onClick={() => window.exportPDF()}>Exportar PDF</button>
       </div>
     </header>
   );
@@ -1582,7 +1581,7 @@ function PageEvidencias() {
 const TITLES = {
   resumen:      ['Resumen Ejecutivo',              'Visión gerencial del relevamiento'],
   gastro:       ['Relevamiento Gastronómico',       'Locales gastronómicos · BF y competencia'],
-  tiendas:      ['Relevamiento Tiendas',            'Puntos de venta retail'],
+  tiendas:      ['Promoción Día de las Madres',      'Puntos de venta retail'],
   detalle:      ['Detalle por Local',               'Ficha individual de cada local'],
   evidencias:   ['Evidencias Fotográficas',         'Registro fotográfico por día'],
   conclusiones: ['Conclusiones y Recomendaciones', 'Análisis comparativo · Interior + Asunción y alrededores'],
@@ -1594,6 +1593,12 @@ const TITLES = {
 ══════════════════════════════════════════════════════════════ */
 function PageConclusiones() {
   const D = window.TableroData; if(!D) return null;
+  const [promoFilt, setPromoFilt] = React.useState('todas');
+  const PROMOS = [
+    { id:'todas',   label:'Todas las promociones' },
+    { id:'madres',  label:'Promoción Día de las Madres' },
+    { id:'gastro',  label:'Gastronómico Interior' },
+  ];
   const k  = D.kpi;
   // Interior gastronómico (RE_BF_GASTRO_INT + RE_COMPE_GASTRO_INT)
   const intTotal    = k.totalBF;
@@ -1691,8 +1696,25 @@ function PageConclusiones() {
 
   return (
     <>
+      {/* ── FILTRO PROMOCIÓN ─────────────────────────────── */}
+      <div style={{display:'flex',gap:'8px',marginBottom:'18px',flexWrap:'wrap'}}>
+        {PROMOS.map(p=>
+          React.createElement('button',{
+            key:p.id,
+            onClick:()=>setPromoFilt(p.id),
+            style:{
+              padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',
+              fontFamily:'inherit',fontSize:'13px',fontWeight:'600',
+              background: promoFilt===p.id ? 'var(--navy)' : 'var(--bsoft)',
+              color: promoFilt===p.id ? '#fff' : 'var(--navy)',
+              transition:'all .15s',
+            }
+          }, p.label)
+        )}
+      </div>
+
       {/* ── EXEC BANNER ─────────────────────────────────── */}
-      <div className="exec">
+      {(promoFilt==='todas'||promoFilt==='gastro') && <div className="exec">
         <div className="exec-l">
           <div className="exec-eyebrow">Análisis Consolidado — Interior + Asunción y alrededores</div>
           <div className="exec-head">
@@ -1885,7 +1907,62 @@ function PageConclusiones() {
           title="Nuevo relevamiento en 30 días"
           body={`Se recomienda un nuevo relevamiento en 30 días para medir el impacto de las acciones ejecutadas. Incluir los mismos ${intTotal} locales gastronómicos del Interior más los ${asuTotal} puntos de venta de Asunción para tener una visión global del avance. Mantener la evidencia fotográfica como estándar de verificación.`}
         />
-      </div>
+      </div>}
+
+      {/* ── PROMOCIÓN DÍA DE LAS MADRES ─────────────────── */}
+      {(promoFilt==='todas'||promoFilt==='madres') && <>
+        <div className="exec" style={{marginTop: promoFilt==='todas' ? 24 : 0}}>
+          <div className="exec-l">
+            <div className="exec-eyebrow">Promoción Día de las Madres</div>
+            <div className="exec-head">
+              Análisis de tiendas — Circuito Principal y Circuito Adicional
+            </div>
+            <div className="exec-sub" style={{marginTop:7}}>
+              Relevamiento de puntos de venta retail correspondiente a la campaña Día de las Madres.
+              Se incluyen <b>{k.tTotal} tiendas del circuito principal</b>
+              {D.localesOT && D.localesOT.length > 0 ? <> y <b>{D.localesOT.length} locales del circuito adicional (OT)</b>.</> : '.'}
+            </div>
+          </div>
+          <div className="exec-r">
+            <div className="exec-stat"><div className="exec-num">{k.tTotal + (D.localesOT?.length||0)}</div><div className="exec-cap">Total tiendas</div></div>
+            <div className="exec-stat"><div className="exec-num" style={{color:'var(--yellow)'}}>{k.tTotal>0?Math.round(k.tConMat/k.tTotal*100):0}%</div><div className="exec-cap">Cobertura principal</div></div>
+          </div>
+        </div>
+
+        <div style={g2}>
+          <div style={card}>
+            <div style={cardHd}>🏪 Circuito Principal</div>
+            <div style={cardBd}>
+              <div style={g3}>
+                <BigNum value={k.tTotal}   label="Relevadas"    color="var(--navy)"/>
+                <BigNum value={k.tConMat}  label="Con material" sub={k.tTotal>0?Math.round(k.tConMat/k.tTotal*100)+'% cob.':''} color="var(--green)"/>
+                <BigNum value={k.tTotal-k.tConMat} label="Sin material" color="var(--red)"/>
+              </div>
+              <DividerLine/>
+              <div style={col(10)}>
+                <Pbar label="Cobertura material BF"  val={k.tConMat}   total={k.tTotal} color="var(--navy)"/>
+                <Pbar label="Visible desde vidriera" val={k.tVisible}  total={k.tTotal} color="var(--blue-mid)"/>
+                <Pbar label="Encargado conoce promo" val={k.tConoce}   total={k.tTotal} color="var(--yellow)"/>
+                <Pbar label="Con competencia"        val={k.tConComp}  total={k.tTotal} color="var(--red)"/>
+              </div>
+            </div>
+          </div>
+          {D.localesOT && D.localesOT.length > 0 && <div style={card}>
+            <div style={cardHd}>🔄 Circuito Adicional (OT)</div>
+            <div style={cardBd}>
+              <div style={g3}>
+                <BigNum value={D.localesOT.length} label="Relevadas"    color="var(--navy)"/>
+                <BigNum value={D.otConMat}         label="Con material" sub={D.localesOT.length>0?Math.round(D.otConMat/D.localesOT.length*100)+'% cob.':''} color="var(--green)"/>
+                <BigNum value={D.localesOT.length - D.otConMat} label="Sin material" color="var(--red)"/>
+              </div>
+              <DividerLine/>
+              <div style={col(10)}>
+                <Pbar label="Cobertura material BF" val={D.otConMat} total={D.localesOT.length} color="var(--navy)"/>
+              </div>
+            </div>
+          </div>}
+        </div>
+      </>}
     </>
   );
 }
