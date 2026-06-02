@@ -515,10 +515,11 @@ const DEPT_CITY = {
 const SHEET_ID  = "1YrNdJ_Hf9AyrKm_MpO3FgyqLWs4x3iNRuQv9AfNpnok";
 const API_BASE  = "https://opensheet.elk.sh/" + SHEET_ID + "/";
 const SHEETS    = {
-  gastro:     "RE_BF_GASTRO_INT",
-  compe:      "RE_COMPE_GASTRO_INT",
-  tiendas:    "RE_BF_TIENDAS",
-  tiendasOT:  "RE_BF_TIENDAS_OT",
+  gastro:        "RE_BF_GASTRO_INT",
+  compe:         "RE_COMPE_GASTRO_INT",
+  tiendas:       "RE_BF_TIENDAS",
+  tiendasOT:     "RE_BF_TIENDAS_OT",
+  gastroCentral: "RE_BF_GASTRO_CENTRAL",
 };
 
 /* opensheet returns row-0 as keys.
@@ -546,7 +547,7 @@ const N   = v => v == null ? "" : String(v).trim();
 const YES = v => { const u = N(v).toUpperCase(); return u==="SI"||u==="SÍ"||u==="YES"||u==="1"||u==="TRUE"||u==="SÍ, LA CONOCE BIEN"||u.startsWith("SI,"); };
 const uniq = a => [...new Set(a.map(v => N(v)).filter(Boolean))].sort();
 
-function buildTableroData(rawG, rawC, rawT, rawOT=[]) {
+function buildTableroData(rawG, rawC, rawT, rawOT=[], rawGC=[]) {
   /* ── deptBF ── */
   const deptBF = {}, deptCP = {};
   rawG.forEach(r => {
@@ -704,6 +705,62 @@ function buildTableroData(rawG, rawC, rawT, rawOT=[]) {
   const tConComp = rawT.filter(r=>N(r[T_COMP])!=="No"&&N(r[T_COMP])!=="").length;
   const depts    = Object.keys(deptBF).length;
 
+  /* ── gastro CENTRAL ── */
+  const GC_LOCAL  = r => N(r["LOCAL"] || r["Local"]);
+  const GC_CIUDAD = r => N(r["CIUDAD"] || r["Ciudad"]);
+  const GC_MAT    = r => N(r["HAY_MATERIAL_DESIGNADO"]);
+  const GC_TIPO   = r => N(r["¿Qué tipo de oferta corresponde a este local?"] || r["TIPO_MATERIAL"] || r["OFERTA_EXHIBIDA_CORRECTA"]);
+  const GC_BENE   = r => N(r["BENEFICIO_EXHIBIDO"]);
+  const GC_OBS    = r => N(r["Observaciones"] || r["OBSERVACIONES"]);
+  const GC_FOTO   = r => N(r["Foto del material colocado en el local"] || r["FOTO_MATERIAL_1"]);
+  const GC_FECHA  = r => N(r["FECHA DE LA ENCUESTA"] || r["Marca temporal"]);
+
+  const gcDates = rawGC.map(r => GC_FECHA(r)).filter(Boolean).sort();
+  const gcPeriod = gcDates.length
+    ? (gcDates[0] === gcDates[gcDates.length-1] ? gcDates[0] : `${gcDates[0]} – ${gcDates[gcDates.length-1]}`)
+    : "—";
+
+  const gcCityMap = {};
+  rawGC.forEach(r => {
+    const c = GC_CIUDAD(r); if (!c) return;
+    if (!gcCityMap[c]) gcCityMap[c] = { con:0, sin:0 };
+    YES(GC_MAT(r)) ? gcCityMap[c].con++ : gcCityMap[c].sin++;
+  });
+  const gcCityBF = Object.entries(gcCityMap)
+    .sort((a,b) => (b[1].con+b[1].sin)-(a[1].con+a[1].sin))
+    .map(([city,d]) => ({ city, con:d.con, sin:d.sin }));
+
+  const gcTypeMap = {};
+  rawGC.forEach(r => { if(YES(GC_MAT(r))) { const v=GC_TIPO(r)||GC_BENE(r); if(v) gcTypeMap[v]=(gcTypeMap[v]||0)+1; } });
+  const gcSinMat = rawGC.filter(r=>!YES(GC_MAT(r))).length;
+  const gcMaterialType = Object.entries(gcTypeMap).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([label,value])=>({label,value}));
+  gcMaterialType.push({label:"Sin material",value:gcSinMat,negative:true});
+
+  const gcStateMap = {};
+  rawGC.filter(r=>YES(GC_MAT(r))).forEach(r=>{ const v=GC_BENE(r); if(v) gcStateMap[v]=(gcStateMap[v]||0)+1; });
+  const gcMaterialState = Object.entries(gcStateMap).sort((a,b)=>b[1]-a[1])
+    .map(([label,value])=>({label,value,color:"#1D4ED8"}));
+
+  const gcLocales = rawGC.map(r=>({
+    name: GC_LOCAL(r), city: GC_CIUDAD(r),
+    material: YES(GC_MAT(r)),
+    state: GC_BENE(r)||"—",
+    obs: GC_OBS(r),
+    fotos: [GC_FOTO(r)].filter(Boolean),
+  }));
+
+  const gcTotal   = rawGC.length;
+  const gcConMat  = rawGC.filter(r=>YES(GC_MAT(r))).length;
+  const gcSinMatK = gcTotal - gcConMat;
+  const gcCovPct  = gcTotal>0 ? Math.round(gcConMat/gcTotal*100) : 0;
+
+  /* ── GLOBAL (interior + central combinados) ── */
+  const glTotal  = rawG.length + gcTotal;
+  const glConMat = (rawG.filter(r=>YES(r.HAY_MATERIAL_DESIGNADO)).length) + gcConMat;
+  const glSinMat = glTotal - glConMat;
+  const glCovPct = glTotal>0 ? Math.round(glConMat/glTotal*100) : 0;
+
   /* ── tiendas OT (circuito adicional) ── */
   const localesOT = rawOT.map(r => ({
     name:      N(r["LOCAL"] || r["Local"] || r["local"]),
@@ -730,6 +787,9 @@ function buildTableroData(rawG, rawC, rawT, rawOT=[]) {
     materialState, visibilityVsBF,
     locales, localesTiendas, tiendasBancos, estadoTiendas,
     localesOT, otMaterialChart, otConMat,
+    gcCityBF, gcMaterialType, gcMaterialState, gcLocales,
+    gcPeriod, gcTotal, gcConMat, gcSinMatK, gcCovPct,
+    glTotal, glConMat, glSinMat, glCovPct,
     period: "20 al 25 de mayo 2026",
     periodTiendas: "11 al 22 de mayo 2026",
     kpi: {
@@ -783,8 +843,11 @@ function hideLoader() {
     setProgress(70, "Cargando");
     const rT = await fetch(API_BASE + encodeURIComponent(SHEETS.tiendas)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status+" — "+SHEETS.tiendas);return r.json();});
 
-    setProgress(82, "Cargando circuito adicional…");
+    setProgress(78, "Cargando circuito adicional…");
     const rOT = await fetch(API_BASE + encodeURIComponent(SHEETS.tiendasOT)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status+" — "+SHEETS.tiendasOT);return r.json();}).catch(()=>[]);
+
+    setProgress(85, "Cargando gastronómico central…");
+    const rGC = await fetch(API_BASE + encodeURIComponent(SHEETS.gastroCentral)).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status+" — "+SHEETS.gastroCentral);return r.json();}).catch(()=>[]);
 
     setProgress(90, "Procesando datos…");
     const rawG = normalizeSheet(rG);
@@ -792,15 +855,16 @@ function hideLoader() {
     const rawT = rT; // TIENDAS: row 0 is real header
     const rawOT = rOT; // TIENDAS OT: row 0 is real header
 
-    window.TableroData = buildTableroData(rawG, rawC, rawT, rawOT);
+    window.TableroData = buildTableroData(rawG, rawC, rawT, rawOT, rGC);
 
     /* Store raw sheets for detail/evidencias views */
-    window.__rawGastro   = rawG;
-    window.__rawCompe    = rawC;
-    window.__rawTiendas  = rawT;
-    window.__rawTiendasOT = rawOT;
+    window.__rawGastro      = rawG;
+    window.__rawCompe       = rawC;
+    window.__rawTiendas     = rawT;
+    window.__rawTiendasOT   = rawOT;
+    window.__rawGastroCentral = rGC;
 
-    setProgress(100, `¡Listo! ${rawG.length} gastro · ${rawT.length} tiendas · ${rawOT.length} OT · ${rawC.length} competencia`);
+    setProgress(100, `¡Listo! ${rawG.length} gastro int · ${rGC.length} gastro central · ${rawT.length} tiendas · ${rawC.length} competencia`);
     setTimeout(() => {
       hideLoader();
       /* Mount React app after data is ready */
@@ -817,7 +881,7 @@ function hideLoader() {
     if (txt) txt.innerHTML = `<span style="color:#FCA5A5">❌ ${err.message}</span><br><span style="font-size:11px;margin-top:6px;display:block">Verificá que el Google Sheet esté publicado y compartido públicamente.<br>ID: ${SHEET_ID}</span>`;
     if (bar) { bar.style.background="#F87171"; bar.style.width="100%"; }
     /* Fallback: mount with empty data so UI doesn't break */
-    window.TableroData = buildTableroData([],[],[],[]);
+    window.TableroData = buildTableroData([],[],[],[],[]);
     setTimeout(()=>{ hideLoader(); if(!window.__reactRoot){window.__reactRoot=ReactDOM.createRoot(document.getElementById('root'));} window.__reactRoot.render(React.createElement(App)); }, 3000);
   }
 })();
@@ -1266,48 +1330,113 @@ function PageResumen() {
 
 function PageGastro() {
   const D = window.TableroData; if(!D) return null;
-  const [sub, setSub] = useState('bf');
+  const [tab, setTab] = useState('global');
   const k = D.kpi;
+  const TABS = [
+    { id:'global',  label:'Global' },
+    { id:'central', label:'Central' },
+    { id:'interior',label:'Interior' },
+    { id:'compe',   label:'Competencia Interior' },
+  ];
   return (
     <>
-      <SegTabs tabs={[{id:'bf',label:'Banco Familiar'},{id:'cp',label:'Competencia'}]} active={sub} onChange={setSub} />
-      {sub==='bf' ? (
-        <>
-          <div className="kpi-grid">
-            <KpiCard accent="b" label="Locales relevados"  value={k.totalBF} sub={D.period} subTone="muted" />
-            <KpiCard accent="g" label="Con material BF"    value={k.conBF}   sub={`${k.covBF}% cobertura`} subTone="pos" />
-            <KpiCard accent="r" label="Sin material BF"    value={k.sinBF}   sub={`${100-k.covBF}% del total`} subTone="neg" />
-            <KpiCard accent="y" label="Conocen la promo"   value={k.knowsWell} sub="encargados informados" subTone="mid" />
-            <KpiCard accent="b" label="Material en perfecto estado" value={k.perfect} sub={`${Math.round(k.perfect/k.conBF*100)}% de los colocados`} subTone="pos" />
-          </div>
-          <HeatBlock mode="bf" />
-          <div className="grid-2">
-            <Card title="Locales por ciudad — Con vs Sin material">
-              <LegendRow items={[{label:'Con material',color:'var(--blue-700)'},{label:'Sin material',color:'#CBD5E1'}]} />
-              <GroupedBarChart data={D.cityBF} />
-            </Card>
-            <Card title="Tipo de material"><HBarChart data={D.materialType} color="var(--blue-mid)" /></Card>
-          </div>
-          <div className="grid-2">
-            <Card title="Conocimiento de la promoción"><Donut data={D.promoKnowledge} /></Card>
-            <Card title="Estado del material"><Donut data={D.materialState} /></Card>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="kpi-grid">
-            <KpiCard accent="r" label="Locales relevados"    value={k.totalCP} sub="mismos puntos gastro" subTone="muted" />
-            <KpiCard accent="r" label="Con material comp."   value={k.conCP}   sub={`${k.covCP}%`} subTone="neg" />
-            <KpiCard accent="b" label="Sin material comp."   value={k.totalCP-k.conCP} sub={`${100-k.covCP}%`} subTone="pos" />
-            <KpiCard accent="y" label="Marcas detectadas"    value={D.competitors.length} sub="entidades activas" subTone="mid" />
-          </div>
-          <HeatBlock mode="cp" />
-          <div className="grid-2">
-            <Card title="Marcas competidoras detectadas"><HBarChart data={D.competitors} color="var(--red)" /></Card>
-            <Card title="Visibilidad vs Banco Familiar"><Donut data={D.visibilityVsBF} /></Card>
-          </div>
-        </>
-      )}
+      {/* ── Tab switcher ── */}
+      <div style={{display:'flex',gap:'8px',marginBottom:'18px',flexWrap:'wrap'}}>
+        {TABS.map(t=>
+          React.createElement('button',{
+            key:t.id, onClick:()=>setTab(t.id),
+            style:{
+              padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',
+              fontFamily:'inherit',fontSize:'13px',fontWeight:'600',
+              background: tab===t.id ? 'var(--navy)' : 'var(--bsoft)',
+              color: tab===t.id ? '#fff' : 'var(--navy)',
+              transition:'all .15s',
+            }
+          }, t.label)
+        )}
+      </div>
+
+      {/* ── GLOBAL ── */}
+      {tab==='global' && <>
+        <div className="kpi-grid">
+          <KpiCard accent="b" label="Total relevados"     value={D.glTotal}  sub="Interior + Central" subTone="muted" />
+          <KpiCard accent="g" label="Con material BF"     value={D.glConMat} sub={`${D.glCovPct}% cobertura global`} subTone="pos" />
+          <KpiCard accent="r" label="Sin material BF"     value={D.glSinMat} sub={`${100-D.glCovPct}% del total`} subTone="neg" />
+          <KpiCard accent="b" label="Interior"            value={k.totalBF}  sub={`${k.covBF}% cobertura`} subTone="muted" />
+          <KpiCard accent="b" label="Central"             value={D.gcTotal}  sub={`${D.gcCovPct}% cobertura`} subTone="muted" />
+        </div>
+        <div className="grid-2">
+          <Card title="Interior — Con vs Sin material por ciudad">
+            <LegendRow items={[{label:'Con material',color:'var(--blue-700)'},{label:'Sin material',color:'#CBD5E1'}]} />
+            <GroupedBarChart data={D.cityBF} />
+          </Card>
+          <Card title="Central — Con vs Sin material por ciudad">
+            <LegendRow items={[{label:'Con material',color:'var(--blue-700)'},{label:'Sin material',color:'#CBD5E1'}]} />
+            <GroupedBarChart data={D.gcCityBF} />
+          </Card>
+        </div>
+        <div className="grid-2">
+          <Card title="Interior — Tipo de material"><HBarChart data={D.materialType} color="var(--blue-mid)" /></Card>
+          <Card title="Central — Tipo de material"><HBarChart data={D.gcMaterialType} color="var(--blue-mid)" /></Card>
+        </div>
+      </>}
+
+      {/* ── CENTRAL ── */}
+      {tab==='central' && <>
+        <div className="kpi-grid">
+          <KpiCard accent="b" label="Locales relevados"  value={D.gcTotal}    sub={D.gcPeriod} subTone="muted" />
+          <KpiCard accent="g" label="Con material BF"    value={D.gcConMat}   sub={`${D.gcCovPct}% cobertura`} subTone="pos" />
+          <KpiCard accent="r" label="Sin material BF"    value={D.gcSinMatK}  sub={`${100-D.gcCovPct}% del total`} subTone="neg" />
+        </div>
+        {D.gcCityBF.length > 0 && (
+          <Card title="Locales por ciudad — Con vs Sin material">
+            <LegendRow items={[{label:'Con material',color:'var(--blue-700)'},{label:'Sin material',color:'#CBD5E1'}]} />
+            <GroupedBarChart data={D.gcCityBF} />
+          </Card>
+        )}
+        <div className="grid-2">
+          <Card title="Tipo de material / oferta"><HBarChart data={D.gcMaterialType} color="var(--blue-mid)" /></Card>
+          <Card title="Estado del material"><Donut data={D.gcMaterialState.length ? D.gcMaterialState : [{label:'Sin datos',value:1,color:'#CBD5E1'}]} /></Card>
+        </div>
+      </>}
+
+      {/* ── INTERIOR ── */}
+      {tab==='interior' && <>
+        <div className="kpi-grid">
+          <KpiCard accent="b" label="Locales relevados"  value={k.totalBF} sub={D.period} subTone="muted" />
+          <KpiCard accent="g" label="Con material BF"    value={k.conBF}   sub={`${k.covBF}% cobertura`} subTone="pos" />
+          <KpiCard accent="r" label="Sin material BF"    value={k.sinBF}   sub={`${100-k.covBF}% del total`} subTone="neg" />
+          <KpiCard accent="y" label="Conocen la promo"   value={k.knowsWell} sub="encargados informados" subTone="mid" />
+          <KpiCard accent="b" label="Material en perfecto estado" value={k.perfect} sub={k.conBF>0?`${Math.round(k.perfect/k.conBF*100)}% de los colocados`:''} subTone="pos" />
+        </div>
+        <HeatBlock mode="bf" />
+        <div className="grid-2">
+          <Card title="Locales por ciudad — Con vs Sin material">
+            <LegendRow items={[{label:'Con material',color:'var(--blue-700)'},{label:'Sin material',color:'#CBD5E1'}]} />
+            <GroupedBarChart data={D.cityBF} />
+          </Card>
+          <Card title="Tipo de material"><HBarChart data={D.materialType} color="var(--blue-mid)" /></Card>
+        </div>
+        <div className="grid-2">
+          <Card title="Conocimiento de la promoción"><Donut data={D.promoKnowledge} /></Card>
+          <Card title="Estado del material"><Donut data={D.materialState} /></Card>
+        </div>
+      </>}
+
+      {/* ── COMPETENCIA INTERIOR ── */}
+      {tab==='compe' && <>
+        <div className="kpi-grid">
+          <KpiCard accent="r" label="Locales relevados"    value={k.totalCP} sub="mismos puntos gastro interior" subTone="muted" />
+          <KpiCard accent="r" label="Con material comp."   value={k.conCP}   sub={`${k.covCP}%`} subTone="neg" />
+          <KpiCard accent="b" label="Sin material comp."   value={k.totalCP-k.conCP} sub={`${100-k.covCP}%`} subTone="pos" />
+          <KpiCard accent="y" label="Marcas detectadas"    value={D.competitors.length} sub="entidades activas" subTone="mid" />
+        </div>
+        <HeatBlock mode="cp" />
+        <div className="grid-2">
+          <Card title="Marcas competidoras detectadas"><HBarChart data={D.competitors} color="var(--red)" /></Card>
+          <Card title="Visibilidad vs Banco Familiar"><Donut data={D.visibilityVsBF} /></Card>
+        </div>
+      </>}
     </>
   );
 }
