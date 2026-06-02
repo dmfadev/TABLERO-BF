@@ -2306,7 +2306,7 @@ function App() {
     );
   }
   const gastroPeriod = gastroTab==='central' ? 'Abril 2026' : gastroTab==='global' ? 'Abril - Mayo 2026' : 'Mayo 2026';
-  const activePeriod = page==='gastro' ? gastroPeriod : page==='tiendas' ? 'Mayo 2026' : 'Mayo 2026';
+  const activePeriod = page==='gastro' ? gastroPeriod : 'Abril - Mayo 2026';
   const Page = PAGES[page];
   const pageProps = page==='gastro' ? { onTabChange: setGastroTab } : {};
   return (
