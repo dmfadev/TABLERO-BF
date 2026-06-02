@@ -1714,7 +1714,8 @@ function PageConclusiones() {
       </div>
 
       {/* ── EXEC BANNER ─────────────────────────────────── */}
-      {(promoFilt==='todas'||promoFilt==='gastro') && <div className="exec">
+      {(promoFilt==='todas'||promoFilt==='gastro') && <>
+      <div className="exec">
         <div className="exec-l">
           <div className="exec-eyebrow">Análisis Consolidado — Interior + Asunción y alrededores</div>
           <div className="exec-head">
@@ -1908,6 +1909,8 @@ function PageConclusiones() {
           body={`Se recomienda un nuevo relevamiento en 30 días para medir el impacto de las acciones ejecutadas. Incluir los mismos ${intTotal} locales gastronómicos del Interior más los ${asuTotal} puntos de venta de Asunción para tener una visión global del avance. Mantener la evidencia fotográfica como estándar de verificación.`}
         />
       </div>}
+
+      </>}
 
       {/* ── PROMOCIÓN DÍA DE LAS MADRES ─────────────────── */}
       {(promoFilt==='todas'||promoFilt==='madres') && <>
