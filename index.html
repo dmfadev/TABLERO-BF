@@ -511,7 +511,12 @@ const CITY_DEPT = {
   "Capiatá":"Central","Capiata":"Central",
   "Ita":"Central","Itá":"Central","Ypane":"Central","Ypané":"Central",
   "Areguá":"Central","Aregua":"Central","Limpio":"Central",
-  "Nemby":"Central","Nemby":"Central",
+  "Nemby":"Central","Ñemby":"Central",
+  "San Antonio":"Central","Villeta":"Central",
+  "Guarambare":"Central","Guarambaré":"Central",
+  "Nueva Italia":"Central","Itaugua":"Central","Itauguá":"Central",
+  "J. Augusto Saldivar":"Central","Saldivar":"Central",
+  "Encarnación de Itapua":"Central",
 };
 const DEPT_CITY = {
   "Itapúa":"Encarnación","Alto Paraná":"Ciudad del Este",
@@ -1461,18 +1466,49 @@ function PageGastro() {
           <KpiCard accent="b" label="Interior"         value={k.totalBF}  sub={`${k.covBF}% cobertura`} subTone="muted" />
           <KpiCard accent="g" label="Central"          value={D.gcTotal}  sub={`${D.gcCovPct}% cobertura`} subTone="pos" />
         </div>
-        <div className="heat-block">
-          <div className="card heat-card">
+        <div style={{display:'grid',gridTemplateColumns:'1fr 320px',gap:14,alignItems:'start'}}>
+          <div className="card" style={{overflow:'hidden'}}>
             <div className="card-h">
               <span>Cobertura por Departamento — Global</span>
-              <span style={{display:'flex',gap:14,alignItems:'center',fontSize:11}}>
-                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:14,height:14,borderRadius:3,background:'linear-gradient(90deg,#DBEAFE,#1D4ED8)',display:'inline-block'}}/> Interior</span>
-                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:14,height:14,borderRadius:3,background:'linear-gradient(90deg,#DCFCE7,#15803D)',display:'inline-block'}}/> Central</span>
-                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:14,height:14,borderRadius:3,background:'repeating-linear-gradient(45deg,#3B82F6,#3B82F6 4px,#16A34A 4px,#16A34A 8px)',display:'inline-block'}}/> Ambos</span>
+              <span style={{display:'flex',gap:12,alignItems:'center',fontSize:11}}>
+                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:12,height:12,borderRadius:2,background:'linear-gradient(90deg,#DBEAFE,#1D4ED8)',display:'inline-block'}}/> Interior</span>
+                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:12,height:12,borderRadius:2,background:'linear-gradient(90deg,#DCFCE7,#15803D)',display:'inline-block'}}/> Central</span>
+                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:12,height:12,borderRadius:2,background:'repeating-linear-gradient(45deg,#3B82F6,#3B82F6 4px,#16A34A 4px,#16A34A 8px)',display:'inline-block'}}/> Ambos</span>
               </span>
             </div>
             <div className="card-b heat-b">
-              <ParaguayHeatMapDual dataInt={D.deptBF} dataGC={D.deptGC||{}} deptCity={D.DEPT_CITY} height={500} />
+              <ParaguayHeatMapDual dataInt={D.deptBF} dataGC={D.deptGC||{}} deptCity={D.DEPT_CITY} height={480} />
+            </div>
+          </div>
+          <div className="card" style={{overflow:'hidden'}}>
+            <div className="card-h">Top 10 — Mejor rendimiento global</div>
+            <div className="card-b" style={{padding:'10px 14px',maxHeight:520,overflowY:'auto'}}>
+              {(() => {
+                /* Combinar interior (por dept) y central (por dept) en ranking por ciudad */
+                const rows = [];
+                Object.entries(D.deptBF).forEach(([dept, d]) => {
+                  rows.push({ name: D.DEPT_CITY[dept]||dept, dept, origen:'Interior', con:d.con, total:d.total, pct: d.total?Math.round(d.con/d.total*100):0, color:'#1D4ED8' });
+                });
+                Object.entries(D.deptGC||{}).forEach(([dept, d]) => {
+                  rows.push({ name: D.DEPT_CITY[dept]||dept, dept, origen:'Central', con:d.con, total:d.total, pct: d.total?Math.round(d.con/d.total*100):0, color:'#15803D' });
+                });
+                return rows.sort((a,b)=>b.pct-a.pct).slice(0,10).map((r,i)=>(
+                  React.createElement('div',{key:i,style:{padding:'9px 0',borderBottom:'1px solid var(--border2)'}},
+                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:4}},
+                      React.createElement('div',null,
+                        React.createElement('span',{style:{fontSize:10,fontWeight:800,color:'var(--muted)',marginRight:6}},[`${i+1}`]),
+                        React.createElement('span',{style:{fontSize:12,fontWeight:700,color:'var(--navy)'}},[r.name]),
+                        React.createElement('span',{style:{fontSize:10,padding:'1px 7px',borderRadius:10,marginLeft:6,background:r.color+'18',color:r.color,fontWeight:600}},[r.origen])
+                      ),
+                      React.createElement('span',{style:{fontSize:14,fontWeight:800,color:r.color}},[`${r.pct}%`])
+                    ),
+                    React.createElement('div',{style:{height:6,background:'var(--bpale)',borderRadius:3,overflow:'hidden'}},
+                      React.createElement('div',{style:{height:'100%',width:r.pct+'%',background:r.color,borderRadius:3,transition:'width .5s'}})
+                    ),
+                    React.createElement('div',{style:{fontSize:10,color:'var(--muted)',marginTop:3}},[`${r.con} de ${r.total} locales · ${r.dept}`])
+                  )
+                ));
+              })()}
             </div>
           </div>
         </div>
