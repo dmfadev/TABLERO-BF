@@ -956,7 +956,8 @@ window.exportPDF = exportPDF;
 
 function driveThumb(url){
   if(!url) return null;
-  const m=url.match(/\/d\/([a-zA-Z0-9_\-]+)/);
+  let m = url.match(/\/d\/([a-zA-Z0-9_\-]+)/);
+  if(!m) m = url.match(/[?&]id=([a-zA-Z0-9_\-]+)/);
   return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400` : null;
 }
 window.openLB=openLB; window.driveThumb=driveThumb;
@@ -1731,13 +1732,34 @@ function PageDetalle() {
   const [open, setOpen] = useState(null);
   const [city, setCity] = useState('');
   const [matFilt, setMatFilt] = useState('');
-  const [src, setSrc] = useState('gastro');
-  const allLocales = src==='gastro' ? D.locales : D.localesTiendas;
-  const cities = src==='gastro' ? [...new Set(D.locales.map(l=>l.city))].sort() : [];
+  const [src, setSrc] = useState('gastro_int');
+
+  const SOURCES = [
+    { id:'gastro_int',    label:`Gastronómico Interior (${D.locales.length})` },
+    { id:'gastro_central',label:`Gastronómico Central (${(D.gcLocales||[]).length})` },
+    { id:'tiendas',       label:`Tiendas / Madres (${D.localesTiendas.length})` },
+    { id:'compe',         label:`Competencia Gastronómica (${(window.__rawCompe||[]).length})` },
+  ];
+
+  const allLocales = src==='gastro_int'     ? D.locales
+                   : src==='gastro_central' ? (D.gcLocales||[])
+                   : src==='tiendas'        ? D.localesTiendas
+                   : (window.__rawCompe||[]).map(r=>({
+                       name: r.LOCAL||r.local||'—',
+                       city: r.CIUDAD||r.ciudad||'—',
+                       material: r.HAY_MATERIAL_COMPETENCIA==='Sí'||r.HAY_MATERIAL_COMPETENCIA==='Si'||r.HAY_MATERIAL_COMPETENCIA==='si',
+                       state: r.VISIBILIDAD_VS_BF||'—',
+                       benefit: r.MARCAS_IDENTIFICADAS||'—',
+                       obs: r.OBSERVACIONES||'',
+                       fotos: ['FOTO_COMP_1','FOTO_COMP_2'].map(k=>r[k]).filter(Boolean),
+                     }));
+
+  const cities = [...new Set(allLocales.map(l=>l.city).filter(Boolean))].sort();
   const rows = allLocales.filter(l =>
     (!city || l.city===city) &&
     (!matFilt || (matFilt==='si' ? l.material : !l.material))
   );
+
   const tone = s => {
     if (!s||s==='—') return 'gr';
     if (s.includes('perfecto')||s.includes('Perfecto')) return 'g';
@@ -1747,27 +1769,25 @@ function PageDetalle() {
     if (s.includes('no visible')||s.includes('No visible')||s.includes('no está')||s.includes('No está')) return 'r';
     return 'gr';
   };
-  const knowTone = k => k.includes('bien')||k==='Sí'||k==='Si'?'g':k.includes('Parcial')||k.includes('parcial')?'o':k.includes('No')||k.includes('no')?'r':'gr';
+  const knowTone = k => k&&(k.includes('bien')||k==='Sí'||k==='Si')?'g':k&&(k.includes('Parcial')||k.includes('parcial'))?'o':k&&(k.includes('No')||k.includes('no'))?'r':'gr';
+
+  const srcLabel = SOURCES.find(s=>s.id===src)?.label||'';
+
   return (
     <>
-      <div className="sec-lbl">
-        {src==='gastro' ? 'Gastronómico — Banco Familiar' : 'Tiendas — Banco Familiar'}
-      </div>
+      <div className="sec-lbl">{srcLabel}</div>
       <div className="filterbar" style={{marginBottom:14}}>
-        <span className="fl">Fuente</span>
-        <select className="fs" value={src} onChange={e=>{setSrc(e.target.value);setOpen(null);setCity('');}}>
-          <option value="gastro">Gastronómico ({D.locales.length})</option>
-          <option value="tiendas">Tiendas ({D.localesTiendas.length})</option>
+        <span className="fl">Relevamiento</span>
+        <select className="fs" value={src} onChange={e=>{setSrc(e.target.value);setOpen(null);setCity('');setMatFilt('');}}>
+          {SOURCES.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
         </select>
-        {src==='gastro' && (
-          <>
-            <span className="fl">Ciudad</span>
-            <select className="fs" value={city} onChange={e=>{setCity(e.target.value);setOpen(null);}}>
-              <option value="">Todas</option>
-              {cities.map(c=><option key={c}>{c}</option>)}
-            </select>
-          </>
-        )}
+        {cities.length > 0 && <>
+          <span className="fl">Ciudad</span>
+          <select className="fs" value={city} onChange={e=>{setCity(e.target.value);setOpen(null);}}>
+            <option value="">Todas</option>
+            {cities.map(c=><option key={c}>{c}</option>)}
+          </select>
+        </>}
         <span className="fl">Material</span>
         <select className="fs" value={matFilt} onChange={e=>{setMatFilt(e.target.value);setOpen(null);}}>
           <option value="">Todos</option>
@@ -1782,19 +1802,21 @@ function PageDetalle() {
             <div className="lh" onClick={() => setOpen(open===i?null:i)}>
               <div className="li">
                 <div className="ln">{l.name}</div>
-                <div className="lci">{l.city && l.city+' · '}{l.type}</div>
+                <div className="lci">{l.city && l.city+' · '}{l.type||''}</div>
               </div>
               <Tag tone={l.material?'g':'r'}>{l.material?'Con material':'Sin material'}</Tag>
-              {l.knows && <Tag tone={knowTone(l.knows)}>{l.knows}</Tag>}
+              {l.knows && l.knows!=='—' && <Tag tone={knowTone(l.knows)}>{l.knows}</Tag>}
               <span className={'chv'+(open===i?' open':'')}>▾</span>
             </div>
             {open===i && (
               <div className="lb">
                 <div className="dg">
-                  <div><div className="dk">Estado del material</div><div className="dv"><Tag tone={tone(l.state)}>{l.state||'—'}</Tag></div></div>
-                  <div><div className="dk">Tipo de local</div><div className="dv">{l.type||'—'}</div></div>
-                  {l.benefit && l.benefit!=='—' && <div><div className="dk">Material colocado</div><div className="dv">{l.benefit}</div></div>}
+                  {l.state && l.state!=='—' && <div><div className="dk">{src==='compe'?'Visibilidad vs BF':'Estado del material'}</div><div className="dv"><Tag tone={tone(l.state)}>{l.state}</Tag></div></div>}
+                  {l.type  && l.type!=='—'  && <div><div className="dk">Tipo de local</div><div className="dv">{l.type}</div></div>}
+                  {l.benefit && l.benefit!=='—' && <div><div className="dk">{src==='compe'?'Marcas':'Material colocado'}</div><div className="dv">{l.benefit}</div></div>}
+                  {l.encargado && l.encargado!=='—' && <div><div className="dk">Encargado</div><div className="dv">{l.encargado}</div></div>}
                   {l.comp && l.comp!=='—' && l.comp!=='No' && <div><div className="dk">Competencia</div><div className="dv">{l.comp}</div></div>}
+                  {l.link && <div><div className="dk">Fotos (Drive)</div><div className="dv"><a href={l.link} target="_blank" rel="noopener noreferrer" style={{color:'var(--blue)',fontWeight:600}}>Ver carpeta</a></div></div>}
                   {l.obs && <div style={{gridColumn:'span 2'}}><div className="dk">Observaciones</div><div className="dv">{l.obs}</div></div>}
                 </div>
                 {l.fotos && l.fotos.length > 0 ? (
