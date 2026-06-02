@@ -1631,8 +1631,8 @@ function PageTiendas() {
   return (
     <>
       {/* Tab switcher */}
-      <div style={{display:'flex',gap:'8px',marginBottom:'18px'}}>
-        {[['principal','Circuito Principal'],['ot','Circuito Adicional']].map(([id,label])=>(
+      <div style={{display:'flex',gap:'8px',marginBottom:'18px',flexWrap:'wrap'}}>
+        {[['principal','Circuito Principal'],['ot','Circuito Adicional'],['compe','Competencia']].map(([id,label])=>(
           React.createElement('button',{
             key:id,
             onClick:()=>setTab(id),
@@ -1669,6 +1669,25 @@ function PageTiendas() {
             <Donut data={[
               {label:'Sí conoce', value:k.tConoce,        color:'#1D4ED8'},
               {label:'No / N-D',  value:tTotal-k.tConoce, color:'#94A3B8'},
+            ]} />
+          </Card>
+        </div>
+      </>}
+
+      {tab === 'compe' && <>
+        <div className="kpi-grid">
+          <KpiCard accent="r" label="Con competencia"    value={k.tConComp} sub={`${Math.round(k.tConComp/tTotal*100)}% de los locales`} subTone="neg" />
+          <KpiCard accent="b" label="Sin competencia"    value={tTotal-k.tConComp} sub={`${Math.round((tTotal-k.tConComp)/tTotal*100)}%`} subTone="pos" />
+          <KpiCard accent="y" label="Marcas detectadas"  value={D.tiendasBancos.length} sub="entidades activas" subTone="mid" />
+        </div>
+        <div className="grid-2">
+          <Card title="Bancos competidores en Promo Día de las Madres">
+            <HBarChart data={D.tiendasBancos} color="var(--red)" />
+          </Card>
+          <Card title="Cobertura competencia vs BF">
+            <Donut data={[
+              {label:'Con competencia', value:k.tConComp,        color:'#DC2626'},
+              {label:'Sin competencia', value:tTotal-k.tConComp, color:'#DBEAFE'},
             ]} />
           </Card>
         </div>
@@ -1741,13 +1760,22 @@ function PageDetalle() {
   const SOURCES = [
     { id:'gastro_int',    label:`Gastronómico Interior (${D.locales.length})` },
     { id:'gastro_central',label:`Gastronómico Central (${(D.gcLocales||[]).length})` },
-    { id:'tiendas',       label:`Tiendas / Madres (${D.localesTiendas.length})` },
+    { id:'tiendas',       label:`Promo - Día de la Madre (${D.localesTiendas.length})` },
+    { id:'tiendas_compe', label:`Promo - Día de la Madre Competencia (${D.localesTiendas.filter(l=>l.comp&&l.comp!=='—'&&l.comp!=='No').length})` },
     { id:'compe',         label:`Competencia Gastronómica (${(window.__rawCompe||[]).length})` },
   ];
 
   const allLocales = src==='gastro_int'     ? D.locales
                    : src==='gastro_central' ? (D.gcLocales||[])
                    : src==='tiendas'        ? D.localesTiendas
+                   : src==='tiendas_compe'  ? D.localesTiendas.filter(l=>l.comp&&l.comp!=='—'&&l.comp!=='No').map(l=>({
+                       name: l.name, city: l.city,
+                       material: true,
+                       state: '—',
+                       benefit: l.comp,
+                       obs: l.obs,
+                       fotos: l.fotos_comp||[],
+                     }))
                    : (window.__rawCompe||[]).map(r=>({
                        name: r.LOCAL||r.local||'—',
                        city: r.CIUDAD||r.ciudad||'—',
