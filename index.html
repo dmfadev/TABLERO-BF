@@ -503,6 +503,15 @@ const CITY_DEPT = {
   "Pilar":"Ñeembucú",
   "Maria Auxiliadora":"Itapúa","María Auxiliadora":"Itapúa",
   "Dr J.E. Estigarribia":"Caaguazú","Dr. J.E. Estigarribia":"Caaguazú",
+  /* Central */
+  "Asuncion":"Central","Asunción":"Central",
+  "San Lorenzo":"Central","Luque":"Central",
+  "Fernando de la Mora":"Central","Lambare":"Central","Lambaré":"Central",
+  "Mariano Roque Alonso":"Central","Villa Elisa":"Central",
+  "Capiatá":"Central","Capiata":"Central",
+  "Ita":"Central","Itá":"Central","Ypane":"Central","Ypané":"Central",
+  "Areguá":"Central","Aregua":"Central","Limpio":"Central",
+  "Nemby":"Central","Nemby":"Central",
 };
 const DEPT_CITY = {
   "Itapúa":"Encarnación","Alto Paraná":"Ciudad del Este",
@@ -705,6 +714,16 @@ function buildTableroData(rawG, rawC, rawT, rawOT=[], rawGC=[]) {
   const tConComp = rawT.filter(r=>N(r[T_COMP])!=="No"&&N(r[T_COMP])!=="").length;
   const depts    = Object.keys(deptBF).length;
 
+  /* ── deptGC (Central por departamento para el mapa) ── */
+  const deptGC = {};
+  rawGC.forEach(r => {
+    const dept = CITY_DEPT[N(r["CIUDAD"]||r["Ciudad"])] || N(r["CIUDAD"]||r["Ciudad"]);
+    if (!dept) return;
+    if (!deptGC[dept]) deptGC[dept] = { total:0, con:0 };
+    deptGC[dept].total++;
+    if (YES(N(r["HAY_MATERIAL_DESIGNADO"]))) deptGC[dept].con++;
+  });
+
   /* ── gastro CENTRAL ── */
   const GC_LOCAL  = r => N(r["LOCAL"] || r["Local"]);
   const GC_CIUDAD = r => N(r["CIUDAD"] || r["Ciudad"]);
@@ -782,7 +801,7 @@ function buildTableroData(rawG, rawC, rawT, rawOT=[], rawGC=[]) {
   const otConMat = localesOT.filter(r => r.material && r.material !== "" && r.material.toLowerCase() !== "ninguno" && r.material.toLowerCase() !== "sin material").length;
 
   return {
-    deptBF, deptCP, DEPT_CITY,
+    deptBF, deptCP, deptGC, DEPT_CITY,
     cityBF, materialType, competitors, promoKnowledge,
     materialState, visibilityVsBF,
     locales, localesTiendas, tiendasBancos, estadoTiendas,
@@ -1249,6 +1268,83 @@ function EvCard({ r }) {
 /* ══════════════════════════════════════════════════════════════
    PAGES
 ══════════════════════════════════════════════════════════════ */
+function ParaguayHeatMapDual({ dataInt, dataGC, deptCity, height=520 }) {
+  const wrapRef = useRef(null);
+  const tipRef  = useRef(null);
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap || !window.d3 || !window.topojson) return;
+    wrap.innerHTML = '';
+    const W = wrap.offsetWidth || 600, H = height;
+    const svg = d3.select(wrap).append('svg').attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height',H);
+    /* patterns */
+    const defs = svg.append('defs');
+    /* blue ramp for interior */
+    const blueScale = d3.scaleLinear().domain([0,100]).range(['#DBEAFE','#1D4ED8']);
+    /* green ramp for central */
+    const greenScale = d3.scaleLinear().domain([0,100]).range(['#DCFCE7','#15803D']);
+    /* stripe pattern for depts with both */
+    defs.append('pattern').attr('id','stripe-dual').attr('patternUnits','userSpaceOnUse')
+      .attr('width',8).attr('height',8)
+      .attr('patternTransform','rotate(45)')
+      .html('<rect width="4" height="8" fill="#3B82F6" opacity=".85"/><rect x="4" width="4" height="8" fill="#16A34A" opacity=".85"/>');
+    const proj = d3.geoMercator();
+    const path = d3.geoPath().projection(proj);
+    const tip  = tipRef.current;
+    d3.json(window.__resources.pryTopo).then(topo => {
+      const features = topojson.feature(topo, topo.objects.pry).features;
+      const fc = { type:'FeatureCollection', features };
+      proj.fitExtent([[28,24],[W-28,H-24]], fc);
+      const pctInt = {}, pctGC = {};
+      Object.keys(dataInt).forEach(k => { pctInt[k] = dataInt[k].total ? Math.round(dataInt[k].con/dataInt[k].total*100) : 0; });
+      Object.keys(dataGC).forEach(k => { pctGC[k]  = dataGC[k].total  ? Math.round(dataGC[k].con/dataGC[k].total*100)   : 0; });
+      svg.selectAll('path').data(features).enter().append('path')
+        .attr('d', path).attr('stroke','#fff').attr('stroke-width',1)
+        .attr('fill', d => {
+          const nm = d.properties.name;
+          const hasInt = !!dataInt[nm], hasGC = !!dataGC[nm];
+          if (hasInt && hasGC) return 'url(#stripe-dual)';
+          if (hasInt) return blueScale(pctInt[nm]);
+          if (hasGC)  return greenScale(pctGC[nm]);
+          return '#EEF4FA';
+        })
+        .on('mousemove', function(event, d) {
+          const nm = d.properties.name || '';
+          const iInfo = dataInt[nm]; const gInfo = dataGC[nm];
+          let html = `<div class="mt-name">${nm}</div>`;
+          if (iInfo) html += `<div class="mt-row" style="color:#1D4ED8">● Interior: ${iInfo.con}/${iInfo.total} (${pctInt[nm]}%)</div>`;
+          if (gInfo) html += `<div class="mt-row" style="color:#15803D">● Central: ${gInfo.con}/${gInfo.total} (${pctGC[nm]}%)</div>`;
+          if (!iInfo && !gInfo) html += `<div class="mt-row">Sin datos</div>`;
+          tip.style.display='block';
+          tip.style.left=(event.clientX+16)+'px';
+          tip.style.top=(event.clientY-10)+'px';
+          tip.innerHTML=html;
+          d3.select(this).attr('stroke','#0B2A4A').attr('stroke-width',2);
+        })
+        .on('mouseleave', function() { tip.style.display='none'; d3.select(this).attr('stroke','#fff').attr('stroke-width',1); });
+      /* labels */
+      const labeled = features.filter(d => dataInt[d.properties.name] || dataGC[d.properties.name]);
+      svg.selectAll('text.lbl').data(labeled).enter().append('text').attr('class','lbl')
+        .attr('x', d=>path.centroid(d)[0]).attr('y', d=>path.centroid(d)[1])
+        .attr('text-anchor','middle').attr('font-size','10').attr('font-family','Inter')
+        .attr('font-weight','800').attr('pointer-events','none').attr('fill','#fff')
+        .text(d => {
+          const nm=d.properties.name;
+          const parts=[];
+          if(dataInt[nm]) parts.push(`${pctInt[nm]}%`);
+          if(dataGC[nm])  parts.push(`${pctGC[nm]}%`);
+          return parts.join(' / ');
+        });
+    }).catch(()=>{ wrap.innerHTML='<div class="nodata">No se pudo cargar el mapa.</div>'; });
+  }, [dataInt, dataGC, height]);
+  return (
+    <div className="hmap" style={{minHeight:height}}>
+      <div className="hmap-svg" ref={wrapRef} style={{minHeight:height}}/>
+      <div className="hmap-tooltip" ref={tipRef}/>
+    </div>
+  );
+}
+
 function HeatBlock({ mode }) {
   const D = window.TableroData; if(!D) return null;
   const data  = mode==='bf' ? D.deptBF : D.deptCP;
@@ -1359,25 +1455,30 @@ function PageGastro() {
       {/* ── GLOBAL ── */}
       {tab==='global' && <>
         <div className="kpi-grid">
-          <KpiCard accent="b" label="Total relevados"     value={D.glTotal}  sub="Interior + Central" subTone="muted" />
-          <KpiCard accent="g" label="Con material BF"     value={D.glConMat} sub={`${D.glCovPct}% cobertura global`} subTone="pos" />
-          <KpiCard accent="r" label="Sin material BF"     value={D.glSinMat} sub={`${100-D.glCovPct}% del total`} subTone="neg" />
-          <KpiCard accent="b" label="Interior"            value={k.totalBF}  sub={`${k.covBF}% cobertura`} subTone="muted" />
-          <KpiCard accent="b" label="Central"             value={D.gcTotal}  sub={`${D.gcCovPct}% cobertura`} subTone="muted" />
+          <KpiCard accent="b" label="Total relevados"  value={D.glTotal}  sub="Interior + Central" subTone="muted" />
+          <KpiCard accent="g" label="Con material BF"  value={D.glConMat} sub={`${D.glCovPct}% cobertura global`} subTone="pos" />
+          <KpiCard accent="r" label="Sin material BF"  value={D.glSinMat} sub={`${100-D.glCovPct}% del total`} subTone="neg" />
+          <KpiCard accent="b" label="Interior"         value={k.totalBF}  sub={`${k.covBF}% cobertura`} subTone="muted" />
+          <KpiCard accent="g" label="Central"          value={D.gcTotal}  sub={`${D.gcCovPct}% cobertura`} subTone="pos" />
         </div>
-        <div className="grid-2">
-          <Card title="Interior — Con vs Sin material por ciudad">
-            <LegendRow items={[{label:'Con material',color:'var(--blue-700)'},{label:'Sin material',color:'#CBD5E1'}]} />
-            <GroupedBarChart data={D.cityBF} />
-          </Card>
-          <Card title="Central — Con vs Sin material por ciudad">
-            <LegendRow items={[{label:'Con material',color:'var(--blue-700)'},{label:'Sin material',color:'#CBD5E1'}]} />
-            <GroupedBarChart data={D.gcCityBF} />
-          </Card>
+        <div className="heat-block">
+          <div className="card heat-card">
+            <div className="card-h">
+              <span>Cobertura por Departamento — Global</span>
+              <span style={{display:'flex',gap:14,alignItems:'center',fontSize:11}}>
+                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:14,height:14,borderRadius:3,background:'linear-gradient(90deg,#DBEAFE,#1D4ED8)',display:'inline-block'}}/> Interior</span>
+                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:14,height:14,borderRadius:3,background:'linear-gradient(90deg,#DCFCE7,#15803D)',display:'inline-block'}}/> Central</span>
+                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:14,height:14,borderRadius:3,background:'repeating-linear-gradient(45deg,#3B82F6,#3B82F6 4px,#16A34A 4px,#16A34A 8px)',display:'inline-block'}}/> Ambos</span>
+              </span>
+            </div>
+            <div className="card-b heat-b">
+              <ParaguayHeatMapDual dataInt={D.deptBF} dataGC={D.deptGC||{}} deptCity={D.DEPT_CITY} height={500} />
+            </div>
+          </div>
         </div>
         <div className="grid-2">
           <Card title="Interior — Tipo de material"><HBarChart data={D.materialType} color="var(--blue-mid)" /></Card>
-          <Card title="Central — Tipo de material"><HBarChart data={D.gcMaterialType} color="var(--blue-mid)" /></Card>
+          <Card title="Central — Tipo de material"><HBarChart data={D.gcMaterialType} color="#16A34A" /></Card>
         </div>
       </>}
 
@@ -1388,14 +1489,8 @@ function PageGastro() {
           <KpiCard accent="g" label="Con material BF"    value={D.gcConMat}   sub={`${D.gcCovPct}% cobertura`} subTone="pos" />
           <KpiCard accent="r" label="Sin material BF"    value={D.gcSinMatK}  sub={`${100-D.gcCovPct}% del total`} subTone="neg" />
         </div>
-        {D.gcCityBF.length > 0 && (
-          <Card title="Locales por ciudad — Con vs Sin material">
-            <LegendRow items={[{label:'Con material',color:'var(--blue-700)'},{label:'Sin material',color:'#CBD5E1'}]} />
-            <GroupedBarChart data={D.gcCityBF} />
-          </Card>
-        )}
         <div className="grid-2">
-          <Card title="Tipo de material / oferta"><HBarChart data={D.gcMaterialType} color="var(--blue-mid)" /></Card>
+          <Card title="Tipo de material / oferta"><HBarChart data={D.gcMaterialType} color="#16A34A" /></Card>
           <Card title="Estado del material"><Donut data={D.gcMaterialState.length ? D.gcMaterialState : [{label:'Sin datos',value:1,color:'#CBD5E1'}]} /></Card>
         </div>
       </>}
