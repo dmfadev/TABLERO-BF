@@ -1438,9 +1438,10 @@ function PageResumen() {
   );
 }
 
-function PageGastro() {
+function PageGastro({ onTabChange }) {
   const D = window.TableroData; if(!D) return null;
   const [tab, setTab] = useState('global');
+  const setTabAndNotify = t => { setTab(t); if(onTabChange) onTabChange(t); };
   const k = D.kpi;
   const TABS = [
     { id:'global',  label:'Global' },
@@ -1454,7 +1455,7 @@ function PageGastro() {
       <div style={{display:'flex',gap:'8px',marginBottom:'18px',flexWrap:'wrap'}}>
         {TABS.map(t=>
           React.createElement('button',{
-            key:t.id, onClick:()=>setTab(t.id),
+            key:t.id, onClick:()=>setTabAndNotify(t.id),
             style:{
               padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',
               fontFamily:'inherit',fontSize:'13px',fontWeight:'600',
@@ -2290,6 +2291,7 @@ const PAGES = { resumen: PageResumen, gastro: PageGastro, tiendas: PageTiendas, 
 
 function App() {
   const [page, setPage] = useState('gastro');
+  const [gastroTab, setGastroTab] = useState('global');
   // Guard: TableroData may not be ready if called before bootstrap completes
   const D_safe = window.TableroData;
   if (!D_safe || !D_safe.period) {
@@ -2303,13 +2305,16 @@ function App() {
       </div>
     );
   }
+  const gastroPeriod = gastroTab==='central' ? 'Abril 2026' : gastroTab==='global' ? 'Abril - Mayo 2026' : 'Mayo 2026';
+  const activePeriod = page==='gastro' ? gastroPeriod : page==='tiendas' ? 'Mayo 2026' : 'Mayo 2026';
   const Page = PAGES[page];
+  const pageProps = page==='gastro' ? { onTabChange: setGastroTab } : {};
   return (
     <div className="shell">
-      <Sidebar active={page} onNav={setPage} period={page==='gastro' ? 'Abril - Mayo 2026' : page==='tiendas' ? D_safe.periodTiendas : D_safe.period} />
+      <Sidebar active={page} onNav={setPage} period={activePeriod} />
       <div className="main">
-        <Topbar title={TITLES[page][0]} sub={TITLES[page][1]} badge={page==='gastro' ? 'Abril - Mayo 2026' : page==='tiendas' ? D_safe.periodTiendas : D_safe.period} />
-        <div className="pages"><div className="page" key={page}><Page /></div></div>
+        <Topbar title={TITLES[page][0]} sub={TITLES[page][1]} badge={activePeriod} />
+        <div className="pages"><div className="page" key={page}><Page {...pageProps} /></div></div>
       </div>
     </div>
   );
