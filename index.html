@@ -2342,13 +2342,321 @@ function PageConclusiones() {
                 <BigNum value={D.localesOT.length - D.otConMat} label="Sin material" color="var(--red)"/>
               </div>
               <DividerLine/>
-              <div style={col(10)}>
-                <Pbar label="Cobertura material BF" val={D.otConMat} total={D.localesOT.length} color="var(--navy)"/>
-              </div>
-            </div>
-          </div>}
+function PageConclusiones() {
+  const D = window.TableroData; if(!D) return null;
+  const [tab, setTab] = React.useState('central');
+  const k = D.kpi;
+
+  const TABS = [
+    { id:'central',  label:'Gastronómico Central'        },
+    { id:'interior', label:'Gastronómico Interior'       },
+    { id:'madres',   label:'Promoción Día de las Madres' },
+  ];
+
+  /* ── helpers ── */
+  const card    = { background:'var(--white)', border:'1px solid var(--border)', borderRadius:'var(--r)', boxShadow:'var(--sh)', overflow:'hidden' };
+  const cardHd  = (color='var(--navy)') => ({ background: color==='green'?'#DCFCE7':color==='red'?'#FEE2E2':'var(--bxpal)', borderBottom:'1px solid var(--border2)', padding:'10px 16px', fontSize:'10px', fontWeight:700, textTransform:'uppercase', letterSpacing:'.07em', color: color==='green'?'#15803D':color==='red'?'#991B1B':'var(--navy)' });
+  const cardBd  = { padding:'16px' };
+  const col     = (gap=12) => ({ display:'flex', flexDirection:'column', gap });
+  const g2      = { display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 };
+
+  function StatRow({ label, value, pct, color='var(--navy)', total }) {
+    return (
+      <div style={{display:'flex',flexDirection:'column',gap:4,padding:'8px 0',borderBottom:'1px solid var(--border2)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}>
+          <span style={{fontSize:12,color:'var(--text)',fontWeight:500}}>{label}</span>
+          <span style={{fontSize:13,fontWeight:800,color}}>{pct!=null?pct+'%':value}</span>
         </div>
-      </>}
+        {pct!=null && <div style={{height:6,background:'var(--bpale)',borderRadius:3,overflow:'hidden'}}>
+          <div style={{height:'100%',width:pct+'%',background:color,borderRadius:3,transition:'width .6s'}}/>
+        </div>}
+        {total!=null && <div style={{fontSize:10,color:'var(--muted)'}}>{value} de {total} locales</div>}
+      </div>
+    );
+  }
+
+  function FindingRow({ icon, text }) {
+    return (
+      <div style={{display:'flex',gap:10,alignItems:'flex-start',padding:'10px 0',borderBottom:'1px solid var(--border2)'}}>
+        <span style={{fontSize:16,flexShrink:0}}>{icon}</span>
+        <span style={{fontSize:12,lineHeight:1.65,color:'var(--text)'}}>{text}</span>
+      </div>
+    );
+  }
+
+  function RecoCard({ icon, priority, color, bg, title, body }) {
+    return (
+      <div style={{borderRadius:'var(--r)',overflow:'hidden',border:'1px solid '+color+'44',boxShadow:'var(--sh)'}}>
+        <div style={{background:color,padding:'6px 14px',display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:11}}>{icon}</span>
+          <span style={{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'.1em',color:'#fff'}}>{priority}</span>
+        </div>
+        <div style={{background:bg,padding:'12px 14px'}}>
+          <div style={{fontSize:12,fontWeight:700,color:'var(--navy)',marginBottom:5}}>{title}</div>
+          <div style={{fontSize:11.5,color:'var(--text)',lineHeight:1.65}}>{body}</div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ════════════════════ CENTRAL ════════════════════ */
+  function TabCentral() {
+    const total  = D.gcTotal || 0;
+    const conMat = D.gcConMat || 0;
+    const sinMat = D.gcSinMatK || 0;
+    const covPct = D.gcCovPct || 0;
+    if (total === 0) return <div className="nodata">Sin datos cargados en RE_BF_GASTRO_CENTRAL aún.</div>;
+    const topCities = (D.gcCityBF||[]).map(r=>({...r,pct:r.con+r.sin>0?Math.round(r.con/(r.con+r.sin)*100):0})).sort((a,b)=>b.pct-a.pct);
+    const topCity   = topCities[0];
+    const lowCity   = [...topCities].reverse()[0];
+    return (
+      <div style={col(14)}>
+        {/* Banner */}
+        <div className="exec">
+          <div className="exec-l">
+            <div className="exec-eyebrow">Relevamiento Gastronómico Central</div>
+            <div className="exec-head">Cobertura BF: <b style={{color:'var(--yellow)'}}>{covPct}%</b> en {total} locales relevados</div>
+            <div className="exec-sub" style={{marginTop:6}}>
+              Se relevaron <b>{total} locales gastronómicos</b> en el área Central (Asunción y alrededores).
+              {covPct >= 70
+                ? ` Con una cobertura del ${covPct}%, el desempeño es destacado y evidencia una distribución efectiva del material BF en la zona.`
+                : ` Con una cobertura del ${covPct}%, existe margen de mejora considerable. ${sinMat} locales aún no cuentan con material BF activo.`}
+            </div>
+          </div>
+          <div className="exec-r">
+            <div className="exec-stat"><div className="exec-num">{total}</div><div className="exec-cap">Locales relevados</div></div>
+            <div className="exec-stat"><div className="exec-num" style={{color:'var(--yellow)'}}>{covPct}%</div><div className="exec-cap">Cobertura</div></div>
+          </div>
+        </div>
+
+        {/* Material BF */}
+        <div style={g2}>
+          <div style={card}>
+            <div style={cardHd('blue')}>📋 Material Banco Familiar</div>
+            <div style={cardBd}>
+              <StatRow label="Con material BF"    value={conMat} pct={covPct}          color="var(--blue-700)"  total={total}/>
+              <StatRow label="Sin material BF"    value={sinMat} pct={100-covPct}       color="var(--red)"       total={total}/>
+              {topCity && <StatRow label={`Mejor ciudad: ${topCity.city}`} value={topCity.con} pct={topCity.pct} color="#15803D" total={topCity.con+topCity.sin}/>}
+              {lowCity && lowCity.pct < 80 && <StatRow label={`Oportunidad: ${lowCity.city}`} value={lowCity.con} pct={lowCity.pct} color="var(--orange)" total={lowCity.con+lowCity.sin}/>}
+            </div>
+          </div>
+          <div style={card}>
+            <div style={cardHd('blue')}>📊 Distribución por tipo de material</div>
+            <div style={cardBd}>
+              {(D.gcMaterialType||[]).filter(m=>!m.negative).slice(0,5).map((m,i)=>(
+                <StatRow key={i} label={m.label} value={m.value} pct={total>0?Math.round(m.value/total*100):0} color="var(--blue-mid)" total={total}/>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Hallazgos */}
+        <div style={card}>
+          <div style={cardHd('blue')}>🔍 Hallazgos clave</div>
+          <div style={cardBd}>
+            <FindingRow icon="✅" text={`La cobertura de material BF en el área Central alcanzó el ${covPct}% (${conMat}/${total} locales). ${covPct>=70?'Este resultado refleja un trabajo de distribución sólido en la zona metropolitana.':'Existe un potencial de crecimiento importante en la zona metropolitana.'}`}/>
+            {topCity && <FindingRow icon="🏆" text={`${topCity.city} lidera con ${topCity.pct}% de cobertura (${topCity.con} de ${topCity.con+topCity.sin} locales), siendo el punto más fuerte del relevamiento Central.`}/>}
+            {lowCity && lowCity.pct < 80 && <FindingRow icon="⚠️" text={`${lowCity.city} presenta la menor cobertura con ${lowCity.pct}% (${lowCity.con} de ${lowCity.con+lowCity.sin} locales). Es la zona prioritaria para la próxima ronda de distribución.`}/>}
+            <FindingRow icon="📌" text={`De los ${sinMat} locales sin material, la mayoría ${sinMat>5?'representan una oportunidad concreta de expansión en la zona central':'son casos puntuales que pueden resolverse con una visita de reposición'}. Se recomienda priorizar estos puntos en el próximo ciclo.`}/>
+          </div>
+        </div>
+
+        {/* Recomendaciones */}
+        <div style={g2}>
+          <RecoCard icon="🚀" priority="Alta prioridad" color="#1D4ED8" bg="#EFF6FF"
+            title="Reposición inmediata en zonas con baja cobertura"
+            body={`Coordinar visitas de reposición a los ${sinMat} locales sin material BF, priorizando${lowCity?' '+lowCity.city+' y':''} los puntos de mayor tráfico. El objetivo es superar el ${Math.min(covPct+15,100)}% de cobertura en el próximo relevamiento.`}/>
+          <RecoCard icon="📣" priority="Alta prioridad" color="#15803D" bg="#F0FDF4"
+            title="Capitalizar la fortaleza en zonas de alta cobertura"
+            body={`${topCity?topCity.city+' y otras ciudades con alta cobertura':'Las ciudades con alta cobertura'} deben mantenerse con reposición preventiva. Usar estos locales como referencia de buenas prácticas para el material BF en el área Central.`}/>
+          <RecoCard icon="📷" priority="Acción continua" color="#D97706" bg="#FFFBEB"
+            title="Registro fotográfico como estándar de calidad"
+            body="Mantener el relevamiento fotográfico en cada visita permite verificar el estado real del material, comparar ciclos y detectar deterioro o mal posicionamiento antes de que impacte en la visibilidad de marca."/>
+          <RecoCard icon="🔄" priority="Próximo ciclo" color="#7C3AED" bg="#F5F3FF"
+            title="Nuevo relevamiento en 30 días"
+            body={`Realizar un nuevo relevamiento en 30 días para medir el impacto de las acciones ejecutadas. Incluir los mismos ${total} locales del área Central para tener una visión comparativa del avance.`}/>
+        </div>
+      </div>
+    );
+  }
+
+  /* ════════════════════ INTERIOR ════════════════════ */
+  function TabInterior() {
+    const total    = k.totalBF, conMat = k.conBF, sinMat = k.sinBF, covPct = k.covBF;
+    const covComp  = k.covCP, conComp = k.conCP;
+    const knowsWell= k.knowsWell;
+    const deptRows = Object.entries(D.deptBF).map(([n,d])=>({name:n,city:D.DEPT_CITY[n]||n,...d,pct:d.total?Math.round(d.con/d.total*100):0})).sort((a,b)=>b.pct-a.pct);
+    const topDept  = deptRows[0];
+    const lowDept  = deptRows[deptRows.length-1];
+    return (
+      <div style={col(14)}>
+        <div className="exec">
+          <div className="exec-l">
+            <div className="exec-eyebrow">Relevamiento Gastronómico Interior</div>
+            <div className="exec-head">Cobertura BF: <b style={{color:'var(--yellow)'}}>{covPct}%</b> en {total} locales · {k.departments} departamentos</div>
+            <div className="exec-sub" style={{marginTop:6}}>
+              Relevamiento abarcó <b>{total} locales gastronómicos</b> en <b>{k.departments} departamentos del interior</b>.
+              La competencia está presente en el {covComp}% de los mismos puntos.
+              {covPct >= 60 ? ` La cobertura del ${covPct}% demuestra una presencia consolidada en el interior del país.`
+                           : ` Con ${covPct}% de cobertura, el interior presenta oportunidades claras de crecimiento.`}
+            </div>
+          </div>
+          <div className="exec-r">
+            <div className="exec-stat"><div className="exec-num">{total}</div><div className="exec-cap">Locales relevados</div></div>
+            <div className="exec-stat"><div className="exec-num" style={{color:'var(--yellow)'}}>{covPct}%</div><div className="exec-cap">Cobertura BF</div></div>
+          </div>
+        </div>
+
+        <div style={g2}>
+          {/* Material BF */}
+          <div style={card}>
+            <div style={cardHd('blue')}>📋 Material Banco Familiar</div>
+            <div style={cardBd}>
+              <StatRow label="Con material BF"    value={conMat}    pct={covPct}       color="var(--blue-700)" total={total}/>
+              <StatRow label="Sin material BF"    value={sinMat}    pct={100-covPct}   color="var(--red)"      total={total}/>
+              <StatRow label="Conocen la promo"   value={knowsWell} pct={total>0?Math.round(knowsWell/total*100):0} color="var(--yellow)" total={total}/>
+              {topDept && <StatRow label={`Mejor dpto: ${topDept.city}`} value={topDept.con} pct={topDept.pct} color="#15803D" total={topDept.total}/>}
+              {lowDept && <StatRow label={`Oportunidad: ${lowDept.city}`} value={lowDept.con} pct={lowDept.pct} color="var(--orange)" total={lowDept.total}/>}
+            </div>
+          </div>
+          {/* Competencia */}
+          <div style={card}>
+            <div style={cardHd('red')}>⚔️ Competencia detectada</div>
+            <div style={cardBd}>
+              <StatRow label="Locales con competencia" value={conComp} pct={covComp} color="var(--red)" total={k.totalCP}/>
+              <StatRow label="Sin material competencia" value={k.totalCP-conComp} pct={100-covComp} color="#15803D" total={k.totalCP}/>
+              {(D.competitors||[]).slice(0,4).map((c,i)=>(
+                <StatRow key={i} label={c.label} value={c.value} pct={k.totalCP>0?Math.round(c.value/k.totalCP*100):0} color="#DC2626" total={k.totalCP}/>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={card}>
+          <div style={cardHd('blue')}>🔍 Hallazgos clave</div>
+          <div style={cardBd}>
+            <FindingRow icon="✅" text={`Cobertura del ${covPct}% en ${total} locales del interior (${conMat} con material BF). ${covPct>=60?'La presencia en el interior es sólida y refleja un trabajo de distribución consistente.':'Hay margen significativo para incrementar la presencia en el interior.'}`}/>
+            {topDept && <FindingRow icon="🏆" text={`${topDept.city} (${topDept.name}) es el departamento con mejor rendimiento con ${topDept.pct}% de cobertura (${topDept.con}/${topDept.total} locales). Es un modelo a replicar en otros departamentos.`}/>}
+            {lowDept && <FindingRow icon="⚠️" text={`${lowDept.city} (${lowDept.name}) registra la menor presencia con ${lowDept.pct}% (${lowDept.con}/${lowDept.total} locales). Es el foco más urgente de atención para la próxima campaña.`}/>}
+            <FindingRow icon="🎯" text={`El ${Math.round(knowsWell/total*100)}% de los encargados conoce bien la promoción. ${knowsWell/total>=0.6?'Este nivel de conocimiento es un activo importante para la visibilidad de marca en el punto de venta.':'Incrementar la capacitación in-situ puede mejorar significativamente la efectividad de la campaña.'}`}/>
+            <FindingRow icon="⚔️" text={`La competencia está presente en el ${covComp}% de los locales relevados. ${D.competitors?.[0]?D.competitors[0].label+' lidera con '+D.competitors[0].value+' locales.':''} ${covComp>40?'La presión competitiva es alta y requiere estrategia de diferenciación.':'La presencia competitiva es manejable pero debe monitorearse.'}`}/>
+          </div>
+        </div>
+
+        <div style={g2}>
+          <RecoCard icon="🚀" priority="Alta prioridad" color="#1D4ED8" bg="#EFF6FF"
+            title={`Reforzar presencia en ${lowDept?.city||'departamentos con baja cobertura'}`}
+            body={`${lowDept?lowDept.city+' con '+lowDept.pct+'% de cobertura es la zona más crítica. ':''} Planificar visitas de distribución prioritarias para alcanzar al menos el ${Math.min((lowDept?.pct||0)+25,100)}% en el próximo ciclo.`}/>
+          <RecoCard icon="📣" priority="Alta prioridad" color="#15803D" bg="#F0FDF4"
+            title="Capacitación de encargados en el interior"
+            body={`Solo el ${Math.round(knowsWell/total*100)}% de los encargados conoce bien la promo. Implementar un breve protocolo de presentación en cada visita de reposición puede duplicar el conocimiento de la campaña sin costo adicional.`}/>
+          <RecoCard icon="⚔️" priority="Media prioridad" color="#DC2626" bg="#FEF2F2"
+            title="Estrategia de diferenciación frente a competencia"
+            body={`Con ${covComp}% de presencia competitiva, se recomienda posicionar el material BF en ubicaciones de mayor visibilidad (entrada, mostrador, vidriera) para superar en impacto visual a ${D.competitors?.[0]?.label||'los competidores'}.`}/>
+          <RecoCard icon="🔄" priority="Próximo ciclo" color="#7C3AED" bg="#F5F3FF"
+            title="Seguimiento en 30 días"
+            body={`Nuevo relevamiento en los mismos ${total} locales para medir el impacto de las acciones. Foco especial en ${lowDept?.city||'departamentos con baja cobertura'} y en los locales donde la competencia supera en visibilidad a BF.`}/>
+        </div>
+      </div>
+    );
+  }
+
+  /* ════════════════════ MADRES ════════════════════ */
+  function TabMadres() {
+    const total    = k.tTotal, conMat = k.tConMat, sinMat = total-conMat, covPct = total>0?Math.round(conMat/total*100):0;
+    const tVisible = k.tVisible, tConoce = k.tConoce, tConComp = k.tConComp;
+    const otTotal  = (D.localesOT||[]).length, otConMat = D.otConMat||0;
+    return (
+      <div style={col(14)}>
+        <div className="exec">
+          <div className="exec-l">
+            <div className="exec-eyebrow">Promoción Día de las Madres</div>
+            <div className="exec-head">Cobertura BF: <b style={{color:'var(--yellow)'}}>{covPct}%</b> en {total} tiendas relevadas</div>
+            <div className="exec-sub" style={{marginTop:6}}>
+              Relevamiento de <b>{total} puntos de venta retail</b> para la campaña Día de las Madres.
+              {otTotal>0 && ` Incluye además ${otTotal} locales del circuito adicional OT.`}
+              {covPct>=80?' Excelente cobertura lograda en el canal retail para esta promoción.'
+                        :' Oportunidad de crecimiento en la cobertura retail para futuras campañas.'}
+            </div>
+          </div>
+          <div className="exec-r">
+            <div className="exec-stat"><div className="exec-num">{total}</div><div className="exec-cap">Tiendas</div></div>
+            <div className="exec-stat"><div className="exec-num" style={{color:'var(--yellow)'}}>{covPct}%</div><div className="exec-cap">Cobertura</div></div>
+          </div>
+        </div>
+
+        <div style={g2}>
+          <div style={card}>
+            <div style={cardHd('blue')}>📋 Material Banco Familiar</div>
+            <div style={cardBd}>
+              <StatRow label="Con material BF"          value={conMat}    pct={covPct}                                          color="var(--blue-700)" total={total}/>
+              <StatRow label="Visible desde vidriera"   value={tVisible}  pct={total>0?Math.round(tVisible/total*100):0}        color="#15803D"         total={total}/>
+              <StatRow label="Encargado conoce promo"   value={tConoce}   pct={total>0?Math.round(tConoce/total*100):0}         color="var(--yellow)"   total={total}/>
+              <StatRow label="Sin material BF"          value={sinMat}    pct={100-covPct}                                      color="var(--red)"      total={total}/>
+              {otTotal>0 && <StatRow label="OT — Con material" value={otConMat} pct={otTotal>0?Math.round(otConMat/otTotal*100):0} color="#7C3AED" total={otTotal}/>}
+            </div>
+          </div>
+          <div style={card}>
+            <div style={cardHd('red')}>⚔️ Competencia detectada</div>
+            <div style={cardBd}>
+              <StatRow label="Con material competencia" value={tConComp} pct={total>0?Math.round(tConComp/total*100):0} color="var(--red)"  total={total}/>
+              <StatRow label="Sin competencia"          value={total-tConComp} pct={total>0?Math.round((total-tConComp)/total*100):0} color="#15803D" total={total}/>
+              {(D.tiendasBancos||[]).slice(0,4).map((b,i)=>(
+                <StatRow key={i} label={b.label} value={b.value} pct={total>0?Math.round(b.value/total*100):0} color="#DC2626" total={total}/>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={card}>
+          <div style={cardHd('blue')}>🔍 Hallazgos clave</div>
+          <div style={cardBd}>
+            <FindingRow icon="✅" text={`Cobertura del ${covPct}% en ${total} tiendas (${conMat} con material BF activo). ${covPct>=80?'Excelente desempeño en el canal retail para la campaña Día de las Madres.':'Se identifican oportunidades de mejora en la cobertura retail.'}`}/>
+            <FindingRow icon="👁️" text={`El ${Math.round(tVisible/total*100)}% del material es visible desde la vidriera (${tVisible} tiendas). ${tVisible/total>=0.7?'La visibilidad es un punto fuerte de esta campaña, generando impacto desde el exterior.':'Mejorar la ubicación del material en vidriera puede incrementar el impacto de la campaña sin costo adicional.'}`}/>
+            <FindingRow icon="🧠" text={`El ${Math.round(tConoce/total*100)}% de los encargados conoce la promoción (${tConoce} tiendas). ${tConoce/total>=0.8?'El alto conocimiento de la promo por parte de los encargados es un factor clave para la conversión.':'Capacitar a más encargados puede mejorar significativamente la efectividad de ventas.'}`}/>
+            <FindingRow icon="⚔️" text={`La competencia tiene presencia en el ${Math.round(tConComp/total*100)}% de las tiendas. ${D.tiendasBancos?.[0]?' '+D.tiendasBancos[0].label+' es la marca competidora más activa con '+D.tiendasBancos[0].value+' puntos de venta.':''}`}/>
+            {otTotal>0 && <FindingRow icon="🔄" text={`El circuito adicional OT relevó ${otTotal} locales con ${Math.round(otConMat/otTotal*100)}% de cobertura. ${otConMat/otTotal>=0.7?'Excelente presencia en el circuito adicional.':'El circuito OT requiere mayor atención en distribución.'}`}/>}
+          </div>
+        </div>
+
+        <div style={g2}>
+          <RecoCard icon="🚀" priority="Alta prioridad" color="#1D4ED8" bg="#EFF6FF"
+            title="Reposición en tiendas sin material"
+            body={`${sinMat} tiendas aún no cuentan con material BF activo. Priorizar visitas a estos puntos antes de la fecha pico de la campaña para maximizar el impacto de la promoción Día de las Madres.`}/>
+          <RecoCard icon="👁️" priority="Alta prioridad" color="#15803D" bg="#F0FDF4"
+            title="Optimizar visibilidad en vidriera"
+            body={`${total-tVisible} tiendas tienen material pero no visible desde afuera. Reposicionar el material hacia vidriera o mostrador puede incrementar la captación de clientes sin costo adicional de distribución.`}/>
+          <RecoCard icon="⚔️" priority="Media prioridad" color="#DC2626" bg="#FEF2F2"
+            title="Contrarrestar presencia competitiva"
+            body={`Con ${Math.round(tConComp/total*100)}% de presencia competitiva, se recomienda asegurar que en los locales con competencia el material BF esté en una posición de igual o mayor visibilidad. ${D.tiendasBancos?.[0]?'Poner foco especial en puntos con '+D.tiendasBancos[0].label+'.':''}`}/>
+          <RecoCard icon="📣" priority="Acción continua" color="#D97706" bg="#FFFBEB"
+            title="Briefing a encargados en cada visita"
+            body={`Estandarizar un briefing de 2 minutos sobre la promo en cada visita de reposición. El ${Math.round(tConoce/total*100)}% de conocimiento actual puede elevarse a más del 95% con esta acción simple y de alto impacto.`}/>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Tab switcher */}
+      <div style={{display:'flex',gap:'8px',marginBottom:'18px',flexWrap:'wrap'}}>
+        {TABS.map(t=>
+          React.createElement('button',{
+            key:t.id, onClick:()=>setTab(t.id),
+            style:{
+              padding:'8px 20px',borderRadius:'8px',border:'none',cursor:'pointer',
+              fontFamily:'inherit',fontSize:'13px',fontWeight:'600',
+              background: tab===t.id ? 'var(--navy)' : 'var(--bsoft)',
+              color: tab===t.id ? '#fff' : 'var(--navy)',
+              transition:'all .15s',
+            }
+          }, t.label)
+        )}
+      </div>
+      {tab==='central'  && <TabCentral/>}
+      {tab==='interior' && <TabInterior/>}
+      {tab==='madres'   && <TabMadres/>}
     </>
   );
 }
