@@ -720,9 +720,15 @@ function buildTableroData(rawG, rawC, rawT, rawOT=[], rawGC=[]) {
   const depts    = Object.keys(deptBF).length;
 
   /* ── deptGC (Central por departamento para el mapa) ── */
+  const CITY_DEPT_LOWER = Object.fromEntries(Object.entries(CITY_DEPT).map(([k,v])=>[k.toLowerCase(),v]));
+  const cityToDept = city => {
+    if (!city) return null;
+    return CITY_DEPT[city] || CITY_DEPT_LOWER[city.toLowerCase()] || null;
+  };
   const deptGC = {};
   rawGC.forEach(r => {
-    const dept = CITY_DEPT[N(r["CIUDAD"]||r["Ciudad"])] || N(r["CIUDAD"]||r["Ciudad"]);
+    const rawCity = N(r["CIUDAD"]||r["Ciudad"]);
+    const dept = cityToDept(rawCity);
     if (!dept) return;
     if (!deptGC[dept]) deptGC[dept] = { total:0, con:0 };
     deptGC[dept].total++;
@@ -731,7 +737,7 @@ function buildTableroData(rawG, rawC, rawT, rawOT=[], rawGC=[]) {
 
   /* ── gastro CENTRAL ── */
   const GC_LOCAL  = r => N(r["LOCAL"] || r["Local"]);
-  const GC_CIUDAD = r => N(r["CIUDAD"] || r["Ciudad"]);
+  const GC_CIUDAD = r => { const c = N(r["CIUDAD"]||r["Ciudad"]); return c ? c.charAt(0).toUpperCase()+c.slice(1).toLowerCase() : ''; };
   const GC_MAT    = r => N(r["HAY_MATERIAL_DESIGNADO"]);
   const GC_TIPO   = r => N(r["¿Qué tipo de oferta corresponde a este local?"] || r["TIPO_MATERIAL"] || r["OFERTA_EXHIBIDA_CORRECTA"]);
   const GC_BENE   = r => N(r["BENEFICIO_EXHIBIDO"]);
@@ -1285,9 +1291,9 @@ function ParaguayHeatMapDual({ dataInt, dataGC, deptCity, height=520 }) {
     /* patterns */
     const defs = svg.append('defs');
     /* blue ramp for interior */
-    const blueScale = d3.scaleLinear().domain([0,100]).range(['#DBEAFE','#1D4ED8']);
-    /* green ramp for central */
-    const greenScale = d3.scaleLinear().domain([0,100]).range(['#DCFCE7','#15803D']);
+    const blueScale = d3.scaleLinear().domain([0,100]).range(['#BFDBFE','#1E3A8A']);
+    /* green ramp for central — minimum #22C55E so it's always visible */
+    const greenScale = d3.scaleLinear().domain([0,100]).range(['#22C55E','#14532D']);
     /* stripe pattern for depts with both */
     defs.append('pattern').attr('id','stripe-dual').attr('patternUnits','userSpaceOnUse')
       .attr('width',8).attr('height',8)
@@ -1466,48 +1472,76 @@ function PageGastro() {
           <KpiCard accent="b" label="Interior"         value={k.totalBF}  sub={`${k.covBF}% cobertura`} subTone="muted" />
           <KpiCard accent="g" label="Central"          value={D.gcTotal}  sub={`${D.gcCovPct}% cobertura`} subTone="pos" />
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 320px',gap:14,alignItems:'start'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 260px 260px',gap:14,alignItems:'start'}}>
+          {/* MAPA */}
           <div className="card" style={{overflow:'hidden'}}>
-            <div className="card-h">
-              <span>Cobertura por Departamento — Global</span>
-              <span style={{display:'flex',gap:12,alignItems:'center',fontSize:11}}>
-                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:12,height:12,borderRadius:2,background:'linear-gradient(90deg,#DBEAFE,#1D4ED8)',display:'inline-block'}}/> Interior</span>
-                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:12,height:12,borderRadius:2,background:'linear-gradient(90deg,#DCFCE7,#15803D)',display:'inline-block'}}/> Central</span>
-                <span style={{display:'flex',alignItems:'center',gap:5}}><span style={{width:12,height:12,borderRadius:2,background:'repeating-linear-gradient(45deg,#3B82F6,#3B82F6 4px,#16A34A 4px,#16A34A 8px)',display:'inline-block'}}/> Ambos</span>
+            <div className="card-h" style={{flexWrap:'wrap',gap:6}}>
+              <span>Cobertura por Departamento</span>
+              <span style={{display:'flex',gap:10,alignItems:'center',fontSize:11,marginLeft:'auto'}}>
+                <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:11,height:11,borderRadius:2,background:'#1D4ED8',display:'inline-block'}}/> Interior</span>
+                <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:11,height:11,borderRadius:2,background:'#15803D',display:'inline-block'}}/> Central</span>
               </span>
             </div>
-            <div className="card-b heat-b">
-              <ParaguayHeatMapDual dataInt={D.deptBF} dataGC={D.deptGC||{}} deptCity={D.DEPT_CITY} height={480} />
+            <div className="card-b" style={{padding:0}}>
+              <ParaguayHeatMapDual dataInt={D.deptBF} dataGC={D.deptGC||{}} deptCity={D.DEPT_CITY} height={460} />
             </div>
           </div>
+
+          {/* RANKING CENTRAL */}
           <div className="card" style={{overflow:'hidden'}}>
-            <div className="card-h">Top 10 — Mejor rendimiento global</div>
-            <div className="card-b" style={{padding:'10px 14px',maxHeight:520,overflowY:'auto'}}>
-              {(() => {
-                /* Combinar interior (por dept) y central (por dept) en ranking por ciudad */
-                const rows = [];
-                Object.entries(D.deptBF).forEach(([dept, d]) => {
-                  rows.push({ name: D.DEPT_CITY[dept]||dept, dept, origen:'Interior', con:d.con, total:d.total, pct: d.total?Math.round(d.con/d.total*100):0, color:'#1D4ED8' });
-                });
-                Object.entries(D.deptGC||{}).forEach(([dept, d]) => {
-                  rows.push({ name: D.DEPT_CITY[dept]||dept, dept, origen:'Central', con:d.con, total:d.total, pct: d.total?Math.round(d.con/d.total*100):0, color:'#15803D' });
-                });
-                return rows.sort((a,b)=>b.pct-a.pct).slice(0,10).map((r,i)=>(
-                  React.createElement('div',{key:i,style:{padding:'9px 0',borderBottom:'1px solid var(--border2)'}},
-                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:4}},
-                      React.createElement('div',null,
-                        React.createElement('span',{style:{fontSize:10,fontWeight:800,color:'var(--muted)',marginRight:6}},[`${i+1}`]),
-                        React.createElement('span',{style:{fontSize:12,fontWeight:700,color:'var(--navy)'}},[r.name]),
-                        React.createElement('span',{style:{fontSize:10,padding:'1px 7px',borderRadius:10,marginLeft:6,background:r.color+'18',color:r.color,fontWeight:600}},[r.origen])
+            <div className="card-h" style={{background:'#DCFCE7',borderBottom:'1px solid #86EFAC'}}>
+              <span style={{color:'#15803D',fontWeight:700}}>🟢 Top 10 — Central</span>
+            </div>
+            <div className="card-b" style={{padding:'8px 12px',maxHeight:460,overflowY:'auto'}}>
+              {(()=>{
+                const rows = (D.gcCityBF||[])
+                  .map(r=>({...r, pct: r.con+r.sin>0 ? Math.round(r.con/(r.con+r.sin)*100) : 0}))
+                  .sort((a,b)=>b.pct-a.pct).slice(0,10);
+                if(!rows.length) return React.createElement('div',{style:{color:'var(--muted)',fontSize:12,padding:'20px 0',textAlign:'center'}},'Sin datos aún');
+                return rows.map((r,i)=>
+                  React.createElement('div',{key:i,style:{padding:'8px 0',borderBottom:'1px solid var(--border2)'}},
+                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:3}},
+                      React.createElement('span',null,
+                        React.createElement('span',{style:{fontSize:10,fontWeight:800,color:'var(--muted)',marginRight:5}},`${i+1}`),
+                        React.createElement('span',{style:{fontSize:12,fontWeight:700,color:'var(--navy)'}},r.city)
                       ),
-                      React.createElement('span',{style:{fontSize:14,fontWeight:800,color:r.color}},[`${r.pct}%`])
+                      React.createElement('span',{style:{fontSize:13,fontWeight:800,color:'#15803D'}},`${r.pct}%`)
                     ),
-                    React.createElement('div',{style:{height:6,background:'var(--bpale)',borderRadius:3,overflow:'hidden'}},
-                      React.createElement('div',{style:{height:'100%',width:r.pct+'%',background:r.color,borderRadius:3,transition:'width .5s'}})
+                    React.createElement('div',{style:{height:5,background:'#DCFCE7',borderRadius:3,overflow:'hidden'}},
+                      React.createElement('div',{style:{height:'100%',width:r.pct+'%',background:'#16A34A',borderRadius:3}})
                     ),
-                    React.createElement('div',{style:{fontSize:10,color:'var(--muted)',marginTop:3}},[`${r.con} de ${r.total} locales · ${r.dept}`])
+                    React.createElement('div',{style:{fontSize:10,color:'var(--muted)',marginTop:2}},`${r.con} de ${r.con+r.sin} locales`)
                   )
-                ));
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* RANKING INTERIOR */}
+          <div className="card" style={{overflow:'hidden'}}>
+            <div className="card-h" style={{background:'#DBEAFE',borderBottom:'1px solid #93C5FD'}}>
+              <span style={{color:'#1D4ED8',fontWeight:700}}>🔵 Top 10 — Interior</span>
+            </div>
+            <div className="card-b" style={{padding:'8px 12px',maxHeight:460,overflowY:'auto'}}>
+              {(()=>{
+                const rows = Object.entries(D.deptBF)
+                  .map(([dept,d])=>({city: D.DEPT_CITY[dept]||dept, dept, con:d.con, total:d.total, pct: d.total?Math.round(d.con/d.total*100):0}))
+                  .sort((a,b)=>b.pct-a.pct).slice(0,10);
+                return rows.map((r,i)=>
+                  React.createElement('div',{key:i,style:{padding:'8px 0',borderBottom:'1px solid var(--border2)'}},
+                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:3}},
+                      React.createElement('span',null,
+                        React.createElement('span',{style:{fontSize:10,fontWeight:800,color:'var(--muted)',marginRight:5}},`${i+1}`),
+                        React.createElement('span',{style:{fontSize:12,fontWeight:700,color:'var(--navy)'}},r.city)
+                      ),
+                      React.createElement('span',{style:{fontSize:13,fontWeight:800,color:'#1D4ED8'}},`${r.pct}%`)
+                    ),
+                    React.createElement('div',{style:{height:5,background:'#DBEAFE',borderRadius:3,overflow:'hidden'}},
+                      React.createElement('div',{style:{height:'100%',width:r.pct+'%',background:'#1D4ED8',borderRadius:3}})
+                    ),
+                    React.createElement('div',{style:{fontSize:10,color:'var(--muted)',marginTop:2}},`${r.con} de ${r.total} locales · ${r.dept}`)
+                  )
+                );
               })()}
             </div>
           </div>
