@@ -1529,8 +1529,8 @@ function PageGastro() {
             </div>
             <div className="card-b" style={{padding:'8px 12px',maxHeight:460,overflowY:'auto'}}>
               {(()=>{
-                const rows = Object.entries(D.deptBF)
-                  .map(([dept,d])=>({city: D.DEPT_CITY[dept]||dept, dept, con:d.con, total:d.total, pct: d.total?Math.round(d.con/d.total*100):0}))
+                const rows = (D.cityBF||[])
+                  .map(r=>({city:r.city, con:r.con, total:r.con+r.sin, pct: (r.con+r.sin)?Math.round(r.con/(r.con+r.sin)*100):0}))
                   .sort((a,b)=>b.pct-a.pct).slice(0,10);
                 return rows.map((r,i)=>
                   React.createElement('div',{key:i,style:{padding:'8px 0',borderBottom:'1px solid var(--border2)'}},
@@ -1544,7 +1544,7 @@ function PageGastro() {
                     React.createElement('div',{style:{height:5,background:'#DBEAFE',borderRadius:3,overflow:'hidden'}},
                       React.createElement('div',{style:{height:'100%',width:r.pct+'%',background:'#1D4ED8',borderRadius:3}})
                     ),
-                    React.createElement('div',{style:{fontSize:10,color:'var(--muted)',marginTop:2}},`${r.con} de ${r.total} locales · ${r.dept}`)
+                    React.createElement('div',{style:{fontSize:10,color:'var(--muted)',marginTop:2}},`${r.con} de ${r.total} locales`)
                   )
                 );
               })()}
