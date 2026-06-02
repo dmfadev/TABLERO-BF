@@ -1851,6 +1851,7 @@ function PageDetalle() {
 function PageEvidencias() {
   const D = window.TableroData; if(!D) return null;
   const [tab, setTab] = useState('gastro_int');
+  const [compSub, setCompSub] = useState('gastro');
   const [search, setSearch] = useState('');
   const [ciudad, setCiudad] = useState('');
 
@@ -1861,15 +1862,20 @@ function PageEvidencias() {
     { id:'comp',          label:'Competencia'           },
   ];
 
+  const compGastro = (window.__rawCompe||[]).map(r=>({
+    name: r.LOCAL||r.local||'—',
+    city: r.CIUDAD||r.ciudad||'—',
+    fotos: Object.keys(r).filter(k=>k.toUpperCase().includes('FOTO')).map(k=>r[k]).filter(Boolean),
+  })).filter(l=>l.fotos.length>0);
+
+  const compMadres = D.localesTiendas.filter(l=>l.fotos_comp && l.fotos_comp.length>0)
+    .map(l=>({ name:l.name, city:l.city||'—', fotos:l.fotos_comp }));
+
   const srcMap = {
     gastro_int:    D.locales.filter(l => l.fotos && l.fotos.length > 0),
     gastro_central:(D.gcLocales||[]).filter(l => l.fotos && l.fotos.length > 0),
     tiendas:       D.localesTiendas.filter(l => l.fotos && l.fotos.length > 0),
-    comp:          (window.__rawCompe||[]).map(r=>({
-                     name: r.LOCAL||r.local||'—',
-                     city: r.CIUDAD||r.ciudad||'—',
-                     fotos: Object.keys(r).filter(k=>k.toUpperCase().includes('FOTO')).map(k=>r[k]).filter(Boolean),
-                   })).filter(l=>l.fotos.length>0),
+    comp:          compSub==='gastro' ? compGastro : compMadres,
   };
 
   const ciudades = [...new Set((srcMap[tab]||[]).map(l=>l.city).filter(Boolean))].sort();
@@ -1887,6 +1893,25 @@ function PageEvidencias() {
           </div>
         ))}
       </div>
+
+      {/* Sub-selector solo en Competencia */}
+      {tab==='comp' && (
+        <div style={{display:'flex',gap:8,margin:'10px 0',flexWrap:'wrap'}}>
+          {[{id:'gastro',label:'Gastronómico Interior'},{id:'madres',label:'Promo - Día de la Madre'}].map(s=>
+            React.createElement('button',{
+              key:s.id, onClick:()=>{setCompSub(s.id);setSearch('');setCiudad('');},
+              style:{
+                padding:'6px 16px',borderRadius:'8px',border:'none',cursor:'pointer',
+                fontFamily:'inherit',fontSize:'12px',fontWeight:'600',
+                background: compSub===s.id ? 'var(--navy)' : 'var(--bsoft)',
+                color: compSub===s.id ? '#fff' : 'var(--navy)',
+                transition:'all .15s',
+              }
+            }, s.label)
+          )}
+        </div>
+      )}
+
       <div className="ev-filter-row">
         <input className="ev-search" type="text" placeholder="Buscar local..." value={search} onChange={e=>setSearch(e.target.value)} />
         {ciudades.length>0 && (
